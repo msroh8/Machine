@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحاضرة 3: فحص الثغرات الشبكية (الجزء الأول)</title>
+    
+    <!-- مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبات React الأساسية -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- مترجم Babel ليفهم المتصفح كود React -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- الحاوية الأساسية لتطبيق ريأكت -->
+    <div id="root"></div>
+
+    <!-- كود التطبيق -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- البيانات لشرائح المحاضرة الثالثة ---
+        const slidesData = [
+          {
+            id: 's1',
+            title: '1. Defining Network Vulnerability Scanning',
+            content: `• A technique used to identify security weaknesses in a computer network.\n• It is a surveillance technique used by both administrators and attackers.\n• Goal: To find open ports and the services running on those ports.`,
+            contentAr: `• تقنية تُستخدم لتحديد نقاط الضعف الأمنية في شبكة الكمبيوتر.\n• هي أداة مراقبة واستطلاع (Surveillance technique) يستخدمها كل من مسؤولي النظام (للحماية) والمهاجمين (للاختراق).\n• الهدف: العثور على المنافذ المفتوحة (Open ports) والخدمات التي تعمل على هذه المنافذ.`,
+            keywords: {
+              'Vulnerability Scanning': 'فحص الثغرات: عملية مسح شاملة للشبكة تشبه المرور على كل أبواب ونوافذ المبنى للتأكد من إغلاقها، واكتشاف أي منفذ قد يسمح بالدخول غير المصرح به.',
+              'surveillance technique': 'تقنية استطلاع/مراقبة: استخدام أدوات برمجية لجمع المعلومات عن الشبكة في صمت. المدير يستخدمها لسد الثغرات، والهاكر يستخدمها لاكتشاف نقطة الاختراق.',
+              'open ports': 'المنافذ المفتوحة: الأبواب الرقمية في السيرفر. كل خدمة (مثل الويب أو البريد) تحتاج منفذاً مفتوحاً لتعمل. إذا تُركت منافذ غير ضرورية مفتوحة، تصبح ثغرة جاهزة للاستغلال.'
+            },
+            summary: {
+              en: 'Network vulnerability scanning is a surveillance technique used to identify security weaknesses by locating open ports and their running services.',
+              ar: 'فحص ثغرات الشبكة هو تقنية استطلاع تُستخدم لتحديد نقاط الضعف الأمنية من خلال تحديد المنافذ المفتوحة والخدمات التي تعمل عليها.'
+            },
+            keyPoints: [
+              { ar: 'الفحص يستخدمه المهاجم (للاختراق) والمدافع (للحماية) على حد سواء.', en: 'Scanning is used by both attackers (to breach) and defenders (to protect).' },
+              { ar: 'الهدف الأساسي هو اكتشاف "المنافذ المفتوحة" والخدمات العاملة.', en: 'The primary goal is discovering "open ports" and running services.' },
+              { ar: 'يعتبر خطوة "استطلاع" أساسية قبل أي عملية اختراق.', en: 'It is a foundational "surveillance" step before any penetration attempt.' }
+            ],
+            mcq: {
+              question: 'What is the primary goal of network vulnerability scanning according to the slide?',
+              options: ['To shut down all servers', 'To find open ports and the services running on them', 'To encrypt the network traffic', 'To write firewalls rules automatically'],
+              answer: 1,
+              explanation: 'The slide explicitly states that the goal is to find open ports and the services running on those ports to identify weaknesses.'
+            }
+          },
+          {
+            id: 's2',
+            title: '2. Prerequisite: Networking Mastery',
+            content: `• To scan effectively, one must understand:\n• IP Addresses & Subnetting.\n• Network Ports & Protocols.\n• Broadcast vs. Unicast.\n• Scanning Scope: Identifying live hosts determines the boundaries of the assessment.`,
+            contentAr: `• لإجراء فحص فعّال، يجب على المرء أن يفهم بعمق:\n• عناوين الـ IP وتقسيم الشبكات (Subnetting).\n• منافذ الشبكة والبروتوكولات (Ports & Protocols).\n• البث الجماعي (Broadcast) مقابل البث الأحادي (Unicast).\n• نطاق الفحص (Scanning Scope): تحديد "الأجهزة الحية" (Live hosts) هو ما يرسم حدود عملية التقييم.`,
+            keywords: {
+              'Subnetting': 'تقسيم الشبكات: تجزئة شبكة ضخمة إلى شبكات فرعية أصغر. هذا يسهل إدارتها، ويقلل الازدحام، والأهم أمنياً: يعزل الأقسام الحساسة عن باقي الشبكة.',
+              'Broadcast vs. Unicast': 'الفرق في التوجيه: Unicast هو التحدث لشخص واحد محدد (جهاز لجهاز). بينما Broadcast هو الصراخ في غرفة لكي يسمعك الجميع (رسالة واحدة لكل الأجهزة بالشبكة).',
+              'live hosts': 'الأجهزة الحية: الأجهزة المتصلة فعلياً وتعمل في الشبكة وترد على الطلبات. لا فائدة من فحص IP لجهاز مطفأ، لذلك نحدد الأجهزة الحية أولاً لتوفير الوقت.'
+            },
+            summary: {
+              en: 'Effective scanning requires mastery of networking concepts like IP subnetting, protocols, and broadcast logic, starting with identifying live hosts to define the scope.',
+              ar: 'يتطلب الفحص الفعال إتقاناً لمفاهيم الشبكات مثل تقسيم الـ IP، البروتوكولات، ومنطق البث، بدءاً بتحديد الأجهزة النشطة لتعريف نطاق العمل.'
+            },
+            keyPoints: [
+              { ar: 'لا يمكن أن تكون مخترقاً ناجحاً دون فهم عميق لأساسيات الشبكات.', en: 'You cannot be a successful pentester without deep networking knowledge.' },
+              { ar: 'فهم "تقسيم الشبكات" (Subnetting) ضروري لاكتشاف خبايا الشبكة.', en: 'Understanding "Subnetting" is essential to map the network properly.' },
+              { ar: 'الخطوة الأولى في الفحص هي حصر "الأجهزة الحية" لتحديد نطاق العمل.', en: 'The first step in scanning is identifying "live hosts" to set the scope.' }
+            ],
+            mcq: {
+              question: 'Why is identifying "live hosts" considered a crucial first step?',
+              options: ['It crashes the target network', 'It determines the boundaries of the assessment (Scanning Scope)', 'It changes the target MAC addresses', 'It installs backdoors automatically'],
+              answer: 1,
+              explanation: 'Identifying which machines are actually powered on and connected (live hosts) sets the physical and technical boundaries of what you can scan.'
+            }
+          },
+          {
+            id: 's3',
+            title: '3. Determining Scope & Host Availability',
+            content: `• Organizations change frequently (DHCP reassignments).\n• Old vulnerabilities often reappear when new systems are added.\n• Requirement: Scans must be repeatable and consistent to capture these changes.`,
+            contentAr: `• تتغير المؤسسات بشكل متكرر (بسبب إعادة تعيين عناوين الـ IP عبر خوادم DHCP).\n• غالباً ما تعاود الثغرات القديمة الظهور عندما يتم إضافة أنظمة أو أجهزة جديدة للشبكة.\n• المطلب الأساسي: يجب أن تكون عمليات الفحص قابلة للتكرار (Repeatable) ومتسقة (Consistent) لالتقاط ورصد هذه التغييرات المستمرة.`,
+            keywords: {
+              'DHCP reassignments': 'توزيع العناوين الديناميكي: السيرفر الذي يعطي للأجهزة عناوين (IP) تتغير كل فترة. ما كان اليوم جهاز موظف عادي قد يصبح غداً سيرفر بيانات، مما يجعل الشبكة هدفاً متحركاً.',
+              'Old vulnerabilities': 'الثغرات العائدة (الزومبي): قد تقوم الشركة بترقيع ثغرة اليوم، ولكن غداً يقوم فني بتركيب سيرفر جديد قديم النظام، لتعود نفس الثغرة القديمة للشبكة مجدداً.',
+              'repeatable and consistent': 'القابلية للتكرار والتسق: لا يكفي الفحص مرة واحدة بالعام. يجب أن تكون لديك أدوات تفحص الشبكة بنفس الدقة كل يوم لاكتشاف أي تغيير مفاجئ أو جهاز جديد.'
+            },
+            summary: {
+              en: 'Because networks are dynamic and IPs change via DHCP, security scans must be consistent and repeatable to catch re-emerging vulnerabilities when systems change.',
+              ar: 'نظراً لأن الشبكات ديناميكية وتتغير عناوين IP، يجب أن تكون الفحوصات الأمنية متسقة وقابلة للتكرار لاكتشاف الثغرات العائدة عند تغير الأنظمة.'
+            },
+            keyPoints: [
+              { ar: 'الشبكات كائنات حية تتغير مستمراً بفضل بروتوكولات مثل (DHCP).', en: 'Networks are living entities that change constantly via protocols like DHCP.' },
+              { ar: 'إضافة أنظمة جديدة قد يعيد إحياء ثغرات قديمة تم إغلاقها سابقاً.', en: 'Adding new systems might resurrect old vulnerabilities.' },
+              { ar: 'الفحص الناجح يجب أن يكون أداة مستمرة وقابلة للتكرار الدائم.', en: 'Successful scanning must be a continuous, repeatable process.' }
+            ],
+            mcq: {
+              question: 'Why do old vulnerabilities often reappear in a network?',
+              options: ['Because hackers plant them', 'When new or unpatched systems are added to the network', 'Because antivirus software expires', 'Because the internet connection is slow'],
+              answer: 1,
+              explanation: 'As networks grow and new systems are added, configuration errors or unpatched software can reintroduce old vulnerabilities.'
+            }
+          },
+          {
+            id: 's4',
+            title: '4. The Need for Standardization',
+            content: `• Standardization provides communication among heterogeneous devices.\n• Two primary models define this:\n1. OSI Model: A 7-layer hypothetical reference.\n2. TCP/IP Model: A 4-layer practical model.`,
+            contentAr: `• التوحيد القياسي (Standardization) يوفر لغة تواصل مشتركة بين الأجهزة غير المتجانسة.\n• نموذجان أساسيان يحددان هذا التوحيد:\n1. نموذج OSI: نموذج مرجعي نظري (افتراضي) يتكون من 7 طبقات.\n2. نموذج TCP/IP: نموذج عملي وتطبيقي يتكون من 4 طبقات.`,
+            keywords: {
+              'Standardization': 'التوحيد القياسي: تخيل لو أن كل شركة هواتف اخترعت لغة خاصة بها للإنترنت! التوحيد هو وضع قواعد عالمية تجعل جهاز آبل قادر على فتح موقع من خادم مايكروسوفت بسلاسة.',
+              'heterogeneous devices': 'الأجهزة غير المتجانسة: الأجهزة المختلفة تماماً في الصنع ونظام التشغيل (لابتوب، هاتف، ثلاجة ذكية، راوتر).',
+              'OSI Model': 'نموذج OSI: نموذج أكاديمي نظري تم إنشاؤه لفهم كيفية انتقال البيانات بدقة. ورغم أنه لا يُستخدم حرفياً في البرمجة الحديثة، إلا أنه "الأب الروحي" لفهم الشبكات.',
+              'TCP/IP Model': 'نموذج TCP/IP: النموذج الواقعي الذي بنيت عليه شبكة الإنترنت اليوم. هو اختصار ودمج لنموذج OSI ليصبح عملياً وأسرع في التنفيذ.'
+            },
+            summary: {
+              en: 'Standardization allows vastly different devices to communicate. The OSI model (7 layers) provides a theoretical framework, while TCP/IP (4 layers) is the practical model used today.',
+              ar: 'يسمح التوحيد القياسي بتواصل الأجهزة المختلفة. يوفر نموذج OSI (7 طبقات) إطاراً نظرياً، بينما نموذج TCP/IP (4 طبقات) هو النموذج العملي المستخدم اليوم.'
+            },
+            keyPoints: [
+              { ar: 'التوحيد القياسي ضروري ليتخاطب "ويندوز" مع "ماك" و"لينكس".', en: 'Standardization is vital for Windows, Mac, and Linux to communicate.' },
+              { ar: 'نموذج OSI هو مجرد "مرجع نظري" تعليمي يتكون من 7 طبقات.', en: 'The OSI model is merely an educational "theoretical reference" with 7 layers.' },
+              { ar: 'نموذج TCP/IP هو "النموذج العملي" المطبق فعلياً في الإنترنت.', en: 'TCP/IP is the actual "practical model" implemented on the Internet.' }
+            ],
+            mcq: {
+              question: 'Which model is described as a "7-layer hypothetical reference"?',
+              options: ['TCP/IP Model', 'OSI Model', 'Ethernet Model', 'DHCP Model'],
+              answer: 1,
+              explanation: 'The OSI Model is a theoretical, 7-layer reference framework used to understand networking, unlike the practical TCP/IP model.'
+            }
+          },
+          {
+            id: 's6',
+            title: '6 & 7. The Seven Layers of the OSI Model',
+            content: `Each layer has a specific function and provides services to the layer above it.\n• Physical Layer: Handles transmission of raw data (bits) over physical media.\n• Data Link Layer: Ensures error-free data transfer on the same network.\n• Network Layer: Manages routing between networks (IP addresses).\n• Transport Layer: Provides end-to-end communication (TCP/UDP).\n• Session Layer: Manages communication sessions.\n• Presentation Layer: Formats data (encryption, compression).\n• Application Layer: Provides user-facing services (HTTP, DNS).`,
+            contentAr: `كل طبقة لها وظيفة محددة وتقدم خدمات للطبقة التي فوقها.\n• الطبقة المادية (Physical): تتعامل مع نقل البيانات الخام (بتات 0 و 1) عبر الوسائط المادية (كابلات).\n• طبقة ارتباط البيانات (Data Link): تضمن نقل البيانات بدون أخطاء بين الأجهزة في نفس الشبكة المحلية.\n• طبقة الشبكة (Network): تدير توجيه البيانات بين الشبكات المختلفة (باستخدام عناوين IP).\n• طبقة النقل (Transport): توفر اتصالاً من النهاية للنهاية وتضمن التوصيل (TCP/UDP).\n• طبقة الجلسة (Session): تدير وتحافظ على جلسات الاتصال بين التطبيقات.\n• طبقة العرض (Presentation): تنسق البيانات (مثل التشفير والضغط).\n• طبقة التطبيق (Application): توفر الخدمات التي تواجه المستخدم مباشرة (تصفح، بريد).`,
+            keywords: {
+              'Physical Layer': 'الطبقة المادية (1): أدنى طبقة. هنا لا يوجد ذكاء، مجرد نبضات كهربائية، إشارات ضوئية (ألياف)، أو موجات راديو (واي فاي) تنقل الأصفار والآحاد.',
+              'Data Link Layer': 'طبقة ارتباط البيانات (2): الطبقة التي تتعامل مع (MAC Address) وتكتشف أخطاء الأسلاك. تُستخدم لتوصيل جهازين متجاورين في نفس الغرفة أو المبنى.',
+              'Network Layer': 'طبقة الشبكة (3): طبقة التوجيه والسفر. تستخدم (IP Address) لتحديد أفضل طريق لرسالتك للسفر من دولتك إلى سيرفر في قارة أخرى.',
+              'Transport Layer': 'طبقة النقل (4): طبقة الجودة. إما أن تستخدم (TCP) لتتأكد من وصول كل حرف في الرسالة، أو (UDP) لترسل الفيديو بسرعة حتى لو ضاعت بعض الإطارات.',
+              'Application Layer': 'طبقة التطبيق (7): أعلى طبقة. هي الشاشة التي تراها أنت (المتصفح، الواتساب). لا تتعامل هذه الطبقة مع الكابلات بل مع لغات البرامج مثل HTTP.'
+            },
+            summary: {
+              en: 'The OSI model divides networking into 7 structured layers, from the physical cables (Layer 1) up to the user-facing software applications (Layer 7).',
+              ar: 'يقسم نموذج OSI الشبكات إلى 7 طبقات هيكلية، بدءاً من الكابلات المادية (الطبقة 1) وصولاً إلى التطبيقات البرمجية التي تواجه المستخدم (الطبقة 7).'
+            },
+            keyPoints: [
+              { ar: 'كل طبقة في النموذج تخدم فقط الطبقة التي تليها مباشرة.', en: 'Each layer in the model only serves the layer directly above it.' },
+              { ar: 'الطبقة المادية (Physical) تتعامل مع الكهرباء والأصفار والآحاد فقط.', en: 'The Physical layer deals solely with electricity, zeros, and ones.' },
+              { ar: 'طبقة الشبكة (Network) مسؤولة عن العناوين (IP) والسفر لمسافات طويلة.', en: 'The Network layer is responsible for IP addresses and long-distance routing.' }
+            ],
+            mcq: {
+              question: 'Which OSI layer is responsible for routing data between different networks using IP addresses?',
+              options: ['Data Link Layer', 'Network Layer', 'Transport Layer', 'Presentation Layer'],
+              answer: 1,
+              explanation: 'The Network layer manages logical addressing (IP) and routing packets between disparate networks.'
+            }
+          },
+          {
+            id: 's8',
+            title: '8. How It Works (Data Flow)',
+            content: `• How It Works:\nDevice A sends data through all seven layers, starting at the Application Layer. Each layer adds its specific functionality (Headers). Data travels through intermediate nodes to reach Device B. At Device B, the layers process the data in reverse order, from Physical to Application. This model helps standardize communication and ensures compatibility.`,
+            contentAr: `• كيف يعمل نقل البيانات:\nيرسل "الجهاز A" البيانات مروراً بالطبقات السبع، بدءاً من طبقة التطبيق نزولاً للأسفل. تضيف كل طبقة وظيفتها الخاصة (مثل ترويسات العناوين). تنتقل البيانات عبر عُقد وسيطة (روترات) لتصل إلى "الجهاز B". في الجهاز B، تقوم الطبقات بمعالجة البيانات بترتيب عكسي، صعوداً من الطبقة المادية إلى طبقة التطبيق. هذا النموذج يضمن التوافق القياسي للاتصالات.`,
+            keywords: {
+              'reverse order': 'ترتيب عكسي: عملية التغليف وفك التغليف (Encapsulation). جهاز الإرسال يغلف الرسالة في ظروف متتالية من الطبقة 7 إلى 1. جهاز الاستقبال يفتح الظروف من 1 إلى 7.',
+              'intermediate nodes': 'العُقد الوسيطة: الأجهزة الموجودة في منتصف الطريق (مثل الروترات في شركات الاتصالات). هذه الأجهزة تفتح الرسالة حتى "طبقة الشبكة" فقط لتعرف العنوان ثم تعيد إرسالها.',
+              'compatibility': 'التوافقية: بسبب هذا الفصل الطبقي، يمكنك تغيير كارت الشاشة (طبقة مادية) دون أن تضطر لإعادة برمجة متصفح كروم (طبقة تطبيق)؛ كل طبقة تعمل باستقلالية.'
+            },
+            summary: {
+              en: 'Data flows down the OSI layers on the sender\'s side (encapsulation) and back up the layers on the receiver\'s side (decapsulation), ensuring seamless compatibility.',
+              ar: 'تتدفق البيانات نزولاً عبر طبقات OSI في جانب المرسل وتصعد مجدداً عبر الطبقات في جانب المستقبل، مما يضمن توافقية سلسة.'
+            },
+            keyPoints: [
+              { ar: 'نقل البيانات يبدأ من طبقة "التطبيق" للمرسل وينزل لـ "المادية".', en: 'Data transmission starts from the sender\'s Application layer down to Physical.' },
+              { ar: 'المستقبل يعالج البيانات بترتيب عكسي (من الأسفل للأعلى).', en: 'The receiver processes data in reverse order (bottom-up).' },
+              { ar: 'يسمى إضافة البيانات في كل طبقة بعملية "التغليف" (Encapsulation).', en: 'Adding headers at each layer is called "Encapsulation".' }
+            ],
+            mcq: {
+              question: 'When Device B receives data from Device A, in what order does it process the OSI layers?',
+              options: ['From Application to Physical', 'From Physical to Application (Reverse order)', 'It skips to the Network layer immediately', 'It processes all layers simultaneously'],
+              answer: 1,
+              explanation: 'The receiving device decapsulates the data, starting from the raw bits at the Physical layer up to the readable data at the Application layer.'
+            }
+          },
+          {
+            id: 's12',
+            title: '12. Networking Protocols',
+            content: `• ICMP (Internet Control Message Protocol):\nUsed for diagnostic and error-reporting in network communication. Example: Ping and Traceroute.\n• IPSec (Internet Protocol Security):\nA framework for securing network communications using encryption and authentication. Often used in VPNs.\n• IGMP (Internet Group Management Protocol):\nManages multicast group memberships for efficient data distribution.\n• WinSock:\nA Microsoft API for network communication, allowing applications to use TCP/IP protocols on Windows.`,
+            contentAr: `• بروتوكول ICMP:\nيُستخدم للتشخيص والإبلاغ عن الأخطاء في اتصالات الشبكة. أمثلة: أوامر Ping و Traceroute.\n• بروتوكول IPSec:\nإطار عمل لتأمين اتصالات الشبكة باستخدام التشفير والمصادقة. يُستخدم غالباً في شبكات (VPN).\n• بروتوكول IGMP:\nيدير عضويات المجموعات (Multicast) لتوزيع البيانات بشكل فعال لعدة مستخدمين معاً.\n• أداة WinSock:\nواجهة برمجة تطبيقات (API) من مايكروسوفت، تسمح للبرامج باستخدام بروتوكولات TCP/IP على أنظمة ويندوز.`,
+            keywords: {
+              'ICMP': 'رسول الأخطاء (ICMP): بروتوكول لا ينقل البيانات، بل ينقل الأخبار. عندما تكتب Ping لاختبار موقع، أنت تستخدم ICMP ليسأله "هل أنت حي؟"، فيرد بـ "نعم". الهاكرز يستخدمونه لاكتشاف الأجهزة الحية.',
+              'IPSec': 'حارس البيانات المصفح: بروتوكول يعمل في طبقة الشبكة، يقوم بتشفير حزمة البيانات بالكامل أثناء انتقالها. هو العمود الفقري لإنشاء شبكات الـ VPN الآمنة للموظفين العاملين عن بعد.',
+              'IGMP': 'موزع البث الجماعي: بدلاً من إرسال فيديو مباشر لـ 1000 مستخدم (مما يهلك الشبكة)، يرسل السيرفر نسخة واحدة، ويقوم IGMP بتوجيهها للمشتركين فقط.',
+              'WinSock': 'مترجم الويندوز للشبكات: حلقة الوصل المبرمجة التي تسمح لأي برنامج (مثل متصفح أو لعبة) على الويندوز بالتحدث مع كارت الشبكة واستخدام الإنترنت.'
+            },
+            summary: {
+              en: 'Various protocols handle specific tasks: ICMP for diagnostics (Ping), IPSec for encryption (VPNs), IGMP for multicast, and WinSock as a Windows API for networking.',
+              ar: 'تتعامل البروتوكولات المختلفة مع مهام محددة: ICMP للتشخيص، IPSec للتشفير (VPNs)، IGMP للبث الجماعي، و WinSock كواجهة تطبيقات ويندوز للشبكات.'
+            },
+            keyPoints: [
+              { ar: 'أمر (Ping) الشهير يعمل باستخدام بروتوكول ICMP للتشخيص.', en: 'The famous (Ping) command works using the ICMP diagnostic protocol.' },
+              { ar: 'شبكات الـ VPN الآمنة تعتمد بشكل كبير على تشفير IPSec.', en: 'Secure VPNs rely heavily on IPSec encryption.' },
+              { ar: 'تطبيقات الويندوز تتصل بالإنترنت بمساعدة مكتبة WinSock.', en: 'Windows applications connect to the internet aided by WinSock API.' }
+            ],
+            mcq: {
+              question: 'Which protocol is primarily used by the "Ping" command for diagnostic and error-reporting?',
+              options: ['IPSec', 'IGMP', 'ICMP', 'WinSock'],
+              answer: 2,
+              explanation: 'ICMP (Internet Control Message Protocol) is used by tools like Ping and Traceroute to test connectivity and report errors.'
+            }
+          },
+          {
+            id: 's13',
+            title: '13 & 14. Security and Application Protocols',
+            content: `• SSL (Secure Sockets Layer):\nProvides secure communication over a network by encrypting data. Common in HTTPS.\n• SSH (Secure Shell):\nA secure protocol for remote login and command execution.\n• IMAP (Internet Message Access Protocol): Used for retrieving emails.\n• HTTP (Hypertext Transfer Protocol): Transfers web pages.\n• FTP (File Transfer Protocol): Allows file uploads/downloads.\n• DNS (Domain Name System): Translates domain names into IP addresses.`,
+            contentAr: `• بروتوكول SSL:\nيوفر اتصالاً آمناً عبر الشبكة عن طريق تشفير البيانات. وهو الأساس في تصفح الويب الآمن (HTTPS).\n• بروتوكول SSH:\nبروتوكول آمن لتسجيل الدخول عن بُعد وتنفيذ الأوامر (مشفّر بالكامل).\n• بروتوكولات التطبيقات:\n- IMAP: لاسترداد وقراءة رسائل البريد الإلكتروني.\n- HTTP: لنقل صفحات الويب.\n- FTP: لرفع وتحميل الملفات من وإلى السيرفر.\n- DNS: "دليل هاتف الإنترنت"، يترجم أسماء المواقع (مثل google.com) إلى أرقام (IP addresses).`,
+            keywords: {
+              'SSL': 'طبقة المنافذ الآمنة (SSL/TLS): القفل الأخضر في المتصفح. يقوم بتشفير بطاقتك الائتمانية قبل إرسالها لكي لا يقرأها أي شخص يتجسس على الشبكة.',
+              'SSH': 'الصدفة الآمنة (SSH): أداة مدير النظام المفضلة للتحكم بسيرفرات لينكس عن بُعد. تمتاز بأن كل أمر يكتب فيها مشفر تماماً، عكس سابقتها (Telnet) التي كانت مكشوفة.',
+              'FTP': 'ناقل الملفات (FTP): بروتوكول قديم مخصص فقط لنقل الملفات الكبيرة. خطورته تكمن في أنه ينقل كلمات المرور بنص واضح (غير مشفر) إذا لم يتم تأمينه.',
+              'DNS': 'نظام أسماء النطاقات (DNS): البشر يحفظون الكلمات (yahoo.com)، والكمبيوتر يفهم الأرقام (142.25.1.1). الـ DNS هو المترجم اللحظي بينهما.'
+            },
+            summary: {
+              en: 'Security protocols like SSL and SSH encrypt data and remote sessions, while application protocols like HTTP, FTP, and DNS provide functional services for web and file access.',
+              ar: 'تعمل البروتوكولات الأمنية مثل SSL و SSH على تشفير البيانات والجلسات، بينما توفر بروتوكولات التطبيقات مثل HTTP و DNS خدمات التصفح والوصول.'
+            },
+            keyPoints: [
+              { ar: 'بروتوكول SSH هو البديل الآمن والمشفر للتحكم بالأنظمة عن بعد.', en: 'SSH is the secure, encrypted alternative for remote system administration.' },
+              { ar: 'الـ DNS يعمل كدليل هاتف لترجمة الأسماء إلى أرقام IP.', en: 'DNS acts as a phonebook translating domain names to IP addresses.' },
+              { ar: 'بروتوكول HTTPS يعتمد على SSL لتشفير بيانات التصفح.', en: 'HTTPS protocol relies on SSL to encrypt browsing data.' }
+            ],
+            mcq: {
+              question: 'Which protocol functions primarily to translate human-readable domain names into IP addresses?',
+              options: ['FTP', 'SSH', 'DNS', 'IMAP'],
+              answer: 2,
+              explanation: 'DNS (Domain Name System) translates names like "google.com" into the numerical IP addresses computers use to route traffic.'
+            }
+          },
+          {
+            id: 's15',
+            title: '15 & 16. The Practical TCP/IP Model',
+            content: `What is the TCP/IP Model?\nA practical networking model used for communication over the Internet. It simplifies the 7-layer OSI model into 4 layers:\n1. Application Layer (Combines OSI's App, Presentation, Session). Data: Data.\n2. Transport Layer (TCP, UDP). Data: Segment.\n3. Internet Layer (IP, ICMP). Data: Packet.\n4. Host-to-Network Layer (Combines OSI's Physical, Data Link). Data: Frame.\nKey Feature: Designed specifically for practical Internet communication.`,
+            contentAr: `ما هو نموذج TCP/IP؟\nنموذج شبكي تطبيقي عملي يُستخدم للاتصال عبر الإنترنت. يقوم بتبسيط نموذج OSI ذي الـ 7 طبقات إلى 4 طبقات فقط:\n1. طبقة التطبيق (تدمج التطبيق، العرض، والجلسة من OSI). مسمى البيانات: Data.\n2. طبقة النقل (تحوي TCP، UDP). مسمى البيانات: القطعة (Segment).\n3. طبقة الإنترنت (تحوي IP، ICMP). مسمى البيانات: الحزمة (Packet).\n4. طبقة المضيف إلى الشبكة (تدمج المادية وارتباط البيانات). مسمى البيانات: الإطار (Frame).\nالميزة الأساسية: صُمم خصيصاً وعملياً لاتصالات الإنترنت الواقعية.`,
+            keywords: {
+              'TCP/IP Model': 'النموذج الواقعي: بينما كان الأكاديميون ينظرون بـ OSI، كان المهندسون يبنون الإنترنت الفعلي باستخدام TCP/IP لكونه أبسط، أسرع، وأقل تعقيداً.',
+              'Internet Layer': 'طبقة الإنترنت: قلب نموذج TCP/IP وموطن بروتوكول (IP). وهي تعادل "طبقة الشبكة" في OSI وتُعنى باختيار أفضل مسار لنقل الحزم.',
+              'Segment': 'القطعة (Segment): في طبقة النقل، يتم تقطيع الملف الضخم إلى قطع صغيرة ليسهل إرسالها وإعادة تجميعها، كل قطعة تسمى Segment.',
+              'Host-to-Network Layer': 'طبقة المضيف-الشبكة: تدمج الكابلات وكروت الشاشة معاً. تتعامل مع البنية التحتية المادية المباشرة وكيف يرسل الجهاز نبضاته للسلك.'
+            },
+            summary: {
+              en: 'The TCP/IP model is a simplified, highly practical 4-layer model (Application, Transport, Internet, Network Access) that forms the backbone of the modern Internet.',
+              ar: 'نموذج TCP/IP هو نموذج مبسط وعملي جداً من 4 طبقات (التطبيق، النقل، الإنترنت، الوصول للشبكة) والذي يشكل العمود الفقري للإنترنت الحديث.'
+            },
+            keyPoints: [
+              { ar: 'نموذج TCP/IP هو اختصار ودمج لنموذج OSI النظري.', en: 'The TCP/IP model is an abbreviation and consolidation of the theoretical OSI.' },
+              { ar: 'يتكون من 4 طبقات عملية بدلاً من 7 طبقات.', en: 'It consists of 4 practical layers instead of 7.' },
+              { ar: 'مسمى البيانات يتغير: Segment بالنقل، و Packet بالإنترنت.', en: 'Data naming changes: Segment in Transport, Packet in Internet layer.' }
+            ],
+            mcq: {
+              question: 'In the TCP/IP model, which layer combines the Physical and Data Link layers of the OSI model?',
+              options: ['Application Layer', 'Internet Layer', 'Transport Layer', 'Host-to-Network Layer'],
+              answer: 3,
+              explanation: 'The Host-to-Network (or Network Access) layer handles the hardware and physical connections, merging layers 1 and 2 of OSI.'
+            }
+          },
+          {
+            id: 's17',
+            title: '17. Protocol Mapping in TCP/IP',
+            content: `TCP/IP Layer -> Associated Protocols\n• Application -> HTTP, DNS, SNMP, SMTP\n• Transport -> TCP, UDP\n• Internet -> IP, ARP, ICMP, IGMP\n• Host-to-Network -> Ethernet, ATM`,
+            contentAr: `رسم الخرائط للبروتوكولات في طبقات TCP/IP:\n• طبقة التطبيق (Application) -> HTTP, DNS, SNMP, SMTP\n• طبقة النقل (Transport) -> TCP, UDP\n• طبقة الإنترنت (Internet) -> IP, ARP, ICMP, IGMP\n• طبقة المضيف إلى الشبكة (Host-to-Network) -> Ethernet, ATM`,
+            keywords: {
+              'Protocol Mapping': 'خريطة البروتوكولات: معرفة مكان كل بروتوكول أمر حاسم لمختبر الاختراق. إذا كنت تفحص منافذ (TCP)، فأنت تهاجم طبقة النقل، وإذا كنت تتلاعب بعناوين (MAC/ARP)، فأنت تهاجم طبقات أقل.',
+              'ARP': 'بروتوكول حل العناوين (ARP): بروتوكول خطير يعمل بين طبقة الإنترنت والطبقة المادية. يترجم الـ IP إلى MAC Address، وكثيراً ما يستغله الهاكرز في هجمات التسميم (ARP Spoofing) للتنصت.',
+              'UDP': 'بروتوكول (UDP): بروتوكول نقل "لا يهتم بالموثوقية" بل بالسرعة. يرسل البيانات دون التأكد من وصولها، ويستخدم بكثرة في مكالمات الفيديو والألعاب.'
+            },
+            summary: {
+              en: 'Different protocols operate at specific layers of the TCP/IP model. Knowing this mapping is fundamental for network analysis and penetration testing.',
+              ar: 'تعمل البروتوكولات المختلفة في طبقات محددة من نموذج TCP/IP. معرفة هذه الخريطة أمر أساسي لتحليل الشبكات واختبار الاختراق.'
+            },
+            keyPoints: [
+              { ar: 'بروتوكولات الويب والبريد (HTTP/SMTP) تعمل في طبقة التطبيق.', en: 'Web and mail protocols (HTTP/SMTP) operate at the Application layer.' },
+              { ar: 'بروتوكولات النقل تقتصر أساساً على (TCP) للثقة و (UDP) للسرعة.', en: 'Transport protocols are mainly TCP for reliability and UDP for speed.' },
+              { ar: 'تقنية Ethernet تعمل في أدنى طبقة (Host-to-Network).', en: 'Ethernet technology operates at the lowest layer (Host-to-Network).' }
+            ],
+            mcq: {
+              question: 'Which of the following protocols operates at the "Internet" layer of the TCP/IP model?',
+              options: ['HTTP', 'TCP', 'IP', 'Ethernet'],
+              answer: 2,
+              explanation: 'IP (along with ARP, ICMP, IGMP) operates at the Internet layer to handle addressing and routing.'
+            }
+          },
+          {
+            id: 's18',
+            title: '18 & 19. Ethernet Frames & IP Responsibility',
+            content: `What is an Ethernet Frame?\nA data link layer protocol unit that uses Ethernet's physical transport. Widely used in LANs due to its speed and low cost.\n\n• Ethernet Frame Structure:\nPreamble -> Destination MAC -> Source MAC -> Type/Length -> Data (Payload) -> CRC/FCS.\n\n• Internet Protocol (IP) Responsibility:\nResponsible for host identification and routing.\n• Best-Effort Delivery: IP does not guarantee packet arrival; it only tries its best.`,
+            contentAr: `ما هو إطار الإيثرنت (Ethernet Frame)؟\nوحدة بيانات في طبقة ارتباط البيانات (Data Link) للشبكات المحلية (LAN). واسعة الانتشار لرخص تكلفتها وسرعتها.\n\n• هيكل إطار الإيثرنت:\nديباجة (Preamble) -> عنوان MAC الوجهة -> عنوان MAC المصدر -> النوع/الطول -> البيانات/الحمولة (Data) -> فحص الأخطاء (CRC/FCS).\n\n• مسؤولية بروتوكول الإنترنت (IP):\nمسؤول عن تحديد هوية المضيف وتوجيه المسار (Routing).\n• التوصيل بأفضل جهد (Best-Effort Delivery): بروتوكول IP لا يضمن وصول الحزمة؛ هو فقط "يبذل قصارى جهده" لإيصالها.`,
+            keywords: {
+              'Ethernet Frame': 'إطار الإيثرنت: الصندوق البريدي الفعلي الذي تغلف فيه البيانات قبل ضخها في السلك النحاسي. يحمل عنوان المرسل والمستقبل الفيزيائي.',
+              'MAC Address': 'عنوان MAC: البصمة الفيزيائية لبطاقة الشبكة (محفورة من المصنع). الـ IP يشبه عنوان منزلك (يتغير إذا انتقلت)، أما الـ MAC فيشبه بصمة إصبعك (لا تتغير).',
+              'CRC': 'فحص التكرار الدوري (CRC/FCS): معادلة رياضية في نهاية الإطار للتأكد من أن البيانات لم تتشوه أو تتلف بسبب التداخل الكهربائي أثناء مرورها في السلك.',
+              'Best-Effort Delivery': 'التوصيل بأفضل جهد: بروتوكول IP كـ "ساعي بريد غير مسؤول"؛ يرمي الرسالة في صندوقك ويغادر دون أن يطلب توقيعك بالاستلام. مسؤولية التأكد من الوصول تقع على بروتوكول TCP وليس IP.'
+            },
+            summary: {
+              en: 'Ethernet frames encapsulate data for LAN transport using MAC addresses and CRC checks. The IP protocol routes these packets with a "best-effort" (no-guarantee) delivery approach.',
+              ar: 'تغلف أُطر إيثرنت البيانات للنقل المحلي باستخدام عناوين MAC وفحص CRC. يوجه بروتوكول IP هذه الحزم بنهج "أفضل جهد" دون ضمان الوصول.'
+            },
+            keyPoints: [
+              { ar: 'إطار الإيثرنت يعتمد على عناوين MAC (الفيزيائية) وليس الـ IP.', en: 'Ethernet frames rely on physical MAC addresses, not IPs.' },
+              { ar: 'يتضمن الإطار قسماً (CRC) لاكتشاف الأخطاء الكهربائية في السلك.', en: 'The frame includes a CRC section to detect electrical errors on the wire.' },
+              { ar: 'بروتوكول IP لا يضمن وصول البيانات (Best-Effort Delivery).', en: 'The IP protocol does not guarantee data arrival (Best-Effort Delivery).' }
+            ],
+            mcq: {
+              question: 'What does "Best-Effort Delivery" mean in the context of the IP protocol?',
+              options: ['IP uses maximum bandwidth to send data', 'IP guarantees that every single packet will arrive safely', 'IP tries to deliver the packet but offers no guarantee of arrival or error recovery', 'IP only works on high-speed fiber optic cables'],
+              answer: 2,
+              explanation: 'IP is a connectionless, best-effort protocol. It routes the packet but relies on higher-layer protocols like TCP to check for lost data.'
+            }
+          }
+        ];
+
+        // --- مكونات الأيقونات ---
+        const AlertIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        );
+        const TranslateIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+        );
+        const CloseIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        );
+        const CheckIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        );
+        const CrossIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        );
+        const LightBulbIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+        );
+
+        function App() {
+          const [activeSlideId, setActiveSlideId] = useState(slidesData[0].id);
+          const [modalData, setModalData] = useState(null);
+          const [mcqState, setMcqState] = useState({});
+          const [showTranslation, setShowTranslation] = useState(false);
+
+          const activeSlide = slidesData.find(s => s.id === activeSlideId);
+
+          useEffect(() => {
+            setShowTranslation(false);
+          }, [activeSlideId]);
+
+          const renderContentWithKeywords = (text, keywordsMap) => {
+            if (!keywordsMap || Object.keys(keywordsMap).length === 0) return text;
+            const sortedKeywords = Object.keys(keywordsMap).sort((a, b) => b.length - a.length);
+            const regex = new RegExp(`(${sortedKeywords.join('|')})`, 'gi');
+            const parts = text.split(regex);
+            
+            return parts.map((part, index) => {
+              const keywordKey = Object.keys(keywordsMap).find(k => k.toLowerCase() === part.toLowerCase());
+              if (keywordKey) {
+                return (
+                  <span 
+                    key={index} 
+                    onClick={() => setModalData({ type: 'keyword', data: { word: part, meaning: keywordsMap[keywordKey] }})}
+                    className="group relative inline-flex items-baseline cursor-pointer font-bold text-indigo-700 hover:text-indigo-900 transition-all duration-200 mx-1 px-1 rounded hover:bg-indigo-50 border-b-2 border-dashed border-indigo-400"
+                    title="انقر لفهم المفهوم بعمق"
+                  >
+                    {part}
+                    <span className="absolute -top-1 -right-2 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 text-[8px] font-bold text-white justify-center items-center">?</span>
+                    </span>
+                  </span>
+                );
+              }
+              return <span key={index}>{part}</span>;
+            });
+          };
+
+          const handleMcqSelect = (optionIndex) => {
+            setMcqState({ ...mcqState, [activeSlideId]: optionIndex });
+          };
+
+          return (
+            <div className="flex flex-col md:flex-row h-screen bg-gray-50 text-gray-800 font-sans" dir="ltr">
+              {/* القائمة الجانبية */}
+              <div className="w-full md:w-1/4 bg-slate-900 text-white overflow-y-auto shadow-2xl z-10 flex flex-col">
+                <div className="p-5 bg-slate-800 text-center border-b border-slate-700 sticky top-0 shadow-sm z-20">
+                  <div className="font-extrabold text-xl tracking-wide text-indigo-400" dir="rtl">المحاضرة 3</div>
+                  <div className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">CYBS60201: Net Scanning</div>
+                </div>
+                <ul className="flex-1 px-3 py-5 space-y-3">
+                  {slidesData.map(slide => (
+                    <li key={slide.id}>
+                      <button
+                        onClick={() => {
+                          setActiveSlideId(slide.id);
+                          window.scrollTo(0, 0);
+                        }}
+                        className={`w-full text-left px-4 py-3.5 rounded-xl transition-all duration-300 font-medium text-sm ${
+                          activeSlideId === slide.id 
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]' 
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-100'
+                        }`}
+                      >
+                        {slide.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* المحتوى الرئيسي */}
+              <div className="w-full md:w-3/4 flex flex-col h-screen overflow-y-auto bg-slate-50">
+                <div className="flex-1 p-6 md:p-10 max-w-4xl mx-auto w-full">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-8 pb-6 border-b-2 border-slate-200 gap-4">
+                    <h1 className="text-3xl font-extrabold text-slate-800 leading-tight">
+                      {activeSlide.title}
+                    </h1>
+                    <div className="flex gap-3 self-end sm:self-auto shrink-0">
+                      <button 
+                        onClick={() => setShowTranslation(!showTranslation)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all shadow-sm border-2 ${
+                          showTranslation 
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        <TranslateIcon />
+                        <span className="text-sm">{showTranslation ? 'Hide Arabic' : 'عربي'}</span>
+                      </button>
+                      <button 
+                        onClick={() => setModalData({ type: 'summary', data: activeSlide.summary })}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 border-2 border-amber-300 hover:bg-amber-200 hover:text-amber-800 transition-all shadow-sm font-bold"
+                      >
+                        <AlertIcon />
+                        <span className="text-sm uppercase tracking-wider">Summary</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 text-lg leading-loose whitespace-pre-wrap text-slate-700 font-medium">
+                    {renderContentWithKeywords(activeSlide.content, activeSlide.keywords)}
+                  </div>
+
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showTranslation ? 'max-h-[1000px] opacity-100 mb-8' : 'max-h-0 opacity-0 mb-0'}`}>
+                    <div className="bg-emerald-50 p-8 rounded-2xl border-r-4 border-emerald-500 shadow-sm text-right whitespace-pre-wrap text-emerald-900 text-xl leading-loose font-medium" dir="rtl">
+                      {activeSlide.contentAr}
+                    </div>
+                  </div>
+
+                  {/* قسم الاختبار (MCQ) */}
+                  <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm mt-8">
+                    <h3 className="text-2xl font-bold mb-6 flex items-center text-slate-800">
+                      <span className="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-xl flex justify-center items-center mr-4 text-sm font-black shadow-inner">Q</span>
+                      Knowledge Check
+                    </h3>
+                    <p className="font-semibold text-lg text-slate-700 mb-6">{activeSlide.mcq.question}</p>
+                    <div className="space-y-3">
+                      {activeSlide.mcq.options.map((opt, idx) => {
+                        const isSelected = mcqState[activeSlideId] === idx;
+                        const isCorrect = idx === activeSlide.mcq.answer;
+                        const showResult = mcqState[activeSlideId] !== undefined;
+                        
+                        let btnStyle = "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700";
+                        if (showResult) {
+                          if (isCorrect) btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm";
+                          else if (isSelected && !isCorrect) btnStyle = "bg-rose-50 border-rose-400 text-rose-800 font-semibold";
+                          else btnStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                        }
+                        return (
+                          <button
+                            key={idx}
+                            disabled={showResult}
+                            onClick={() => handleMcqSelect(idx)}
+                            className={`w-full text-left px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                          >
+                            <span>{opt}</span>
+                            {showResult && isCorrect && <span className="text-emerald-600 bg-emerald-100 p-1 rounded-md"><CheckIcon /></span>}
+                            {showResult && isSelected && !isCorrect && <span className="text-rose-500 bg-rose-100 p-1 rounded-md"><CrossIcon /></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {mcqState[activeSlideId] !== undefined && (
+                      <div className={`mt-6 p-5 rounded-xl border-2 animate-fadeIn ${mcqState[activeSlideId] === activeSlide.mcq.answer ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <LightBulbIcon />
+                          <p className="font-bold text-slate-800">Explanation:</p>
+                        </div>
+                        <p className="text-slate-700 font-medium leading-relaxed">{activeSlide.mcq.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* جدول نقاط يجدر بك معرفتها */}
+                  <div className="bg-white p-0 rounded-2xl border border-slate-200 shadow-sm mt-8 overflow-hidden">
+                    <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center gap-3" dir="rtl">
+                      <span className="bg-amber-100 text-amber-600 p-2 rounded-lg shadow-sm">
+                        <LightBulbIcon />
+                      </span>
+                      <h3 className="text-xl font-bold text-amber-900">نقاط يجدر بك معرفتها</h3>
+                    </div>
+                    <div className="overflow-x-auto p-4">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b-2 border-slate-200">
+                            <th className="p-4 font-bold text-slate-800 text-right w-1/2 bg-slate-50 rounded-tr-lg" dir="rtl">الملخص (عربي)</th>
+                            <th className="p-4 font-bold text-slate-800 w-1/2 bg-slate-50 rounded-tl-lg">Takeaway (English)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeSlide.keyPoints.map((point, index) => (
+                            <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                              <td className="p-4 text-slate-700 text-right font-medium leading-relaxed" dir="rtl">{point.ar}</td>
+                              <td className="p-4 text-slate-700 font-medium leading-relaxed">{point.en}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* النوافذ المنبثقة (Modals) */}
+              {modalData && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn" onClick={() => setModalData(null)}>
+                  <div 
+                    className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all scale-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className={`flex justify-between items-center p-5 border-b-2 ${modalData.type === 'keyword' ? 'bg-indigo-50 border-indigo-100' : 'bg-amber-50 border-amber-100'}`}>
+                      <h3 className={`text-xl font-black ${modalData.type === 'keyword' ? 'text-indigo-800' : 'text-amber-800'}`} dir="rtl">
+                        {modalData.type === 'keyword' ? 'شرح المفهوم العلمي' : 'الملخص التنفيذي'}
+                      </h3>
+                      <button onClick={() => setModalData(null)} className="text-slate-400 hover:text-rose-500 bg-white p-2 rounded-full hover:bg-rose-50 transition-colors shadow-sm border border-slate-200">
+                        <CloseIcon />
+                      </button>
+                    </div>
+                    <div className="p-8">
+                      {modalData.type === 'keyword' && (
+                        <div dir="rtl" className="text-right">
+                          <div className="inline-block bg-indigo-600 text-white text-xl font-bold mb-5 px-4 py-2 rounded-lg font-mono tracking-wide shadow-md" dir="ltr">
+                            {modalData.data.word}
+                          </div>
+                          <div className="text-lg text-slate-700 leading-loose font-medium border-r-4 border-indigo-400 pl-4 pr-6 bg-slate-50 py-4 rounded-l-xl">
+                            {modalData.data.meaning}
+                          </div>
+                        </div>
+                      )}
+                      {modalData.type === 'summary' && (
+                        <div className="space-y-8">
+                          <div className="relative p-6 rounded-2xl border-2 border-slate-200 bg-white">
+                            <span className="absolute -top-4 left-4 bg-slate-800 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">English</span>
+                            <p className="text-slate-700 leading-relaxed font-medium text-lg mt-2">{modalData.data.en}</p>
+                          </div>
+                          <div className="relative p-6 rounded-2xl border-2 border-amber-200 bg-amber-50/50" dir="rtl">
+                            <span className="absolute -top-4 right-4 bg-amber-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">عربي</span>
+                            <p className="text-amber-950 leading-relaxed font-medium text-lg mt-2 text-right">{modalData.data.ar}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // --- أمر تشغيل التطبيق في الصفحة ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

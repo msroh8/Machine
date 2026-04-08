@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحاضرة 4: بروتوكولات الشبكات الأساسية</title>
+    
+    <!-- مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبات React الأساسية -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- مترجم Babel ليفهم المتصفح كود React -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- الحاوية الأساسية لتطبيق ريأكت -->
+    <div id="root"></div>
+
+    <!-- كود التطبيق -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- البيانات لشرائح المحاضرة الرابعة ---
+        const slidesData = [
+          {
+            id: 's1',
+            title: '1. What is the Internet Protocol (IP)?',
+            content: `• Role:\n• A core protocol in the TCP/IP suite.\n• Operates at the Network Layer (OSI) and the Internet Layer (TCP/IP).\n\n• Responsibilities:\n• Identifies devices using logical IP addresses.\n• Routes data across networks to reach the destination.\n\n• Key Features of IP:\n• Best-Effort Delivery: Does not guarantee delivery of packets, but tries its best to route them.\n• IP Addressing: Uses a unique addressing scheme.\n\n• Versions:\n• IPv4: Most widely used (32-bit addresses).\n• IPv6: Newer version (128-bit addresses) to support more devices.`,
+            contentAr: `• الدور الوظيفي:\n• بروتوكول أساسي وجوهري في حزمة TCP/IP.\n• يعمل في "طبقة الشبكة" في نموذج OSI و"طبقة الإنترنت" في نموذج TCP/IP.\n\n• المسؤوليات:\n• يُعرّف الأجهزة باستخدام عناوين IP منطقية.\n• يُوجّه البيانات (Routing) عبر الشبكات المختلفة للوصول إلى وجهتها.\n\n• الميزات الرئيسية لبروتوكول IP:\n• التوصيل بأفضل جهد (Best-Effort Delivery): لا يضمن وصول الحزم، ولكنه يبذل أقصى جهده لتوجيهها.\n• العنونة (IP Addressing): يستخدم نظام عنونة فريد للتعريف بالأجهزة.\n\n• الإصدارات:\n• IPv4: الإصدار الأكثر استخداماً (عناوين 32-بت).\n• IPv6: الإصدار الأحدث (عناوين 128-بت) صُمم لدعم عدد هائل من الأجهزة.`,
+            keywords: {
+              'Internet Protocol': 'بروتوكول الإنترنت: هو بمثابة "نظام البريد" العالمي للإنترنت. يضع العناوين على الرسائل ويحدد الطرق التي يجب أن تسلكها لتصل للطرف الآخر.',
+              'logical IP': 'العنوان المنطقي: عنوان يتغير بتغير الشبكة التي تتصل بها (مثل عنوان سكنك)، على عكس الـ MAC Address الذي يمثل البصمة الثابتة للجهاز.',
+              'Best-Effort Delivery': 'التوصيل بأفضل جهد: بروتوكول IP كـ "ساعي بريد مستعجل" يلقي الرسالة في صندوق البريد ويغادر فوراً. لا ينتظر ليأخذ توقيعك بالاستلام، ولذلك يعتبر غير موثوق بذاته.',
+              'IPv6': 'الإصدار السادس: تم ابتكاره لأننا استهلكنا جميع عناوين IPv4 المتاحة (حوالي 4 مليارات عنوان) بسبب ثورة الهواتف الذكية وأجهزة إنترنت الأشياء (IoT).'
+            },
+            summary: {
+              en: 'The Internet Protocol (IP) operates at the Network layer to identify devices and route packets using a "best-effort" delivery mechanism without guaranteeing arrival.',
+              ar: 'يعمل بروتوكول الإنترنت (IP) في طبقة الشبكة لتحديد الأجهزة وتوجيه الحزم باستخدام آلية توصيل "بأفضل جهد" دون ضمان وصولها.'
+            },
+            keyPoints: [
+              { ar: 'بروتوكول IP يعمل في طبقة الشبكة (Network Layer).', en: 'IP protocol operates at the Network Layer.' },
+              { ar: 'يستخدم آلية "أفضل جهد" ولا يهتم بالتحقق من وصول البيانات.', en: 'Uses a "best-effort" mechanism and does not verify data delivery.' },
+              { ar: 'الإصدار IPv6 صُمم لحل مشكلة نفاد عناوين الإصدار القديم IPv4.', en: 'IPv6 was designed to solve the depletion of IPv4 addresses.' }
+            ],
+            mcq: {
+              question: 'Which of the following best describes the "Best-Effort Delivery" feature of IP?',
+              options: ['It guarantees that packets will never be lost', 'It requests an acknowledgment for every packet', 'It tries its best to route packets but does not guarantee delivery', 'It delivers packets exclusively over Wi-Fi'],
+              answer: 2,
+              explanation: 'IP is connectionless and provides best-effort delivery, meaning it routes the packet but relies on upper layers (like TCP) to handle lost packets.'
+            }
+          },
+          {
+            id: 's2',
+            title: '2. The IPv4 Header Structure',
+            content: `• IPv4 uses a 32-bit logical address to uniquely identify devices. The header provides metadata for packet delivery.\n\n• Key Fields:\n• Version (4 bits): Indicates the IP version (IPv4).\n• IHL: Specifies header length.\n• TOS (Type of Service): Prioritizes packets.\n• Total Length: Total size of packet.\n• Identification: Uniquely identifies fragments for reassembly.\n• Flags (D, M): 'D' (Do Not Fragment), 'M' (More Fragments).\n• Fragment Offset: Position of fragment.\n• TTL (Time to Live): Limits the packet's lifetime (hop count).\n• Protocol: Specifies the payload protocol (e.g., TCP=6, UDP=17).\n• Checksum: Verifies header integrity.`,
+            contentAr: `• يستخدم IPv4 عنواناً منطقياً بحجم 32 بت. توفر الترويسة (Header) البيانات الوصفية (Metadata) اللازمة لتسليم الحزمة.\n\n• الحقول الرئيسية في الترويسة:\n• الإصدار (Version): يشير لإصدار البروتوكول.\n• طول الترويسة (IHL): يحدد حجم الترويسة.\n• نوع الخدمة (TOS): لتحديد أولوية الحزم (مثلاً حزم الصوت قبل الملفات).\n• الطول الإجمالي: حجم الحزمة ككل.\n• التعريف (Identification): يُعرّف أجزاء الحزمة المُجزأة لإعادة تجميعها.\n• العلامات (Flags): حرف 'D' يعني (لا تجزئ)، وحرف 'M' يعني (يوجد مزيد من الأجزاء).\n• إزاحة الجزء (Fragment Offset): يحدد موضع الجزء بالنسبة للحزمة الأصلية.\n• مدة البقاء (TTL): يحد من عمر الحزمة (عدد القفزات/الروترات) قبل أن يتم تدميرها.\n• البروتوكول: يحدد بروتوكول الحمولة (مثال: TCP=6، UDP=17).\n• المجموع الاختباري (Checksum): للتحقق من سلامة الترويسة وعدم تلفها.`,
+            keywords: {
+              'Metadata': 'البيانات الوصفية: الترويسة (Header) هي أشبه بالظرف الخارجي للرسالة، يحتوي على بيانات عن البيانات (من أين أتت، إلى أين تذهب، وحجمها) لكي يفهمها الراوتر.',
+              'Flags': 'العلامات (الأعلام): أوامر صارمة للراوتر. مثلاً علم (Do Not Fragment) يمنع الراوتر من تقطيع الرسالة إذا كانت كبيرة، بل يجبره على التخلص منها وإرسال رسالة خطأ.',
+              'TTL': 'مدة البقاء (Time to Live): عداد تنازلي (مثلاً 64). في كل مرة يمر فيها البيانات على راوتر، ينقص العداد 1. إذا وصل 0، يتم تدمير الحزمة. هذا يمنع الحزم الضائعة من الدوران في الإنترنت للأبد!',
+              'Checksum': 'المجموع الاختباري: معادلة رياضية سريعة يتأكد منها الراوتر للتحقق مما إذا كانت الترويسة قد تشوهت أو تغيرت أرقامها بسبب تشويش كهربائي في السلك.'
+            },
+            summary: {
+              en: 'The IPv4 header contains crucial metadata for routing, including TTL to prevent infinite loops, Flags for fragmentation control, and Checksum for integrity.',
+              ar: 'تحتوي ترويسة IPv4 على بيانات وصفية حاسمة للتوجيه، بما في ذلك TTL لمنع الحلقات اللانهائية، والعلامات (Flags) للتحكم في التجزئة، والمجموع الاختباري للسلامة.'
+            },
+            keyPoints: [
+              { ar: 'حقل TTL يحمي الإنترنت من الحزم التائهة بتدميرها بعد عدد محدد من القفزات.', en: 'The TTL field protects the internet from lost packets by destroying them after a set hop count.' },
+              { ar: 'تُستخدم الأعلام (Flags) للتحكم فيما إذا كان مسموحاً للراوتر بتجزئة البيانات أم لا.', en: 'Flags control whether a router is allowed to fragment the data packet or not.' },
+              { ar: 'حقل "البروتوكول" يخبر المستقبل بما يحمله الـ IP داخله (TCP أم UDP).', en: 'The "Protocol" field tells the receiver what payload the IP carries (TCP or UDP).' }
+            ],
+            mcq: {
+              question: 'Which field in the IPv4 header prevents a packet from endlessly looping through the internet?',
+              options: ['Checksum', 'Time to Live (TTL)', 'Fragment Offset', 'Type of Service (TOS)'],
+              answer: 1,
+              explanation: 'TTL (Time to Live) limits the packet\'s lifetime. Each router decreases it by 1, and when it hits 0, the packet is discarded to prevent infinite loops.'
+            }
+          },
+          {
+            id: 's3',
+            title: '3. IPv6: Features and Addressing',
+            content: `• Overview: Most recent IP version, offering a 128-bit logical address space. Designed to address IPv4 limitations.\n\n• Simplified Header Structure:\n• Fixed 40-byte header size for routing efficiency.\n• No fragmentation fields; managed differently than IPv4.\n• Traffic Class (8 bits): Specifies packet priority.\n• Flow Label (20 bits): Identifies packets needing special handling.\n• Payload Length: Size of payload in bytes.\n• Hop Limit: Replaces TTL; discarded at 0.\n\n• Address Structure:\n• 8 groups of 4 hexadecimal digits (e.g., 2001:16a2...).\n• Each hex digit = 4 bits (16 bits per group * 8 groups = 128 bits).\n\n• Advantages:\n• Vast address space (2^128).\n• Improved security and support for IoT.`,
+            contentAr: `• نظرة عامة: أحدث إصدار للـ IP، يوفر مساحة عنونة منطقية بحجم 128 بت. صُمم لمعالجة قيود ونفاد عناوين IPv4.\n\n• هيكل ترويسة مبسط:\n• ترويسة ثابتة بحجم 40 بايت لرفع كفاءة وسرعة التوجيه.\n• لا توجد حقول للتجزئة (Fragmentation)؛ تُدار بشكل مختلف عن IPv4.\n• فئة حركة المرور (Traffic Class): تحدد أولوية الحزمة.\n• تسمية التدفق (Flow Label): لتحديد الحزم التي تحتاج لمعاملة خاصة ومستمرة.\n• حد القفزات (Hop Limit): بديل حقل TTL؛ تُدمر الحزمة عند وصوله للصفر.\n\n• هيكل العناوين:\n• 8 مجموعات، كل مجموعة تتكون من 4 أرقام سداسية عشرية (Hexadecimal).\n• المجموع: 128 بت.\n\n• المزايا:\n• مساحة عناوين هائلة جداً.\n• أمان محسّن ودعم أفضل لأجهزة إنترنت الأشياء (IoT).`,
+            keywords: {
+              '128-bit': '128-بت: حجم ضخم جداً! يوفر عدداً من العناوين يكفي لإعطاء عنوان IP لكل ذرة رمل على كوكب الأرض، مما يضمن عدم نفاد العناوين أبداً.',
+              'Fixed 40-byte': 'ترويسة ثابتة: في IPv4 كان حجم الترويسة متغيراً مما يبطئ عمل الراوتر لأنه يضطر لحساب الحجم كل مرة. في IPv6 الحجم ثابت، مما يجعل معالجة البيانات أسرع بكثير.',
+              'Hop Limit': 'حد القفزات: هو المعادل والمقابل لحقل (TTL) في الإصدار الرابع. يقوم بنفس الوظيفة لقتل الحزم التائهة لمنع ازدحام الشبكات.',
+              'hexadecimal digits': 'نظام سداسي عشري: نظراً لطول العنوان (128 بت)، كتابته بالأرقام العادية سيكون مستحيلاً، لذا نستخدم الحروف من A إلى F والأرقام من 0 إلى 9 لتبسيط قراءته وكتابته.'
+            },
+            summary: {
+              en: 'IPv6 uses 128-bit addresses in hexadecimal format to provide a virtually infinite address space. Its fixed 40-byte header streamlines routing by removing fragmentation fields.',
+              ar: 'يستخدم IPv6 عناوين 128 بت بتنسيق سداسي عشري لتوفير مساحة عناوين لا نهائية تقريباً. تعمل ترويسته الثابتة بحجم 40 بايت على تسريع التوجيه عبر إزالة حقول التجزئة.'
+            },
+            keyPoints: [
+              { ar: 'يوفر IPv6 مساحة عناوين ضخمة جداً (128 بت) لدعم مليارات الأجهزة.', en: 'IPv6 provides a massive address space (128-bit) to support billions of devices.' },
+              { ar: 'الترويسة في IPv6 ذات حجم ثابت (40 بايت) مما يسرع التوجيه.', en: 'The IPv6 header has a fixed size (40 bytes), which speeds up routing.' },
+              { ar: 'حقل (Hop Limit) في IPv6 هو المقابل لحقل (TTL) في IPv4.', en: 'The "Hop Limit" field in IPv6 is the equivalent of "TTL" in IPv4.' }
+            ],
+            mcq: {
+              question: 'Which IPv6 header field serves the same purpose as the IPv4 "Time to Live" (TTL) field?',
+              options: ['Traffic Class', 'Flow Label', 'Hop Limit', 'Payload Length'],
+              answer: 2,
+              explanation: 'The Hop Limit field in IPv6 replaces the TTL field from IPv4. It is decremented by each router, and when it reaches 0, the packet is discarded.'
+            }
+          },
+          {
+            id: 's4',
+            title: '4. TCP Overview & Three-Way Handshake',
+            content: `• TCP Overview:\nTransmission Control Protocol (TCP) is connection-oriented, meaning a session must be established before data transfer. It provides reliable data delivery and communication is closed once transfer is complete.\n\n• Three-Way Handshake:\nEnsures both devices are ready for communication before sending data.\n• Steps:\n1. SYN: Host P sends a synchronization request (SYN) to Host Q.\n2. SYN-ACK: Host Q acknowledges the SYN (ACK) and sends its own SYN.\n3. ACK: Host P acknowledges Host Q's SYN.\n\nAfter this handshake, the reliable data transfer begins.`,
+            contentAr: `• نظرة عامة على TCP:\nبروتوكول التحكم في الإرسال (TCP) هو بروتوكول موجه للاتصال (Connection-oriented)، مما يعني أنه يجب إنشاء "جلسة" قبل نقل البيانات. يوفر تسليماً موثوقاً للبيانات ويغلق الاتصال بمجرد اكتمال النقل.\n\n• المصافحة الثلاثية (Three-Way Handshake):\nتضمن أن كلا الجهازين مستعدان للاتصال قبل إرسال أي حمولة بيانات.\n• الخطوات:\n1. SYN (مزامنة): يرسل الجهاز المرسل طلب مزامنة للبدء.\n2. SYN-ACK: يرد الجهاز المستقبل بتأكيد (ACK) ويرسل طلب مزامنة (SYN) خاص به.\n3. ACK (تأكيد): يرسل الجهاز الأول تأكيداً نهائياً.\n\nبعد هذه المصافحة، يبدأ النقل الموثوق للبيانات.`,
+            keywords: {
+              'Connection-oriented': 'موجه للاتصال: يشبه إجراء مكالمة هاتفية؛ يجب أن تكتب الرقم، وتنتظر أن يرفع الطرف الآخر السماعة ويقول "ألو" قبل أن تبدأ بالحديث.',
+              'Three-Way Handshake': 'المصافحة الثلاثية: إجراء بروتوكولي صارم لتأسيس الثقة. يمنع إرسال البيانات لأجهزة غير موجودة أو مشغولة، وهو أساس موثوقية TCP.',
+              'SYN': 'مزامنة (Synchronize): خطوة التعارف الأولى. رسالة تقول: "مرحباً، أريد التحدث معك، رقم البداية السري الخاص بي هو س".',
+              'ACK': 'تأكيد (Acknowledge): إيصال الاستلام. رسالة تقول: "وصلتني رسالتك وفهمتها، وأنا جاهز لاستقبال المزيد".'
+            },
+            summary: {
+              en: 'TCP is a reliable, connection-oriented protocol that uses a strict Three-Way Handshake (SYN, SYN-ACK, ACK) to establish a trusted session before transferring any data.',
+              ar: 'بروتوكول TCP هو بروتوكول موثوق وموجه للاتصال، يستخدم مصافحة ثلاثية صارمة (SYN, SYN-ACK, ACK) لتأسيس جلسة موثوقة قبل نقل أي بيانات.'
+            },
+            keyPoints: [
+              { ar: 'TCP بروتوكول "موثوق" لأنه يتأكد من وصول كل جزء من البيانات.', en: 'TCP is a "reliable" protocol because it verifies the arrival of every data piece.' },
+              { ar: 'المصافحة الثلاثية تسبق دائماً عملية نقل البيانات.', en: 'The Three-Way Handshake always precedes the actual data transfer.' },
+              { ar: 'الاتصال في TCP يشبه المكالمة الهاتفية (Connection-oriented).', en: 'TCP communication is like a phone call (Connection-oriented).' }
+            ],
+            mcq: {
+              question: 'In the TCP Three-Way Handshake, what is the second step performed by the receiving host?',
+              options: ['It sends an ACK and closes the connection', 'It sends a SYN-ACK message', 'It begins sending the file immediately', 'It resets the connection (RST)'],
+              answer: 1,
+              explanation: 'After receiving a SYN, the destination host replies with a SYN-ACK (Synchronization-Acknowledgment) to confirm receipt and initiate its own connection.'
+            }
+          },
+          {
+            id: 's5',
+            title: '5. The TCP Header Structure',
+            content: `• Source/Dest Port: Identifies the sending and receiving applications.\n• Sequence/Acknowledgment Numbers: Tracks the order and receipt of data chunks.\n• TCP Flags:\n  - SYN: Synchronize.\n  - ACK: Acknowledge.\n  - FIN: Finish communication gracefully.\n  - RST: Reset connection abruptly.\n• Window: Specifies the amount of data the sender is allowed to send before requiring an acknowledgment.\n• Checksum: Verifies data integrity.\n• TCP Options: Features like timestamps.\n\n• Reliability: TCP ensures data is sent, received, and reassembled in the correct order.`,
+            contentAr: `• منفذ المصدر/الوجهة (Source/Dest Port): يحدد التطبيقات المرسلة والمستقبلة (مثلاً متصفح الويب).\n• أرقام التسلسل والتأكيد (Seq/Ack Numbers): تتبع ترتيب قطع البيانات وتتأكد من استلامها.\n• علامات TCP (Flags):\n  - SYN: مزامنة للبدء.\n  - ACK: تأكيد استلام.\n  - FIN: إنهاء الاتصال بشكل طبيعي وودّي.\n  - RST: إعادة ضبط (قطع) الاتصال بشكل مفاجئ وقسري.\n• النافذة (Window): تحدد كمية البيانات المسموح للمرسل بإرسالها كدفعة واحدة قبل أن يُضطر لانتظار تأكيد الاستلام.\n• المجموع الاختباري (Checksum): يتحقق من سلامة البيانات.\n\n• الموثوقية: يضمن TCP إعادة تجميع البيانات بالترتيب الصحيح.`,
+            keywords: {
+              'Sequence Number': 'رقم التسلسل: لأن الملفات الكبيرة تُقطع لأجزاء، كل جزء يأخذ رقماً تسلسلياً لكي يستطيع المستقبل إعادة ترتيبها كـ "البازل" في حال وصلت ملخبطة.',
+              'TCP Flags': 'أعلام TCP: أزرار تحكم صغيرة. الهاكرز يتلاعبون بهذه الأعلام بكثرة (مثل إرسال حزم RST مزيفة) لقطع اتصال المستخدمين أو فحص الجدران النارية.',
+              'FIN': 'إنهاء (Finish): طلب إغلاق مهذب. "لقد أنهيت نقل ملفاتي، هل يمكننا إغلاق الخط الآن؟".',
+              'RST': 'إعادة ضبط (Reset): قطع خط عنيف. يشبه إغلاق سماعة الهاتف بوجه الطرف الآخر فجأة بسبب خطأ أو هجوم.'
+            },
+            summary: {
+              en: 'The TCP header includes Ports for routing to apps, Sequence numbers for ordering, Flags for connection control (SYN, FIN, RST), and a Window size for flow control.',
+              ar: 'تتضمن ترويسة TCP منافذ لتوجيه التطبيقات، وأرقام تسلسل للترتيب، وعلامات (Flags) للتحكم في الاتصال (مثل البداية والنهاية والقطع)، وحجم النافذة للتحكم في تدفق البيانات.'
+            },
+            keyPoints: [
+              { ar: 'أرقام التسلسل (Sequence) تضمن إعادة تجميع البيانات بترتيبها الصحيح.', en: 'Sequence numbers ensure data is reassembled in the correct order.' },
+              { ar: 'علم (RST) يقوم بقطع وإنهاء الاتصال بشكل فوري ومفاجئ.', en: 'The (RST) flag abruptly drops and resets the connection.' },
+              { ar: 'حقل النافذة (Window) يمنع اختناق الشبكة بتنظيم سرعة تدفق البيانات.', en: 'The Window field prevents network congestion by regulating data flow speed.' }
+            ],
+            mcq: {
+              question: 'Which TCP flag is used to gracefully close a communication session after data transfer is complete?',
+              options: ['SYN', 'RST', 'ACK', 'FIN'],
+              answer: 3,
+              explanation: 'The FIN (Finish) flag is used to initiate a graceful termination of the connection, indicating no more data will be sent.'
+            }
+          },
+          {
+            id: 's6',
+            title: '6. UDP: User Datagram Protocol',
+            content: `• Overview: UDP is a connectionless protocol, meaning it does not establish a connection (no handshake) before sending data.\n\n• Key Characteristics:\n1. Connectionless: No acknowledgment from the receiver. "Fire and forget."\n2. Efficiency: Minimizes communication overhead, making it incredibly fast.\n3. Unreliable: No error-checking mechanisms or retransmission of lost packets.\n4. Use Cases: Real-time applications where speed is critical and minor data loss is acceptable (e.g., Video streaming, online gaming, Voice calls, DNS lookups).\n\n• UDP Header (Only 8 Bytes!):\n- Source Port (16 bits)\n- Destination Port (16 bits)\n- Length (16 bits)\n- Checksum (16 bits - Optional).`,
+            contentAr: `• نظرة عامة: UDP هو بروتوكول عديم الاتصال (Connectionless)، مما يعني أنه لا يقوم بإنشاء اتصال (لا يوجد مصافحة) قبل إرسال البيانات.\n\n• الخصائص الرئيسية:\n1. عديم الاتصال: لا ينتظر أي إقرار أو تأكيد من المستقبل. (أطلق وانسَ).\n2. الكفاءة: يقلل من العبء الإضافي (Overhead) للاتصالات، مما يجعله سريعاً جداً.\n3. غير موثوق: لا توجد آليات للتحقق من الأخطاء أو إعادة إرسال الحزم الضائعة.\n4. حالات الاستخدام: التطبيقات الحية (Real-time) التي تكون فيها السرعة بالغة الأهمية وفقدان بيانات طفيفة أمر مقبول (مثل: بث الفيديو، الألعاب عبر الإنترنت، المكالمات الصوتية، استعلامات DNS).\n\n• ترويسة UDP (حجمها 8 بايت فقط!): منفذ المصدر، منفذ الوجهة، الطول، المجموع الاختباري.`,
+            keywords: {
+              'Connectionless': 'عديم الاتصال: كمن يرمي رسالة عبر السياج لجاره؛ لا يعلم هل جاره موجود ليتلقفها أم لا، ولا يتأكد من وصولها. يركز فقط على الإرسال السريع.',
+              'overhead': 'العبء الإضافي: الإجراءات الإدارية. في TCP، الترويسة كبيرة والمصافحة تأخذ وقتاً (عبء كبير). في UDP، الترويسة صغيرة جداً (8 بايت فقط) مما يجعله رشيقاً وخفيفاً.',
+              'Unreliable': 'غير موثوق: لا تعني "سيء"، بل تعني أنه لا يدقق. في ألعاب الأونلاين، إذا ضاعت حركة اللاعب لجزء من الثانية، فالأفضل الاستمرار بدلاً من إيقاف اللعبة لإعادة إرسال الحركة الضائعة.'
+            },
+            summary: {
+              en: 'UDP is a blazing-fast, connectionless protocol with minimal overhead (8-byte header). It sacrifices reliability for speed, making it perfect for streaming and gaming.',
+              ar: 'UDP هو بروتوكول فائق السرعة وعديم الاتصال بعبء ضئيل جداً (ترويسة 8 بايت). يضحي بالموثوقية مقابل السرعة، مما يجعله مثالياً لبث الفيديو والألعاب.'
+            },
+            keyPoints: [
+              { ar: 'UDP لا يقوم بأي "مصافحة" قبل الإرسال، مما يجعله أسرع من TCP.', en: 'UDP performs no "handshake" before sending, making it faster than TCP.' },
+              { ar: 'حجم ترويسة UDP صغير جداً (8 بايت فقط) مما يقلل العبء (Overhead).', en: 'UDP header is tiny (only 8 bytes), reducing overhead.' },
+              { ar: 'مثالي لتطبيقات الزمن الفعلي مثل الفيديو والألعاب حيث السرعة أهم من الدقة.', en: 'Ideal for real-time apps like video and gaming where speed trumps accuracy.' }
+            ],
+            mcq: {
+              question: 'Why is UDP preferred over TCP for live video streaming and online gaming?',
+              options: ['Because it encrypts the video data better', 'Because it ensures every single frame is delivered perfectly', 'Because its low overhead makes it faster, and minor data loss is acceptable', 'Because it requires a strict three-way handshake'],
+              answer: 2,
+              explanation: 'In live applications, speed is critical. Waiting for TCP to retransmit a lost packet causes lag. UDP avoids this overhead, providing a smoother experience.'
+            }
+          },
+          {
+            id: 's7',
+            title: '7. ICMP Protocol & Message Types',
+            content: `• Purpose of ICMP:\n- Error Reporting: Notifies devices of issues (unreachable hosts, congestion).\n- Operational Messages: Provides diagnostic info about network status.\n- Not for Data Exchange: ICMP does not carry user data.\n\n• ICMP Header Structure:\n- Type (8 bits): Specifies the message type.\n- Code (8 bits): Further classifies the message.\n- Checksum: Verifies integrity.\n\n• Key ICMP Message Types:\n- Echo Reply (Type 0) & Echo Request (Type 8): Used by "Ping" to check reachability.\n- Destination Unreachable (Type 3): Indicates the destination path is blocked.\n- Time Exceeded (Type 11): Indicates TTL expired. Used by "Traceroute" to map the network path.`,
+            contentAr: `• الغرض من ICMP:\n- الإبلاغ عن الأخطاء: يبلغ الأجهزة بالمشاكل (مثل مضيف لا يمكن الوصول إليه، أو ازدحام الشبكة).\n- رسائل تشغيلية: يوفر معلومات تشخيصية حول حالة الشبكة.\n- ليس لتبادل البيانات: ICMP لا يحمل بيانات المستخدمين العادية.\n\n• هيكل ترويسة ICMP:\n- النوع (Type): يحدد الفئة الرئيسية للرسالة.\n- الرمز (Code): تصنيف فرعي إضافي للرسالة.\n- المجموع الاختباري.\n\n• أنواع رسائل ICMP الهامة:\n- الرد على الصدى (Type 0) والطلب (Type 8): يُستخدم بواسطة أمر "Ping" لاختبار الاتصال.\n- الوجهة غير قابلة للوصول (Type 3): المسار مغلق أو الجهاز مطفأ.\n- تجاوز الوقت (Type 11): نفاد عمر الحزمة (TTL). يُستخدم في أمر "Traceroute" لرسم وتتبع مسار الشبكة.`,
+            keywords: {
+              'ICMP': 'بروتوكول رسائل التحكم: هو "شرطي المرور" و"قسم الشكاوى" في الشبكة. يتدخل فقط عندما تسير الأمور بشكل خاطئ لإبلاغ المرسل بوجود مشكلة.',
+              'Error Reporting': 'الإبلاغ عن الأخطاء: إذا حاول جهازك إرسال ملف لسيرفر مفصول من الكهرباء، سيقوم الراوتر القريب من السيرفر بإرسال رسالة ICMP لك يخبرك بأن "الوجهة غير متاحة".',
+              'Traceroute': 'تتبع المسار: أداة خبيثة وذكية تستغل رسالة "تجاوز الوقت" (Type 11) عمداً لكي تجبر كل راوتر في الطريق على كشف هويته، مما يرسم للمهاجم خريطة كاملة للشبكة.',
+              'Time Exceeded': 'تجاوز الوقت (Type 11): رسالة انتحار الحزمة. تصدر عندما ينفد عداد (TTL) لتخبر المرسل أن حزمته تم تدميرها لأنها تاهت في الشبكة ولم تصل.'
+            },
+            summary: {
+              en: 'ICMP is a diagnostic protocol used for error reporting (not user data). Tools like Ping and Traceroute use specific ICMP types to test reachability and map network paths.',
+              ar: 'بروتوكول ICMP هو بروتوكول تشخيصي يُستخدم للإبلاغ عن الأخطاء. تستخدم أدوات مثل Ping و Traceroute أنواعاً محددة من ICMP لاختبار الاتصال ورسم مسارات الشبكة.'
+            },
+            keyPoints: [
+              { ar: 'بروتوكول ICMP لا يُستخدم لنقل ملفات المستخدمين، بل للتحكم والتشخيص.', en: 'ICMP is not used for transferring user files, but for control and diagnostics.' },
+              { ar: 'أداة Ping تعتمد على رسائل (Echo Request / Reply) لاختبار الاتصال.', en: 'The Ping tool relies on (Echo Request / Reply) messages to test connectivity.' },
+              { ar: 'أداة Traceroute تستغل رسالة (Time Exceeded - Type 11) لرسم خريطة الشبكة.', en: 'The Traceroute tool exploits (Time Exceeded - Type 11) messages to map the network.' }
+            ],
+            mcq: {
+              question: 'Which ICMP Message Type is generated when a packet\'s TTL (Time to Live) reaches zero?',
+              options: ['Echo Reply (Type 0)', 'Destination Unreachable (Type 3)', 'Time Exceeded (Type 11)', 'Echo Request (Type 8)'],
+              answer: 2,
+              explanation: 'When a packet\'s TTL expires, the router discards it and sends an ICMP Time Exceeded (Type 11) message back to the sender.'
+            }
+          },
+          {
+            id: 's8',
+            title: '8. What is a Port? (Common Network Ports)',
+            content: `• Definition: A port is a number used to identify a specific service or application on a device within a network.\n• Purpose: Directs data to the right service (web, email, file transfer).\n\n• Key Common Ports (Must Know!):\n- Port 20/21: FTP (TCP) - File Transfer Protocol.\n- Port 22: SSH (TCP) - Secure Shell (Encrypted remote login).\n- Port 23: Telnet (TCP) - Unencrypted remote login (Insecure!).\n- Port 25: SMTP (TCP) - Simple Mail Transfer Protocol (Sending emails).\n- Port 53: DNS (TCP/UDP) - Domain Name System.\n- Port 67/68: DHCP (UDP) - Dynamic IP assignment.\n- Port 80: HTTP (TCP) - Standard web traffic.\n- Port 443: HTTPS (TCP) - Secure web traffic.\n\n• Security: Blocking specific ports on a firewall protects systems from unauthorized access.`,
+            contentAr: `• التعريف: المنفذ هو رقم يُستخدم لتحديد خدمة أو تطبيق معين داخل الجهاز على الشبكة.\n• الغرض: يوجه البيانات المستلمة إلى الخدمة الصحيحة (سواء كانت ويب، بريد، أو نقل ملفات).\n\n• منافذ شائعة وهامة جداً:\n- منفذ 20/21: (FTP) بروتوكول نقل الملفات.\n- منفذ 22: (SSH) الصدفة الآمنة (تسجيل دخول مشفر وآمن عن بعد).\n- منفذ 23: (Telnet) تسجيل دخول عن بعد (نص واضح غير مشفر/خطير جداً!).\n- منفذ 25: (SMTP) لإرسال رسائل البريد الإلكتروني.\n- منفذ 53: (DNS) لترجمة أسماء المواقع.\n- منفذ 67/68: (DHCP) لتوزيع عناوين IP آلياً.\n- منفذ 80: (HTTP) تصفح الويب العادي.\n- منفذ 443: (HTTPS) تصفح الويب المشفّر والآمن.\n\n• الأمان: إغلاق المنافذ غير المستخدمة في الجدار الناري يحمي الأنظمة من الاختراق.`,
+            keywords: {
+              'Port': 'المنفذ الرقمي: تخيل أن السيرفر عمارة سكنية. الـ IP هو عنوان العمارة الخارجي، بينما رقم الـ Port هو رقم الشقة بالداخل. لتصل لخدمة الويب يجب أن تطرق باب الشقة رقم 80.',
+              'SSH': 'المنفذ 22 (SSH): القناة الآمنة للمدراء. جميع البيانات والأوامر المارة عبر هذا المنفذ مشفرة بالكامل، مما يمنع الهاكرز من سرقة كلمات المرور حتى لو راقبوا الشبكة.',
+              'Telnet': 'المنفذ 23 (Telnet): بروتوكول منتهي الصلاحية أمنياً! يرسل كلمات المرور كنص مكشوف. إيجاده مفتوحاً أثناء فحص الشبكة يعتبر بمثابة هدية مجانية ومفتاح ذهبي لمختبر الاختراق.',
+              'DNS': 'المنفذ 53 (DNS): الخدمة التي تعمل طوال الوقت لترجمة الأسماء لأرقام. يستخدم غالباً UDP لسرعته، ولكنه يستخدم TCP في حال نقل قواعد بيانات الأسماء بالكامل بين السيرفرات.'
+            },
+            summary: {
+              en: 'Ports act as doors to specific services on a server. Knowing common ports like 22 (SSH), 80 (HTTP), and 443 (HTTPS) is fundamental for network scanning and firewalls.',
+              ar: 'تعمل المنافذ كأبواب لخدمات محددة على السيرفر. تُعد معرفة المنافذ الشائعة مثل 22 (SSH) و 80 (HTTP) أمراً أساسياً لفحص الشبكات وضبط الجدران النارية.'
+            },
+            keyPoints: [
+              { ar: 'عناوين IP تحدد الجهاز، بينما أرقام الـ Ports تحدد الخدمة المطلوبة داخله.', en: 'IPs identify the device, while Port numbers identify the specific service inside.' },
+              { ar: 'منفذ 22 (SSH) آمن ومشفر، بينما منفذ 23 (Telnet) خطير ومكشوف.', en: 'Port 22 (SSH) is secure and encrypted, while Port 23 (Telnet) is dangerous and clear-text.' },
+              { ar: 'أول خطوة للمهاجم والمدافع هي فحص المنافذ المفتوحة لاكتشاف الخدمات.', en: 'The first step for attacker and defender is scanning open ports to discover services.' }
+            ],
+            mcq: {
+              question: 'During a network scan, you find Port 23 open. Why might this be a significant security concern?',
+              options: ['It allows secure, encrypted file transfers', 'It is the Telnet port, which transmits passwords and data in unencrypted clear-text', 'It means the web server (HTTP) is down', 'It indicates the server is using IPv6'],
+              answer: 1,
+              explanation: 'Port 23 is used for Telnet. It is notoriously insecure because it transmits all communication, including usernames and passwords, in clear-text.'
+            }
+          }
+        ];
+
+        // --- مكونات الأيقونات ---
+        const AlertIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        );
+        const TranslateIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+        );
+        const CloseIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        );
+        const CheckIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        );
+        const CrossIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        );
+        const LightBulbIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+        );
+
+        function App() {
+          const [activeSlideId, setActiveSlideId] = useState(slidesData[0].id);
+          const [modalData, setModalData] = useState(null);
+          const [mcqState, setMcqState] = useState({});
+          const [showTranslation, setShowTranslation] = useState(false);
+
+          const activeSlide = slidesData.find(s => s.id === activeSlideId);
+
+          useEffect(() => {
+            setShowTranslation(false);
+          }, [activeSlideId]);
+
+          const renderContentWithKeywords = (text, keywordsMap) => {
+            if (!keywordsMap || Object.keys(keywordsMap).length === 0) return text;
+            const sortedKeywords = Object.keys(keywordsMap).sort((a, b) => b.length - a.length);
+            const regex = new RegExp(`(${sortedKeywords.join('|')})`, 'gi');
+            const parts = text.split(regex);
+            
+            return parts.map((part, index) => {
+              const keywordKey = Object.keys(keywordsMap).find(k => k.toLowerCase() === part.toLowerCase());
+              if (keywordKey) {
+                return (
+                  <span 
+                    key={index} 
+                    onClick={() => setModalData({ type: 'keyword', data: { word: part, meaning: keywordsMap[keywordKey] }})}
+                    className="group relative inline-flex items-baseline cursor-pointer font-bold text-indigo-700 hover:text-indigo-900 transition-all duration-200 mx-1 px-1 rounded hover:bg-indigo-50 border-b-2 border-dashed border-indigo-400"
+                    title="انقر لفهم المفهوم بعمق"
+                  >
+                    {part}
+                    <span className="absolute -top-1 -right-2 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 text-[8px] font-bold text-white justify-center items-center">?</span>
+                    </span>
+                  </span>
+                );
+              }
+              return <span key={index}>{part}</span>;
+            });
+          };
+
+          const handleMcqSelect = (optionIndex) => {
+            setMcqState({ ...mcqState, [activeSlideId]: optionIndex });
+          };
+
+          return (
+            <div className="flex flex-col md:flex-row h-screen bg-gray-50 text-gray-800 font-sans" dir="ltr">
+              {/* القائمة الجانبية */}
+              <div className="w-full md:w-1/4 bg-slate-900 text-white overflow-y-auto shadow-2xl z-10 flex flex-col">
+                <div className="p-5 bg-slate-800 text-center border-b border-slate-700 sticky top-0 shadow-sm z-20">
+                  <div className="font-extrabold text-xl tracking-wide text-indigo-400" dir="rtl">المحاضرة 4</div>
+                  <div className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">CYBS60201: Network Protocols</div>
+                </div>
+                <ul className="flex-1 px-3 py-5 space-y-3">
+                  {slidesData.map(slide => (
+                    <li key={slide.id}>
+                      <button
+                        onClick={() => {
+                          setActiveSlideId(slide.id);
+                          window.scrollTo(0, 0);
+                        }}
+                        className={`w-full text-left px-4 py-3.5 rounded-xl transition-all duration-300 font-medium text-sm ${
+                          activeSlideId === slide.id 
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]' 
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-100'
+                        }`}
+                      >
+                        {slide.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* المحتوى الرئيسي */}
+              <div className="w-full md:w-3/4 flex flex-col h-screen overflow-y-auto bg-slate-50">
+                <div className="flex-1 p-6 md:p-10 max-w-4xl mx-auto w-full">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-8 pb-6 border-b-2 border-slate-200 gap-4">
+                    <h1 className="text-3xl font-extrabold text-slate-800 leading-tight">
+                      {activeSlide.title}
+                    </h1>
+                    <div className="flex gap-3 self-end sm:self-auto shrink-0">
+                      <button 
+                        onClick={() => setShowTranslation(!showTranslation)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all shadow-sm border-2 ${
+                          showTranslation 
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        <TranslateIcon />
+                        <span className="text-sm">{showTranslation ? 'Hide Arabic' : 'عربي'}</span>
+                      </button>
+                      <button 
+                        onClick={() => setModalData({ type: 'summary', data: activeSlide.summary })}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 border-2 border-amber-300 hover:bg-amber-200 hover:text-amber-800 transition-all shadow-sm font-bold"
+                      >
+                        <AlertIcon />
+                        <span className="text-sm uppercase tracking-wider">Summary</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 text-lg leading-loose whitespace-pre-wrap text-slate-700 font-medium">
+                    {renderContentWithKeywords(activeSlide.content, activeSlide.keywords)}
+                  </div>
+
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showTranslation ? 'max-h-[1000px] opacity-100 mb-8' : 'max-h-0 opacity-0 mb-0'}`}>
+                    <div className="bg-emerald-50 p-8 rounded-2xl border-r-4 border-emerald-500 shadow-sm text-right whitespace-pre-wrap text-emerald-900 text-xl leading-loose font-medium" dir="rtl">
+                      {activeSlide.contentAr}
+                    </div>
+                  </div>
+
+                  {/* قسم الاختبار (MCQ) */}
+                  <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm mt-8">
+                    <h3 className="text-2xl font-bold mb-6 flex items-center text-slate-800">
+                      <span className="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-xl flex justify-center items-center mr-4 text-sm font-black shadow-inner">Q</span>
+                      Knowledge Check
+                    </h3>
+                    <p className="font-semibold text-lg text-slate-700 mb-6">{activeSlide.mcq.question}</p>
+                    <div className="space-y-3">
+                      {activeSlide.mcq.options.map((opt, idx) => {
+                        const isSelected = mcqState[activeSlideId] === idx;
+                        const isCorrect = idx === activeSlide.mcq.answer;
+                        const showResult = mcqState[activeSlideId] !== undefined;
+                        
+                        let btnStyle = "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700";
+                        if (showResult) {
+                          if (isCorrect) btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm";
+                          else if (isSelected && !isCorrect) btnStyle = "bg-rose-50 border-rose-400 text-rose-800 font-semibold";
+                          else btnStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                        }
+                        return (
+                          <button
+                            key={idx}
+                            disabled={showResult}
+                            onClick={() => handleMcqSelect(idx)}
+                            className={`w-full text-left px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                          >
+                            <span>{opt}</span>
+                            {showResult && isCorrect && <span className="text-emerald-600 bg-emerald-100 p-1 rounded-md"><CheckIcon /></span>}
+                            {showResult && isSelected && !isCorrect && <span className="text-rose-500 bg-rose-100 p-1 rounded-md"><CrossIcon /></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {mcqState[activeSlideId] !== undefined && (
+                      <div className={`mt-6 p-5 rounded-xl border-2 animate-fadeIn ${mcqState[activeSlideId] === activeSlide.mcq.answer ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <LightBulbIcon />
+                          <p className="font-bold text-slate-800">Explanation:</p>
+                        </div>
+                        <p className="text-slate-700 font-medium leading-relaxed">{activeSlide.mcq.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* جدول نقاط يجدر بك معرفتها */}
+                  <div className="bg-white p-0 rounded-2xl border border-slate-200 shadow-sm mt-8 overflow-hidden">
+                    <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center gap-3" dir="rtl">
+                      <span className="bg-amber-100 text-amber-600 p-2 rounded-lg shadow-sm">
+                        <LightBulbIcon />
+                      </span>
+                      <h3 className="text-xl font-bold text-amber-900">نقاط يجدر بك معرفتها</h3>
+                    </div>
+                    <div className="overflow-x-auto p-4">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b-2 border-slate-200">
+                            <th className="p-4 font-bold text-slate-800 text-right w-1/2 bg-slate-50 rounded-tr-lg" dir="rtl">الملخص (عربي)</th>
+                            <th className="p-4 font-bold text-slate-800 w-1/2 bg-slate-50 rounded-tl-lg">Takeaway (English)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeSlide.keyPoints.map((point, index) => (
+                            <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                              <td className="p-4 text-slate-700 text-right font-medium leading-relaxed" dir="rtl">{point.ar}</td>
+                              <td className="p-4 text-slate-700 font-medium leading-relaxed">{point.en}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* النوافذ المنبثقة (Modals) */}
+              {modalData && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn" onClick={() => setModalData(null)}>
+                  <div 
+                    className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all scale-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className={`flex justify-between items-center p-5 border-b-2 ${modalData.type === 'keyword' ? 'bg-indigo-50 border-indigo-100' : 'bg-amber-50 border-amber-100'}`}>
+                      <h3 className={`text-xl font-black ${modalData.type === 'keyword' ? 'text-indigo-800' : 'text-amber-800'}`} dir="rtl">
+                        {modalData.type === 'keyword' ? 'شرح المفهوم العلمي' : 'الملخص التنفيذي'}
+                      </h3>
+                      <button onClick={() => setModalData(null)} className="text-slate-400 hover:text-rose-500 bg-white p-2 rounded-full hover:bg-rose-50 transition-colors shadow-sm border border-slate-200">
+                        <CloseIcon />
+                      </button>
+                    </div>
+                    <div className="p-8">
+                      {modalData.type === 'keyword' && (
+                        <div dir="rtl" className="text-right">
+                          <div className="inline-block bg-indigo-600 text-white text-xl font-bold mb-5 px-4 py-2 rounded-lg font-mono tracking-wide shadow-md" dir="ltr">
+                            {modalData.data.word}
+                          </div>
+                          <div className="text-lg text-slate-700 leading-loose font-medium border-r-4 border-indigo-400 pl-4 pr-6 bg-slate-50 py-4 rounded-l-xl">
+                            {modalData.data.meaning}
+                          </div>
+                        </div>
+                      )}
+                      {modalData.type === 'summary' && (
+                        <div className="space-y-8">
+                          <div className="relative p-6 rounded-2xl border-2 border-slate-200 bg-white">
+                            <span className="absolute -top-4 left-4 bg-slate-800 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">English</span>
+                            <p className="text-slate-700 leading-relaxed font-medium text-lg mt-2">{modalData.data.en}</p>
+                          </div>
+                          <div className="relative p-6 rounded-2xl border-2 border-amber-200 bg-amber-50/50" dir="rtl">
+                            <span className="absolute -top-4 right-4 bg-amber-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">عربي</span>
+                            <p className="text-amber-950 leading-relaxed font-medium text-lg mt-2 text-right">{modalData.data.ar}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // --- أمر تشغيل التطبيق في الصفحة ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

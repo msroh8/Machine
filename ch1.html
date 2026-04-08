@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دورة اختبار الاختراق</title>
+    
+    <!-- مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبات React الأساسية -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- مترجم Babel ليفهم المتصفح كود React -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- الحاوية الأساسية لتطبيق ريأكت -->
+    <div id="root"></div>
+
+    <!-- كود التطبيق -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- البيانات للشرائح ---
+        const slidesData = [
+          {
+            id: 's7',
+            title: '7. Defining Professional Penetration Testing',
+            content: `Core Definition\nAn authorized, systematic simulation of an attack to evaluate the security infrastructure of an organization.\n• Identifying and exploiting weaknesses to validate risk.\n• Validating security policy efficacy.\n• Proactively spotting threats to confidentiality and data.`,
+            contentAr: `التعريف الأساسي\nمحاكاة منهجية ومصرح بها لهجوم، بهدف تقييم البنية التحتية الأمنية للمؤسسة.\n• تحديد واستغلال نقاط الضعف للتحقق من المخاطر الفعلية.\n• التحقق من مدى فعالية السياسات الأمنية المطبقة.\n• الرصد الاستباقي للتهديدات التي قد تمس سرية البيانات.`,
+            keywords: {
+              'Penetration Testing': 'ليس مجرد فحص عشوائي للأنظمة، بل هو عملية تحاكي ما يفعله المخترق الحقيقي (الهاكر) خطوة بخطوة، ولكن بشكل قانوني وبموافقة الجهة المالكة، بهدف اكتشاف الثغرات قبل أن يستغلها مجرمو الإنترنت.',
+              'simulation': 'نمذجة واقعية وتجربة عملية للهجوم. نحن لا نكتفي بالبحث النظري أو قراءة تقارير الأمان، بل نشن هجوماً حقيقياً مسيطراً عليه لنرى كيف ستصمد الأنظمة الدفاعية للمؤسسة في أرض الواقع.',
+              'weaknesses': 'تمثل العيوب في تصميم النظام، أو الأخطاء البرمجية، أو الإعدادات غير الصحيحة. هي بمثابة "الأبواب الخلفية" أو "النوافذ المفتوحة" التي يستطيع المهاجم التسلل منها للوصول إلى قلب النظام.',
+              'confidentiality': 'أحد أضلاع مثلث الحماية (CIA). المفهوم هنا يتجاوز مجرد إخفاء البيانات، بل يعني وضع الآليات الصارمة للتأكد من أن المعلومات الحساسة لا يمكن قراءتها أو الوصول إليها إلا من قبل الأشخاص المصرح لهم فقط.'
+            },
+            summary: {
+              en: 'Penetration testing is an authorized, systematic simulation of cyberattacks aimed at identifying weaknesses, validating security policies, and proactively protecting sensitive data.',
+              ar: 'اختبار الاختراق هو محاكاة منهجية ومصرح بها للهجمات السيبرانية تهدف إلى تحديد نقاط الضعف، والتحقق من سياسات الأمان، وحماية البيانات الحساسة بشكل استباقي.'
+            },
+            keyPoints: [
+              { ar: 'الاختبار يجب أن يكون دائماً مصرحاً به (Authorized).', en: 'Testing must always be authorized.' },
+              { ar: 'الهدف إثبات وتقييم المخاطر بشكل عملي.', en: 'The goal is to validate and evaluate risks practically.' },
+              { ar: 'يساعد في تأكيد أن السياسات الأمنية ليست مجرد حبر على ورق.', en: 'Confirms security policies are functioning, not just on paper.' }
+            ],
+            mcq: {
+              question: 'What is a core characteristic of professional penetration testing?',
+              options: ['It is an unauthorized attack', 'It is an authorized, systematic simulation', 'It only involves installing firewalls', 'It relies solely on automated tools'],
+              answer: 1,
+              explanation: 'Professional penetration testing is explicitly defined as an authorized and systematic simulation of an attack.'
+            }
+          },
+          {
+            id: 's8',
+            title: '8. Vulnerability Scanning vs. Pen Testing',
+            content: `Vulnerability Scanning: Broad identification of potential flaws; results in a list of bugs.\nPenetration Testing: Goal-oriented verification; proves exploitability and impact via active exploitation.`,
+            contentAr: `فحص الثغرات (Vulnerability Scanning): تحديد واسع النطاق للعيوب المحتملة؛ ينتج عنه قائمة بالأخطاء أو نقاط الضعف.\nاختبار الاختراق (Penetration Testing): تحقق موجه نحو هدف محدد؛ يثبت إمكانية الاستغلال وتأثير الثغرة من خلال عملية الاستغلال النشط.`,
+            keywords: {
+              'Vulnerability Scanning': 'عملية آلية بالكامل تشبه تشغيل كشاف قوي في غرفة مظلمة لترى ما إذا كانت هناك أبواب مفتوحة. تعطيك قائمة طويلة بالمشاكل المحتملة، لكنها لا تؤكد لك ما إذا كان بإمكان أحد فعلاً الدخول عبر هذه الأبواب.',
+              'exploitability': 'اختبار "إمكانية الاستخدام الفعلي" للثغرة. فليست كل ثغرة تظهر في برامج الفحص يمكن استغلالها؛ بعضها قد يكون محمياً بآليات دفاعية أخرى. هذا المفهوم يفرق بين الخطر النظري والخطر الحقيقي.',
+              'active exploitation': 'الانتقال من مرحلة "اكتشاف العيب" إلى مرحلة "استغلال العيب". حيث يقوم المختبر بكتابة واستخدام برمجيات خاصة (Exploits) لاختراق النظام فعلياً وإثبات أن هذه الثغرة قادرة على إحداث دمار حقيقي.'
+            },
+            summary: {
+              en: 'Vulnerability scanning identifies potential flaws and creates a list of bugs, whereas penetration testing actively exploits these flaws to prove their impact.',
+              ar: 'فحص الثغرات يحدد العيوب المحتملة وينشئ قائمة بها، بينما اختبار الاختراق يستغل هذه العيوب بنشاط لإثبات تأثيرها الحقيقي.'
+            },
+            keyPoints: [
+              { ar: 'فحص الثغرات يحدد العيوب المحتملة ويصدر قائمة بها فقط.', en: 'Vulnerability scanning only identifies potential flaws and lists them.' },
+              { ar: 'اختبار الاختراق يثبت قابلية الاستغلال (Exploitability).', en: 'Penetration testing proves actual exploitability.' },
+              { ar: 'الهجوم النشط هو الفارق الجوهري بين العمليتين.', en: 'Active exploitation is the core difference between the two.' }
+            ],
+            mcq: {
+              question: 'Which of the following proves the exploitability and impact of a flaw?',
+              options: ['Vulnerability Scanning', 'Patch Management', 'Penetration Testing', 'Risk Assessment'],
+              answer: 2,
+              explanation: 'Penetration testing goes beyond scanning by using active exploitation to prove exploitability.'
+            }
+          },
+          {
+            id: 's9',
+            title: '9. Significance: Assurance & Confidentiality',
+            content: `• Security of the Organization: Provides assurance through a detailed assessment of the security posture.\n• Protecting Confidentiality: Spots potential threats before damage occurs, safeguarding the organization's sensitive data.`,
+            contentAr: `• أمن المؤسسة: يوفر الضمان والتأكيد من خلال إجراء تقييم مفصل للوضع الأمني للمؤسسة.\n• حماية السرية: يكتشف التهديدات المحتملة بشكل مبكر قبل حدوث أي ضرر، مما يضمن حماية البيانات الحساسة للمؤسسة.`,
+            keywords: {
+              'assurance': 'بناء حالة من الثقة واليقين لدى الإدارة العليا وأصحاب المصلحة، مبنية على أدلة وتقارير عملية، بأن استثماراتهم في أمن المعلومات تعمل بكفاءة وأن النظام محمي بشكل صحيح.',
+              'security posture': 'مصطلح شامل يعبر عن "اللياقة الأمنية" للمؤسسة. لا يشمل فقط البرامج والأجهزة المعززة، بل يشمل أيضاً السياسات، وإجراءات الاستجابة، وحتى مستوى الوعي الأمني لدى الموظفين.',
+              'threats': 'الكيانات أو الأحداث المحتملة التي تنتظر الفرصة المناسبة للهجوم. التهديد قد يكون مخترقاً خارجياً، موظفاً ناقماً داخلياً، أو حتى فيروس فدية يبحث عن أي ثغرة ليتسلل منها.'
+            },
+            summary: {
+              en: 'Penetration testing provides assurance regarding the organization’s security posture and protects confidentiality by spotting threats before they cause harm.',
+              ar: 'يوفر اختبار الاختراق ضماناً بشأن الوضع الأمني للمنظمة ويحمي السرية من خلال اكتشاف التهديدات قبل حدوث أي ضرر.'
+            },
+            keyPoints: [
+              { ar: 'يوفر ضماناً حقيقياً للإدارة بمتانة الوضع الأمني (Security posture).', en: 'Provides real assurance to management about the security posture.' },
+              { ar: 'الاستباقية: يكتشف التهديدات قبل أن تتحول إلى اختراقات مدمرة.', en: 'Proactivity: Spots threats before they become destructive breaches.' },
+              { ar: 'يحمي سرية البيانات الحساسة للمنظمة.', en: 'Protects the confidentiality of the organization\'s sensitive data.' }
+            ],
+            mcq: {
+              question: 'How does penetration testing protect confidentiality?',
+              options: ['By encrypting all hard drives', 'By spotting potential threats before damage occurs', 'By deleting sensitive data', 'By stopping all network traffic'],
+              answer: 1,
+              explanation: 'It spots potential threats proactively, safeguarding sensitive data before a real attacker can access it.'
+            }
+          },
+          {
+            id: 's10',
+            title: '10. Significance: Policies & Efficiency',
+            content: `• Security Policy Implementation: Ensures that defined security policies are actually implemented and functional.\n• Managing Network Efficiency: Examines the security and performance of critical devices like firewalls and routers.\n• Infrastructure Safety: Ensures safety against vulnerabilities when implementing network design changes or hardware/software updates.`,
+            contentAr: `• تطبيق السياسة الأمنية: يضمن أن السياسات الأمنية المحددة نظرياً يتم تطبيقها وتعمل بشكل فعلي على أرض الواقع.\n• إدارة كفاءة الشبكة: يفحص الجانب الأمني والأداء للأجهزة الحساسة مثل الجدران النارية وأجهزة التوجيه (الراوتر).\n• سلامة البنية التحتية: يضمن الحماية من الثغرات عند تنفيذ تغييرات في تصميم الشبكة أو عند تحديث الأجهزة والبرمجيات.`,
+            keywords: {
+              'Security Policy': 'الدستور الأمني للمؤسسة؛ هو المستند الذي يخبر الموظفين والأنظمة بما هو مسموح وما هو ممنوع. اختبار الاختراق يثبت ما إذا كان هذا الدستور مجرد حبر على ورق أم أنه مطبق فعلياً.',
+              'firewalls': 'حراس البوابات في عالم الشبكات. أجهزة تراقب حرفياً كل حزمة بيانات تدخل أو تخرج، وتحدد ما إذا كانت شرعية فتسمح لها بالمرور، أو مشبوهة فتقوم بحظرها.',
+              'Infrastructure': 'الهيكل العظمي التقني للمؤسسة؛ يشمل السيرفرات، الشبكات، قواعد البيانات، والأسلاك المادية. تأمينها يعتبر الخطوة الأولى لأي استراتيجية أمن معلومات.'
+            },
+            summary: {
+              en: 'It verifies the functional implementation of security policies, tests the efficiency of network devices, and ensures infrastructure safety during changes.',
+              ar: 'يتحقق من التنفيذ الفعلي للسياسات الأمنية، ويختبر كفاءة أجهزة الشبكة، ويضمن سلامة البنية التحتية أثناء إجراء التغييرات.'
+            },
+            keyPoints: [
+              { ar: 'يؤكد أن السياسات الأمنية ليست نظرية، بل مطبقة وتعمل.', en: 'Confirms security policies are not theoretical, but implemented.' },
+              { ar: 'يختبر فعالية الأجهزة الأساسية كالجدران النارية (Firewalls).', en: 'Tests the efficiency of core devices like Firewalls.' },
+              { ar: 'ضروري عند إحداث تغييرات أو تحديثات في تصميم الشبكة.', en: 'Crucial when making changes or updates to network design.' }
+            ],
+            mcq: {
+              question: 'What is a key reason to perform a pen test when updating hardware or software?',
+              options: ['To speed up the network', 'To ensure infrastructure safety against vulnerabilities', 'To reduce electricity consumption', 'To update user passwords'],
+              answer: 1,
+              explanation: 'Infrastructure safety must be validated when changes occur to ensure new vulnerabilities weren\'t introduced.'
+            }
+          },
+          {
+            id: 's11',
+            title: '11. Cybersecurity as a Strategic Priority',
+            content: `• Both government and private organizations have adopted cybersecurity as a strategic priority.\n• Cybercriminals target these organizations as "soft targets" using various attacking vectors.\n• The Root Problem: Lack of efficient policies, standards, and system complexity leads to successful exploitation and data theft.`,
+            contentAr: `• اتخذت كل من المؤسسات الحكومية والخاصة الأمن السيبراني كأولوية استراتيجية عليا.\n• يستهدف مجرمو الإنترنت هذه المنظمات باعتبارها "أهدافاً سهلة" مستخدمين نواقل هجوم متنوعة.\n• المشكلة الجذرية: الافتقار إلى سياسات فعالة، ونقص المعايير، والتعقيد المفرط في الأنظمة يؤدي إلى نجاح الاختراقات وسرقة البيانات.`,
+            keywords: {
+              'strategic priority': 'لم يعد الأمن السيبراني مجرد مهمة تقنية لقسم الـ IT، بل أصبح قراراً حاسماً على طاولة مجلس الإدارة (CEO) لأنه يؤثر بشكل مباشر على بقاء الشركة وسمعتها في السوق.',
+              'soft targets': 'الكيانات أو المؤسسات التي تمتلك ميزانيات ضخمة وبيانات قيمة جداً، لكنها تعاني من ضعف حاد في الإجراءات الأمنية، مما يجعل اختراقها سهلاً ومربحاً جداً للقراصنة.',
+              'attacking vectors': 'الأساليب والطرق المتنوعة التي قد يسلكها الهاكر للوصول لهدفه؛ قد تكون رسالة بريد إلكتروني خادعة (تصيد)، ثغرة في موقع الويب، أو حتى فلاش ميموري (USB) مصاب يتم إلقاؤه في ساحة مواقف الشركة.'
+            },
+            summary: {
+              en: 'Cybersecurity is a strategic priority globally. Organizations often become soft targets due to inefficient policies, lack of standards, and complex systems.',
+              ar: 'يُعد الأمن السيبراني أولوية استراتيجية عالمياً. غالباً ما تصبح المنظمات أهدافاً سهلة بسبب السياسات غير الفعالة، ونقص المعايير، والأنظمة المعقدة.'
+            },
+            keyPoints: [
+              { ar: 'الأمن السيبراني لم يعد خياراً، بل أولوية استراتيجية للإدارة.', en: 'Cybersecurity is no longer an option, but a strategic priority.' },
+              { ar: 'المنظمات ذات السياسات الضعيفة تُعتبر "أهدافاً سهلة" للقراصنة.', en: 'Organizations with weak policies are considered "soft targets".' },
+              { ar: 'تعقيد الأنظمة ونقص المعايير هما الجذر الأساسي للاختراقات.', en: 'System complexity and lack of standards are the root cause of breaches.' }
+            ],
+            mcq: {
+              question: 'What is identified as "The Root Problem" leading to successful exploitation?',
+              options: ['Having too many firewalls', 'Using Python for programming', 'Lack of efficient policies, standards, and system complexity', 'Conducting too many penetration tests'],
+              answer: 2,
+              explanation: 'The slide states the root problem is the lack of efficient policies, standards, and system complexity.'
+            }
+          },
+          {
+            id: 's12',
+            title: '12. The Strategy of Penetration Testing',
+            content: `• Penetration testing is a primary strategy used to mitigate the risks of cyberattacks.\n• The Success Factor: Success depends upon an efficient and consistent assessment methodology.\n• Methodologies allow assessors to evaluate an environment consistently.`,
+            contentAr: `• اختبار الاختراق هو استراتيجية أساسية تستخدم لتخفيف المخاطر الناجمة عن الهجمات السيبرانية.\n• عامل النجاح: يعتمد النجاح بشكل كامل على تطبيق منهجية تقييم فعالة ومتسقة.\n• المنهجيات: تسمح للمقيمين (المختبرين) بفحص وتقييم البيئة التقنية بطريقة ثابتة وموثوقة.`,
+            keywords: {
+              'mitigate': 'في عالم الأمن السيبراني، لا يمكن "القضاء" على المخاطر بنسبة 100%. التخفيف يعني تقليل احتمالية وقوع الهجوم وتقليل حجم الضرر في حال وقوعه إلى أدنى مستوى ممكن يمكن للمؤسسة تحمله.',
+              'methodology': 'إطار عمل أو خريطة طريق واضحة. المنهجية تحول عملية الاختراق من مجرد "محاولات عشوائية فوضوية" إلى "عمل هندسي منظم وموثق" يضمن عدم نسيان فحص أي جزء من النظام.',
+              'consistently': 'الاستمرارية والثبات؛ تعني أننا إذا قمنا باختبار النظام اليوم ثم أعدنا الاختبار بعد شهر باستخدام نفس المنهجية، فإننا نضمن الحصول على نتائج دقيقة وخالية من الأهواء الشخصية للمختبر.'
+            },
+            summary: {
+              en: 'Penetration testing is a core risk mitigation strategy. Its success relies heavily on using an efficient and consistent methodology for evaluation.',
+              ar: 'اختبار الاختراق هو استراتيجية أساسية لتخفيف المخاطر. يعتمد نجاحه بشكل كبير على استخدام منهجية تقييم فعالة ومتسقة.'
+            },
+            keyPoints: [
+              { ar: 'اختبار الاختراق يستهدف "تخفيف المخاطر" (Mitigation).', en: 'Penetration testing aims at risk "mitigation".' },
+              { ar: 'سر النجاح يكمن في استخدام منهجية (Methodology) واضحة.', en: 'The secret to success lies in using a clear methodology.' },
+              { ar: 'المنهجيات تضمن تقييماً متسقاً وخالياً من العشوائية.', en: 'Methodologies ensure consistent, non-random assessments.' }
+            ],
+            mcq: {
+              question: 'What is the primary factor for a successful penetration test?',
+              options: ['Using expensive tools', 'An efficient and consistent assessment methodology', 'Performing the test over a weekend', 'Having full access to source code always'],
+              answer: 1,
+              explanation: 'Success depends upon an efficient and consistent assessment methodology to evaluate environments properly.'
+            }
+          },
+          {
+            id: 's13',
+            title: '13. Industry-Standard Methodologies',
+            content: `A variety of methodologies allow for consistent evaluation:\n• OSSTMM: Open-Source Security Testing Methodology Manual.\n• OWASP: Open Web Application Security Project.\n• NIST: National Institute of Standards and Technology.\n• PTES: Penetration Testing Execution Standard (Our core framework).`,
+            contentAr: `تتوفر مجموعة متنوعة من المنهجيات التي تسمح بتقييم متسق:\n• OSSTMM: دليل منهجية اختبار الأمان مفتوح المصدر (يركز على العمليات التشغيلية).\n• OWASP: مشروع أمان تطبيقات الويب المفتوح (المرجع الأول عالمياً لأمان تطبيقات الويب).\n• NIST: المعهد الوطني للمعايير والتكنولوجيا (إطار عمل أمريكي شامل وموثوق).\n• PTES: معيار تنفيذ اختبار الاختراق (وهو الإطار الأساسي الذي تعتمد عليه هذه الدورة).`,
+            keywords: {
+              'OSSTMM': 'دليل صارم يركز على الحقائق القابلة للقياس الرياضي في الأمان. يدرس التفاعلات البشرية والفيزيائية واللاسلكية ولا يعتمد فقط على البرمجيات، بل يبحث في "العمليات التشغيلية" للمؤسسة.',
+              'OWASP': 'المجتمع العالمي الأبرز الذي يصدر قائمة سنوية (Top 10) لأخطر الثغرات في المواقع الإلكترونية. أي مختبر اختراق للمواقع يجب أن يكون حافظاً لمعايير وتوجيهات OWASP عن ظهر قلب.',
+              'NIST': 'مؤسسة تابعة للحكومة الأمريكية تصدر معايير (مثل NIST SP 800-115). تعتبر هذه المعايير المعيار الذهبي للعديد من المؤسسات الحكومية والشركات الكبرى لضمان التوافق مع أعلى مستويات الأمان.',
+              'PTES': 'معيار صُمم من قبل خبراء الصناعة ليكون الدليل الشامل لمراحل اختبار الاختراق السبع. يتميز بأنه يغطي ليس فقط الجانب التقني، بل الجانب الإداري والتعاقدي وصياغة التقارير.'
+            },
+            summary: {
+              en: 'Several industry-standard methodologies exist for security evaluation, including OSSTMM, OWASP, NIST, and PTES, which is the core framework of this course.',
+              ar: 'توجد عدة منهجيات قياسية لتقييم الأمان في الصناعة، بما في ذلك OSSTMM و OWASP و NIST و PTES، والذي يعد الإطار الأساسي لهذه الدورة.'
+            },
+            keyPoints: [
+              { ar: 'تتعدد المنهجيات لضمان تقييم موحد ومتسق.', en: 'Multiple methodologies exist to ensure unified assessments.' },
+              { ar: 'OWASP هي المرجع الأول لاختبار أمان المواقع (Web).', en: 'OWASP is the primary reference for Web security testing.' },
+              { ar: 'PTES هو الإطار الأساسي والمعتمد في مسار هذه الدورة.', en: 'PTES is the core and adopted framework for this course.' }
+            ],
+            mcq: {
+              question: 'Which methodology is noted as the "core framework" for this course?',
+              options: ['OSSTMM', 'NIST', 'OWASP', 'PTES'],
+              answer: 3,
+              explanation: 'The slide explicitly states that PTES (Penetration Testing Execution Standard) is the core framework.'
+            }
+          },
+          {
+            id: 's14',
+            title: '14. What is PTES?',
+            content: `• Definition: PTES (Penetration Testing Execution Standard) is a comprehensive assessment methodology for penetration testing.\n• Coverage: It covers every aspect related to a penetration test.\n• Technical Guidelines: Within PTES, there are a number of technical guidelines related to different environments an assessor may encounter.\n• The Advantage: For new assessors, PTES provides suggestions for addressing and evaluating environments using industry standard tools.`,
+            contentAr: `• التعريف: PTES (معيار تنفيذ اختبار الاختراق) هو منهجية تقييم شاملة وموحدة لإجراء اختبارات الاختراق.\n• التغطية: يغطي هذا المعيار كل جانب تفصيلي يتعلق بعملية اختبار الاختراق من البداية للنهاية.\n• الإرشادات التقنية: يحتوي PTES ضمن طياته على العديد من التوجيهات الفنية للتعامل مع بيئات العمل المختلفة التي قد يواجهها المُقيّم.\n• الميزة: بالنسبة للمقيمين (المختبرين) الجدد، يقدم PTES اقتراحات لكيفية معالجة وتقييم الأنظمة باستخدام أدوات الصناعة القياسية.`,
+            keywords: {
+              'comprehensive': 'الشمولية هنا تعني أن المعيار لا يترك مجالاً للصدفة. فهو يبدأ معك من أول مكالمة هاتفية مع العميل، ويمر بالهجوم التقني الفعلي، وينتهي بكيفية كتابة التقرير النهائي بطريقة احترافية.',
+              'guidelines': 'بوصلة تقنية متقدمة. فإذا واجهك نظام تشغيل غريب، أو قاعدة بيانات غير مألوفة، توفر لك هذه الإرشادات الخطوات والأدوات القياسية المطلوبة للتعامل مع هذه البيئة بكفاءة.',
+              'assessors': 'هم خبراء الأمن السيبراني (الهاكرز الأخلاقيون) الذين يتم توظيفهم لتقييم الأنظمة. دورهم لا يقتصر على التدمير والاختراق، بل يشمل التحليل العقلاني وتقديم الحلول والإصلاحات.'
+            },
+            summary: {
+              en: 'PTES is a comprehensive standard covering all aspects of penetration testing, offering technical guidelines and structured approaches for evaluating different environments.',
+              ar: 'معيار PTES هو معيار شامل يغطي جميع جوانب اختبار الاختراق، ويوفر إرشادات فنية وأساليب منهجية لتقييم البيئات التقنية المختلفة.'
+            },
+            keyPoints: [
+              { ar: 'PTES هو معيار شامل يغطي عملية الاختبار من البداية للنهاية.', en: 'PTES is comprehensive, covering testing from start to finish.' },
+              { ar: 'يحتوي على إرشادات تقنية للتعامل مع بيئات الأنظمة المختلفة.', en: 'Contains technical guidelines for different system environments.' },
+              { ar: 'يعتبر مرشداً ممتازاً للمختبرين الجدد لاختيار الأدوات القياسية.', en: 'Acts as an excellent guide for new testers to choose standard tools.' }
+            ],
+            mcq: {
+              question: 'What advantage does PTES offer to new assessors?',
+              options: ['It automates all the hacking', 'It guarantees they will find vulnerabilities', 'It provides suggestions for addressing environments using industry standard tools', 'It replaces the need for reporting'],
+              answer: 2,
+              explanation: 'PTES acts as a guide, providing suggestions and technical guidelines for using standard tools in various environments.'
+            }
+          },
+          {
+            id: 's15',
+            title: '15. The Seven Phases of PTES',
+            content: `Scope of PTES\nThe standard consists of seven phases covering everything from initial communication to final delivery.\n• Initial Phase: Communication and the reasoning behind a pentest.\n• Behind the Scenes: Intelligence gathering and threat modelling.\n• Technical Execution: Vulnerability research, exploitation, and post-exploitation.`,
+            contentAr: `نطاق معيار PTES\nيتكون المعيار من سبع مراحل رئيسية تغطي كل شيء بدءاً من الاتصال الأولي بالعميل وحتى التسليم النهائي للتقرير.\n• المرحلة الأولية: التواصل فهم أسباب ودوافع المؤسسة لطلب اختبار الاختراق.\n• خلف الكواليس: عمليات جمع المعلومات الاستخباراتية ونمذجة التهديدات المحتملة.\n• التنفيذ التقني: مرحلة البحث عن الثغرات، استغلالها الفعلي، وما يسمى بـ "ما بعد الاستغلال".`,
+            keywords: {
+              'phases': 'مراحل متسلسلة تشبه بناء منزل؛ لا يمكنك بناء السقف (الاستغلال) قبل وضع الأساس (جمع المعلومات). تخطي أي مرحلة يؤدي إلى اختبار فاشل أو غير مكتمل.',
+              'Intelligence gathering': 'مرحلة "المراقبة الهادئة". يقوم فيها المهاجم بجمع كل شاردة وواردة عن الهدف من مصادر عامة ومفتوحة (OSINT) دون لمس أنظمة الشركة مباشرة، للبحث عن أي نقطة ضعف إدارية أو تقنية تقوده للهدف.',
+              'threat modelling': 'لعبة الشطرنج الأمنية. حيث يضع الفريق نفسه مكان العدو ليحدد: من سيهاجمنا؟ ولماذا؟ وما هي أكثر البيانات التي سيبحثون عنها؟ بناءً على ذلك يتم توجيه الاختبار نحو الأهداف الأكثر حساسية.',
+              'post-exploitation': 'ماذا يحدث بعد أن تفتح الباب وتدخل؟ هذه المرحلة توضح ما يمكن للهاكر فعله بعد الاختراق الأولي (مثل التجسس على الكاميرات، سرقة كلمات السر، أو التمدد لأجهزة أخرى في الشبكة).'
+            },
+            summary: {
+              en: 'PTES is structured into seven distinct phases ranging from initial client communication, intelligence gathering, and technical execution to final reporting.',
+              ar: 'ينقسم معيار PTES إلى سبع مراحل متميزة تتراوح من التواصل الأولي مع العميل، وجمع المعلومات، والتنفيذ التقني، إلى إعداد التقرير النهائي.'
+            },
+            keyPoints: [
+              { ar: 'يتكون معيار PTES من 7 مراحل متسلسلة لا يمكن تخطيها.', en: 'PTES consists of 7 sequential phases that cannot be skipped.' },
+              { ar: 'المراحل تبدأ بالتواصل الأولي وتنتهي بتسليم التقرير النهائي.', en: 'Phases start with initial communication and end with report delivery.' },
+              { ar: 'جمع المعلومات ونمذجة التهديدات تتم في مرحلة "خلف الكواليس".', en: 'Intel gathering and threat modeling occur "behind the scenes".' }
+            ],
+            mcq: {
+              question: 'Which of the following is part of the "Behind the Scenes" activities in PTES?',
+              options: ['Exploitation', 'Intelligence gathering and threat modelling', 'Final delivery', 'Initial Phase Communication'],
+              answer: 1,
+              explanation: 'According to the slide, Intelligence gathering and threat modelling occur "Behind the Scenes".'
+            }
+          },
+          {
+            id: 's16',
+            title: '16. Integrating Expertise with Business',
+            content: `• The methodology ensures a better understanding of the tested organization.\n• Critical Combination: The technical security expertise of the testers is combined with a deep business understanding of the engagement.\n• The Conclusion: The process culminates in Reporting, which captures the entire technical and strategic findings of the test.`,
+            contentAr: `• المنهجية تضمن تحقيق فهم أفضل لطبيعة عمل المنظمة التي يتم اختبارها.\n• المزيج الحاسم: دمج الخبرة الأمنية التقنية العميقة للمختبرين مع فهم تجاري واسع لطبيعة هذا التعاقد والبيزنس الخاص بالشركة.\n• الخاتمة: تُتوج العملية بأكملها في مرحلة كتابة التقرير (Reporting)، والذي يوثق كافة النتائج الفنية والاستراتيجية للاختبار.`,
+            keywords: {
+              'Expertise': 'تشير إلى الإلمام التام بأدوات القرصنة، فهم لغات البرمجة، والقدرة على التفكير الجانبي لكسر الأنظمة المعقدة بطرق غير متوقعة.',
+              'business understanding': 'المهارة التي تميز المهندس المحترف عن الهاكر الهاوي. وهي فهم كيف يمكن للثغرة أن تؤثر مالياً وقانونياً على المؤسسة (مثال: اختراق سيرفر مبيعات أخطر بكثير لشركة تجارية من اختراق جهاز موظف استقبال).',
+              'culminates': 'اللحظة التي تترجم فيها آلاف الأسطر البرمجية وعشرات ساعات الاختراق إلى "لغة الإدارة". التقرير هو المنتج النهائي والوحيد الذي يراه مدير الشركة ويدفع ثمنه.'
+            },
+            summary: {
+              en: 'A successful pentest combines technical security skills with business acumen, ultimately culminating in a comprehensive report of strategic and technical findings.',
+              ar: 'يجمع اختبار الاختراق الناجح بين المهارات الأمنية التقنية والفهم التجاري للأعمال، ويتوج في النهاية بتقرير شامل للنتائج الاستراتيجية والتقنية.'
+            },
+            keyPoints: [
+              { ar: 'النجاح يتطلب دمج الخبرة التقنية (الاختراق) مع فهم الأعمال.', en: 'Success requires blending technical expertise with business understanding.' },
+              { ar: 'منهجية PTES تضمن استيعاب طبيعة عمل المنظمة وليس فقط أنظمتها.', en: 'PTES ensures understanding the business nature, not just its systems.' },
+              { ar: 'كتابة التقرير (Reporting) هو المنتج النهائي الذي يُلخص كل الجهود.', en: 'Reporting is the final product that summarizes all efforts.' }
+            ],
+            mcq: {
+              question: 'What must technical security expertise be combined with for a successful engagement?',
+              options: ['Automated scanners', 'A deep business understanding of the engagement', 'Physical security tools', 'Social media hacking'],
+              answer: 1,
+              explanation: 'The critical combination is technical expertise combined with a deep business understanding.'
+            }
+          },
+          {
+            id: 's17',
+            title: '17. The PTES Technical Lifecycle',
+            content: `1. Pre-engagement Interactions\n2. Intelligence Gathering\n3. Threat Modeling\n4. Vulnerability Analysis\n5. Exploitation\n6. Post-Exploitation\n7. Reporting`,
+            contentAr: `دورة الحياة التقنية لمنهجية PTES:\n1. التفاعلات ما قبل التعاقد\n2. جمع المعلومات الاستخباراتية\n3. نمذجة التهديدات\n4. تحليل الثغرات\n5. مرحلة الاستغلال\n6. مرحلة ما بعد الاستغلال\n7. إعداد التقارير النهائية`,
+            keywords: {
+              'Pre-engagement': 'مرحلة "وضع القواعد الأساسية". تشمل توقيع العقود، الاتفاق على الميزانية، وتحديد ما هو مسموح باختراقه (النطاق) وما هو ممنوع، لحماية الطرفين قانونياً.',
+              'Vulnerability Analysis': 'مرحلة مطابقة المعلومات المجمعة مع قواعد بيانات الثغرات المعروفة لتحديد الطريقة الأنسب للهجوم وتقليل فرص التسبب في إيقاف خدمات الشركة عن طريق الخطأ.',
+              'Exploitation': 'المرحلة التي تظهر فيها المهارة الحقيقية. هنا تتحول التوقعات والتحليلات السابقة إلى عمل هجومي صريح للسيطرة على النظام المستهدف وإثبات وجود الثغرة بشكل قاطع.',
+              'Reporting': 'أهم مرحلة للعميل. تقرير احترافي يقسم إلى جزء تنفيذي مبسط للإدارة (لفهم حجم الخطر والتكلفة)، وجزء فني عميق للمبرمجين (يشرح الثغرة خطوة بخطوة وكيفية سدها).'
+            },
+            summary: {
+              en: 'The PTES lifecycle follows a logical progression of 7 steps: Pre-engagement, Intelligence Gathering, Threat Modeling, Vulnerability Analysis, Exploitation, Post-Exploitation, and Reporting.',
+              ar: 'تتبع دورة حياة PTES تسلسلاً منطقياً من 7 خطوات: ما قبل التعاقد، جمع المعلومات، نمذجة التهديدات، تحليل الثغرات، الاستغلال، ما بعد الاستغلال، وإعداد التقارير.'
+            },
+            keyPoints: [
+              { ar: 'ترتيب المراحل إلزامي؛ فالاستغلال يسبقه دائماً تحليل للثغرات.', en: 'Phase order is mandatory; exploitation is always preceded by analysis.' },
+              { ar: 'مرحلة "ما بعد الاستغلال" توضح حجم الضرر الفعلي بعد الاختراق.', en: 'Post-Exploitation shows the actual extent of damage after a breach.' },
+              { ar: 'التقرير هو الخطوة السابعة والأخيرة التي تُسلم للعميل.', en: 'Reporting is the seventh and final step delivered to the client.' }
+            ],
+            mcq: {
+              question: 'Which phase immediately follows "Vulnerability Analysis" in the PTES lifecycle?',
+              options: ['Threat Modeling', 'Exploitation', 'Reporting', 'Intelligence Gathering'],
+              answer: 1,
+              explanation: 'Phase 5 is Exploitation, which immediately follows Phase 4 (Vulnerability Analysis).'
+            }
+          },
+          {
+            id: 's18',
+            title: '18. Phase 1: Pre-engagement Interactions',
+            content: `Critical Foundation\nThis is the first and very important phase of PTES. Any mistake while implementing this phase can have a significant impact on the rest of the assessment.\n• Main Aim: To explain the tools and techniques available which help in a successful pre-engagement step.\n• Core Components of Phase 1:\n• Request for an assessment\n• Bidding\n• Signing of Engagement Letter (EL)\n• Scoping Meeting\n• Handling of scope creep\n• Questionnaires`,
+            contentAr: `الأساس الحاسم\nهذه هي المرحلة الأولى والمهمة للغاية في PTES. أي خطأ في تنفيذ هذه المرحلة يمكن أن يكون له تأثير سلبي مدمر على بقية عملية التقييم.\n• الهدف الرئيسي: شرح الأدوات والتقنيات التي تساعد في إنجاح خطوة ما قبل التعاقد.\n• المكونات الأساسية للمرحلة الأولى:\n• تلقي طلب التقييم من العميل\n• تقديم العطاءات والمناقصات (Bidding)\n• توقيع خطاب الارتباط / العقد (Engagement Letter)\n• اجتماع تحديد النطاق (Scoping)\n• التعامل مع مشكلة توسع النطاق غير المخطط له (scope creep)\n• ملء الاستبيانات الفنية`,
+            keywords: {
+              'Foundation': 'مثل أساسات المبنى تماماً، إذا اتفقت مع العميل بشكل خاطئ على الأجهزة المسموح اختبارها (الأساس)، فقد ينتهي بك الأمر باختراق أجهزة حساسة والتسبب في إيقاف أعمال الشركة والتعرض للمساءلة القانونية.',
+              'Bidding': 'مرحلة المنافسة التجارية. حيث تقوم شركات الأمان السيبراني بتقديم خططها وعروض أسعارها للعميل، ويجب أن يكون العرض مقنعاً ويوضح القيمة الفعلية المضافة للمؤسسة.',
+              'Engagement Letter': 'عقد قانوني ملزم. هو بمثابة "بطاقة الخروج من السجن" بالنسبة لمختبر الاختراق، لأنه يثبت أن كل محاولات الاختراق التي قام بها كانت بتفويض وموافقة صريحة من إدارة المؤسسة.',
+              'scope creep': 'ظاهرة خطيرة تحدث عندما يطلب العميل اختبار أنظمة إضافية (أثناء العمل) لم تكن مذكورة في العقد الأساسي، مما يستهلك وقت وجهد الفريق دون مقابل إضافي، ويجب التعامل معها بصرامة لتجنب الفشل.'
+            },
+            summary: {
+              en: 'Pre-engagement is the critical foundation of PTES. It involves assessment requests, bidding, scoping meetings, signing contracts, and managing scope creep to avoid downstream failures.',
+              ar: 'تعد مرحلة ما قبل التعاقد الأساس الحاسم لـ PTES. وتشمل طلبات التقييم، تقديم العطاءات، اجتماعات تحديد النطاق، توقيع العقود، وإدارة زحف النطاق لتجنب الفشل في المراحل اللاحقة.'
+            },
+            keyPoints: [
+              { ar: 'مرحلة ما قبل التعاقد هي الأساس؛ أي خطأ هنا يدمر باقي التقييم.', en: 'Pre-engagement is the foundation; errors here ruin the entire assessment.' },
+              { ar: 'توقيع العقد (Engagement Letter) يحمي المختبرين قانونياً.', en: 'Signing the Engagement Letter legally protects the testers.' },
+              { ar: 'يجب الحذر بشدة من "زحف النطاق" (Scope Creep) وإدارته بحزم.', en: 'Scope Creep must be cautiously monitored and firmly managed.' }
+            ],
+            mcq: {
+              question: 'What is "scope creep"?',
+              options: ['A sneaky malware', 'Unplanned expansion of assessment requirements beyond the initial agreement', 'A tool for intelligence gathering', 'A type of physical security test'],
+              answer: 1,
+              explanation: 'Scope creep refers to the handling of tasks or targets being added that were not in the original scope.'
+            }
+          },
+          {
+            id: 's19',
+            title: '19. Defining Technical Scope',
+            content: `• In-Scope: Validated list of IP addresses, URLs, and SSIDs.\n• Out-of-Scope: Sensitive assets that must not be touched.\n• Metadata: Use of questionnaires to gather initial technical data.`,
+            contentAr: `• داخل النطاق (In-Scope): قائمة معتمدة وموثقة بعناوين الـ IP، روابط المواقع (URLs)، وأسماء شبكات الواي فاي (SSIDs) المسموح باختبارها.\n• خارج النطاق (Out-of-Scope): الأصول والأنظمة الحساسة التي يمنع منعاً باتاً المساس بها أو اختبارها.\n• البيانات الوصفية (Metadata): استخدام الاستبيانات الموجهة للعميل لجمع البيانات الفنية الأولية عن الشبكة.`,
+            keywords: {
+              'In-Scope': 'المستند القانوني الذي يحدد لك "ساحة اللعب". أي جهاز مذكور في هذه القائمة يحق لك مهاجمته بكل تقنياتك المتاحة لمعرفة مدى صلابته.',
+              'Out-of-Scope': 'الخط الأحمر. هذه الأجهزة (مثل سيرفرات الرعاية الصحية التي تحتوي على بيانات مرضى حرجة) تكون حيوية جداً بحيث أن مجرد إجراء فحص بسيط عليها قد يسبب انهيارها وتوقف الخدمات المنقذة للحياة.',
+              'SSIDs': 'المعرفات التي تظهر لك عند البحث عن شبكة واي فاي في هاتفك. ذكرها بوضوح يضمن عدم قيام فريق الاختبار باختراق شبكة واي فاي المقهى المجاور للشركة بالخطأ!'
+            },
+            summary: {
+              en: 'Defining the scope establishes clear boundaries, detailing authorized targets (In-Scope) like IPs and URLs, and strictly prohibiting tests on sensitive systems (Out-of-Scope).',
+              ar: 'يحدد تعريف النطاق حدوداً واضحة للعمل، حيث يفصل الأهداف المصرح بها (داخل النطاق) مثل عناوين IP، ويحظر بشدة اختبار الأنظمة الحساسة (خارج النطاق).'
+            },
+            keyPoints: [
+              { ar: 'تحديد النطاق يفصل بدقة بين ما هو مسموح (In-Scope) وما هو ممنوع.', en: 'Scoping strictly separates allowed targets from forbidden ones.' },
+              { ar: 'الأصول خارج النطاق (Out-of-Scope) يمنع لمسها لتجنب انهيار الأنظمة الحساسة.', en: 'Out-of-Scope assets must never be touched to avoid critical failures.' },
+              { ar: 'الاستبيانات تُستخدم لجمع البيانات التقنية الأساسية من العميل مبكراً.', en: 'Questionnaires are used to gather initial technical data from the client.' }
+            ],
+            mcq: {
+              question: 'If a server is marked as "Out-of-Scope", a penetration tester should:',
+              options: ['Only scan it lightly', 'Try to hack it but not tell the client', 'Strictly avoid touching or testing it', 'Test it only on weekends'],
+              answer: 2,
+              explanation: 'Out-of-scope assets are sensitive targets that must not be touched under any circumstances during the engagement.'
+            }
+          },
+          {
+            id: 's20',
+            title: '20. Strategy: Black Box Testing',
+            content: `• Knowledge: Zero knowledge provided to the tester.\n• Simulation: External attacker perspective.\n• Note: High realism, but requires extensive time for reconnaissance.`,
+            contentAr: `• المعرفة المسبقة: انعدام تام للمعرفة (Zero knowledge)؛ لا يُعطى المختبر أي تفاصيل عن النظام.\n• المحاكاة: يمثل وجهة نظر المهاجم الخارجي (الهاكر القادم من الإنترنت).\n• ملاحظة: يتميز بواقعية عالية جداً، ولكنه يتطلب وقتاً طويلاً ومكثفاً في عمليات الاستطلاع وجمع المعلومات.`,
+            keywords: {
+              'Black Box Testing': 'تخيل أنك تُطلب لاختراق مبنى، ولا يُعطى لك سوى اسمه فقط! عليك أن تكتشف بنفسك أين الأبواب، كم عدد الحراس، وما هي أنظمة المراقبة. هذا النوع يحاكي هجوم القراصنة المجهولين تماماً.',
+              'Zero knowledge': 'الفريق الأمني لا يمتلك أي خرائط للشبكة، ولا كود برمجي، ولا أسماء مستخدمين. يعتمدون كلياً على مهاراتهم في كشف المجهول انطلاقاً من نقطة الصفر.',
+              'External attacker': 'محاكاة التهديد القادم من شبكة الإنترنت العامة. يختبر هذا الهجوم قوة الجدران النارية الخارجية للمؤسسة وقدرتها على صد المتطفلين الذين يحاولون كسر الأسوار من الخارج.',
+              'reconnaissance': 'الاستطلاع الرقمي. وهي العملية التي تسبق الهجوم الفعلي حيث يمشط المختبر الإنترنت للبحث عن رسائل بريد إلكتروني مسربة للموظفين، أو خوادم منسية غير محمية لتبدأ منها نقطة الانطلاق.'
+            },
+            summary: {
+              en: 'Black Box testing simulates an external attack where the tester has zero prior knowledge of the system. It offers high realism but requires significant time for reconnaissance.',
+              ar: 'يحاكي اختبار الصندوق الأسود هجوماً خارجياً حيث لا يمتلك المختبر أي معرفة مسبقة بالنظام. يوفر واقعية عالية ولكنه يتطلب وقتاً طويلاً للاستطلاع.'
+            },
+            keyPoints: [
+              { ar: 'في الصندوق الأسود يبدأ المختبر بدون أي معرفة مسبقة (Zero Knowledge).', en: 'In Black Box testing, the tester starts with Zero Knowledge.' },
+              { ar: 'هذا الاختبار يحاكي تماماً هجوم الهاكر الخارجي العشوائي.', en: 'It perfectly simulates a random external hacker attack.' },
+              { ar: 'رغم واقعيته الشديدة، إلا أنه يستهلك وقتاً طويلاً جداً في الاستطلاع.', en: 'Despite high realism, it consumes extensive time for reconnaissance.' }
+            ],
+            mcq: {
+              question: 'Which of the following is a characteristic of Black Box Testing?',
+              options: ['Requires source code access', 'Simulates an internal malicious employee', 'Requires extensive time for reconnaissance', 'Is the most efficient testing method'],
+              answer: 2,
+              explanation: 'Because the tester starts with zero knowledge, they must spend extensive time doing reconnaissance to find targets.'
+            }
+          },
+          {
+            id: 's21',
+            title: '21. Strategy: White Box Testing',
+            content: `• Knowledge: Full disclosure (Source code, IP maps, Diagrams).\n• Simulation: Malicious insider or administrator.\n• Note: Maximum efficiency and technical depth.`,
+            contentAr: `• المعرفة المسبقة: إفصاح كامل ومطلق (Full disclosure) عن النظام (بما في ذلك الكود المصدري، خرائط الـ IP، والمخططات المعمارية).\n• المحاكاة: يحاكي هجوم من قبل "مطلع خبيث" (موظف داخلي) أو حتى مدير النظام نفسه.\n• ملاحظة: يحقق أقصى درجات الكفاءة والعمق الفني الشامل.`,
+            keywords: {
+              'White Box Testing': 'تخيل أنك المهندس الذي صمم المبنى، والآن يُطلب منك إيجاد نقطة ضعف فيه. أنت تملك كل المخططات والمفاتيح، وبالتالي يمكنك الغوص لأعمق نقطة في النظام مباشرة دون تضييع وقت في التخمين.',
+              'Full disclosure': 'مستوى شفافية عالٍ جداً بين العميل وفريق الاختبار. توفير الكود البرمجي (Source Code) يسمح للفريق باكتشاف ثغرات دقيقة ومعقدة جداً لا يمكن رؤيتها من الخارج على الإطلاق.',
+              'Malicious insider': 'أخطر أنواع التهديدات. يحاكي سيناريو موظف غاضب أو مدير نظام (Admin) تم رشوته ليقوم بتخريب الأنظمة أو سرقة البيانات من الداخل، حيث أن دفاعات الجدران النارية الخارجية لا تنفع معه.',
+              'efficiency': 'السرعة والفعالية. لأن المختبر لا يضيع وقته في تخمين كلمات السر أو البحث عن عناوين السيرفرات المخفية، بل يوجه جهده ووقته بالكامل لاكتشاف الثغرات المعمارية العميقة.'
+            },
+            summary: {
+              en: 'White Box testing involves full disclosure of system details (like source code). It simulates an insider threat and provides maximum efficiency and deep technical insights.',
+              ar: 'يتضمن اختبار الصندوق الأبيض الكشف الكامل عن تفاصيل النظام (مثل الكود المصدري). يحاكي تهديداً داخلياً ويوفر أقصى قدر من الكفاءة والرؤى التقنية العميقة.'
+            },
+            keyPoints: [
+              { ar: 'يتم تزويد المختبر بكافة تفاصيل النظام والأكواد المصدرية.', en: 'The tester is provided with all system details and source code.' },
+              { ar: 'يحاكي هذا السيناريو التهديد القادم من موظف داخلي (Insider threat).', en: 'This scenario simulates an insider threat or administrator.' },
+              { ar: 'هو الأكثر كفاءة وعمقاً لأنه لا يضيع الوقت في جمع المعلومات.', en: 'It is the most efficient and deep since no time is wasted on recon.' }
+            ],
+            mcq: {
+              question: 'What type of attacker does White Box testing typically simulate?',
+              options: ['A random script kiddie', 'A malicious insider or administrator', 'An external attacker from another country', 'A non-technical user'],
+              answer: 1,
+              explanation: 'Because it involves full disclosure of information, it accurately simulates a malicious insider or someone with admin access.'
+            }
+          },
+          {
+            id: 's22',
+            title: '22. Strategy: Grey Box & Double-Blind',
+            content: `Grey Box: Partial disclosure (Standard user credentials). Most common professional model.\nDouble-Blind: Defender is not notified; tests detection and response speed.`,
+            contentAr: `الصندوق الرمادي (Grey Box): إفصاح جزئي للمعلومات (مثل إعطاء المختبر بيانات اعتماد لحساب مستخدم عادي). وهو النموذج المهني الأكثر شيوعاً.\nالتعمية المزدوجة (Double-Blind): لا يتم إخطار فريق الدفاع بحدوث هجوم؛ يهدف بشكل أساسي لاختبار سرعة الاكتشاف وسرعة الاستجابة لدى الفريق الأمني للمؤسسة.`,
+            keywords: {
+              'Grey Box': 'يجمع بين واقعية الهجوم الخارجي وكفاءة الهجوم الداخلي. يحاكي سيناريو "هاكر استطاع سرقة كلمة مرور موظف بسيط"، ويبدأ الفريق من هذا الحساب لمحاولة ترقية الصلاحيات والوصول للمعلومات السرية.',
+              'Double-Blind': 'تدريب ناري حي (Red Team vs Blue Team). الإدارة العليا فقط هي من يعلم، بينما فريق الردع الأمني للمؤسسة يتفاجأ بهجوم حقيقي ويتم تقييم أدائهم تحت الضغط وكيفية تصديهم له.',
+              'response speed': 'المعيار الحاسم لتقليل الخسائر. عندما ينجح الاختراق، فإن الوقت الذي يستغرقه الفريق الأمني لكشف المتسلل وطرده من الشبكة هو ما يحدد حجم الكارثة وسرقة البيانات.'
+            },
+            summary: {
+              en: 'Grey Box testing offers partial information to the tester and is very common. Double-Blind testing occurs without notifying the defense team, testing their detection and response capabilities.',
+              ar: 'يوفر اختبار الصندوق الرمادي معلومات جزئية وهو النموذج الأكثر شيوعاً. أما الاختبار المزدوج الأعمى فيتم دون إخطار فريق الدفاع لتقييم قدراتهم على الاكتشاف والاستجابة.'
+            },
+            keyPoints: [
+              { ar: 'الصندوق الرمادي يوفر إفصاحاً جزئياً وهو الأكثر شيوعاً في السوق.', en: 'Grey Box provides partial disclosure and is the most common in the market.' },
+              { ar: 'يحاكي غالباً سيناريو اختراق حساب مستخدم عادي (Standard User).', en: 'Often simulates the scenario of a compromised standard user account.' },
+              { ar: 'الاختبار الأعمى يقيس مدى سرعة ويقظة فريق الدفاع الداخلي.', en: 'Double-Blind tests the speed and alertness of the internal defense team.' }
+            ],
+            mcq: {
+              question: 'What is the primary purpose of a Double-Blind test?',
+              options: ['To give testers full source code', 'To test the detection and response speed of the defending team', 'To scan for web vulnerabilities only', 'To train new penetration testers'],
+              answer: 1,
+              explanation: 'In a double-blind test, defenders are not notified, which actively tests their ability to detect and respond to live threats.'
+            }
+          },
+          {
+            id: 's23',
+            title: '23. Diverse Assessment Vectors',
+            content: `• Wireless Assessments: Signal leakage and encryption.\n• Social Engineering: Phishing and human-centric flaws.\n• Physical Security: Facility and server room access.`,
+            contentAr: `• التقييمات اللاسلكية: اختبار أمان الشبكات اللاسلكية وفحص تسرب الإشارات وضعف التشفير.\n• الهندسة الاجتماعية: هجمات التصيد الاحتيالي واستغلال الثغرات المتعلقة بالسلوك البشري.\n• الأمن المادي: اختبار إمكانية اختراق المباني والوصول غير المصرح به لغرف الخوادم (السيرفرات).`,
+            keywords: {
+              'Wireless Assessments': 'الشبكات اللاسلكية خطيرة لأن إشارتها تعبر الجدران. هذا الاختبار يتحقق مما إذا كان يمكن للهاكر الجلوس في سيارته خارج الشركة واعتراض أو اختراق اتصال الواي فاي للموظفين.',
+              'Social Engineering': 'فن اختراق عقول البشر بدلاً من الأجهزة. يقوم على استغلال عواطف الموظفين (الخوف، الفضول، الجشع، أو الرغبة بالمساعدة) لخداعهم وجعلهم يفصحون عن كلمات المرور بأنفسهم.',
+              'Phishing': 'إرسال رسائل بريد إلكتروني تبدو شرعية (مثلاً من قسم الموارد البشرية أو البنك) تطلب من الموظف النقر على رابط خبيث لتسجيل الدخول، وبذلك يتم اصطياد بياناته وإرسالها للهاكر.',
+              'Physical Security': 'لا توجد فائدة من أعتى الجدران النارية والبرمجيات المعقدة، إذا استطاع شخص ما التنكر كعامل نظافة، والدخول لغرفة السيرفرات، وسحب القرص الصلب والمغادرة به بكل بساطة.'
+            },
+            summary: {
+              en: 'Penetration tests can cover diverse vectors, including wireless network security, human vulnerabilities via social engineering, and the physical security of facilities.',
+              ar: 'يمكن أن تغطي اختبارات الاختراق نواقل متنوعة، بما في ذلك أمان الشبكات اللاسلكية، والثغرات البشرية عبر الهندسة الاجتماعية، والأمن المادي للمرافق.'
+            },
+            keyPoints: [
+              { ar: 'اختبار الاختراق لا يقتصر على الويب، بل يشمل الشبكات اللاسلكية (الواي فاي).', en: 'Pentesting isn\'t limited to web; it includes wireless networks (Wi-Fi).' },
+              { ar: 'الهندسة الاجتماعية تستهدف أضعف حلقة أمنية: العنصر البشري.', en: 'Social engineering targets the weakest security link: the human element.' },
+              { ar: 'الأمن المادي ضروري لحماية السيرفرات من الوصول الفعلي المباشر.', en: 'Physical security is essential to protect servers from direct physical access.' }
+            ],
+            mcq: {
+              question: 'Which assessment vector involves testing "human-centric flaws" like phishing?',
+              options: ['Physical Security', 'Wireless Assessments', 'Social Engineering', 'Database Assessment'],
+              answer: 2,
+              explanation: 'Social engineering directly targets human psychology and behavior, using techniques like phishing.'
+            }
+          }
+        ];
+
+        // --- مكونات الأيقونات ---
+        const AlertIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        );
+        const TranslateIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+        );
+        const CloseIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        );
+        const CheckIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        );
+        const CrossIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        );
+        const LightBulbIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+        );
+
+        function App() {
+          const [activeSlideId, setActiveSlideId] = useState(slidesData[0].id);
+          const [modalData, setModalData] = useState(null);
+          const [mcqState, setMcqState] = useState({});
+          const [showTranslation, setShowTranslation] = useState(false);
+
+          const activeSlide = slidesData.find(s => s.id === activeSlideId);
+
+          useEffect(() => {
+            setShowTranslation(false);
+          }, [activeSlideId]);
+
+          const renderContentWithKeywords = (text, keywordsMap) => {
+            if (!keywordsMap || Object.keys(keywordsMap).length === 0) return text;
+            const sortedKeywords = Object.keys(keywordsMap).sort((a, b) => b.length - a.length);
+            const regex = new RegExp(`(${sortedKeywords.join('|')})`, 'gi');
+            const parts = text.split(regex);
+            
+            return parts.map((part, index) => {
+              const keywordKey = Object.keys(keywordsMap).find(k => k.toLowerCase() === part.toLowerCase());
+              if (keywordKey) {
+                return (
+                  <span 
+                    key={index} 
+                    onClick={() => setModalData({ type: 'keyword', data: { word: part, meaning: keywordsMap[keywordKey] }})}
+                    className="group relative inline-flex items-baseline cursor-pointer font-bold text-indigo-700 hover:text-indigo-900 transition-all duration-200 mx-1 px-1 rounded hover:bg-indigo-50 border-b-2 border-dashed border-indigo-400"
+                    title="انقر لفهم المفهوم بعمق"
+                  >
+                    {part}
+                    <span className="absolute -top-1 -right-2 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 text-[8px] font-bold text-white justify-center items-center">?</span>
+                    </span>
+                  </span>
+                );
+              }
+              return <span key={index}>{part}</span>;
+            });
+          };
+
+          const handleMcqSelect = (optionIndex) => {
+            setMcqState({ ...mcqState, [activeSlideId]: optionIndex });
+          };
+
+          return (
+            <div className="flex flex-col md:flex-row h-screen bg-gray-50 text-gray-800 font-sans" dir="ltr">
+              <div className="w-full md:w-1/4 bg-slate-900 text-white overflow-y-auto shadow-2xl z-10 flex flex-col">
+                <div className="p-5 bg-slate-800 text-center border-b border-slate-700 sticky top-0 shadow-sm z-20">
+                  <div className="font-extrabold text-xl tracking-wide text-indigo-400" dir="rtl">دورة اختبار الاختراق</div>
+                  <div className="text-sm font-medium text-slate-400 mt-1 uppercase tracking-widest">CYBS60201: Lecture 1</div>
+                </div>
+                <ul className="flex-1 px-3 py-5 space-y-3">
+                  {slidesData.map(slide => (
+                    <li key={slide.id}>
+                      <button
+                        onClick={() => {
+                          setActiveSlideId(slide.id);
+                          window.scrollTo(0, 0);
+                        }}
+                        className={`w-full text-left px-5 py-3.5 rounded-xl transition-all duration-300 font-medium ${
+                          activeSlideId === slide.id 
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]' 
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-100'
+                        }`}
+                      >
+                        {slide.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="w-full md:w-3/4 flex flex-col h-screen overflow-y-auto bg-slate-50">
+                <div className="flex-1 p-6 md:p-10 max-w-4xl mx-auto w-full">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-8 pb-6 border-b-2 border-slate-200 gap-4">
+                    <h1 className="text-3xl font-extrabold text-slate-800 leading-tight">
+                      {activeSlide.title}
+                    </h1>
+                    <div className="flex gap-3 self-end sm:self-auto shrink-0">
+                      <button 
+                        onClick={() => setShowTranslation(!showTranslation)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all shadow-sm border-2 ${
+                          showTranslation 
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        <TranslateIcon />
+                        <span className="text-sm">{showTranslation ? 'Hide Arabic' : 'عربي'}</span>
+                      </button>
+                      <button 
+                        onClick={() => setModalData({ type: 'summary', data: activeSlide.summary })}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 border-2 border-amber-300 hover:bg-amber-200 hover:text-amber-800 transition-all shadow-sm font-bold"
+                      >
+                        <AlertIcon />
+                        <span className="text-sm uppercase tracking-wider">Summary</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 text-lg leading-loose whitespace-pre-wrap text-slate-700 font-medium">
+                    {renderContentWithKeywords(activeSlide.content, activeSlide.keywords)}
+                  </div>
+
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showTranslation ? 'max-h-[1000px] opacity-100 mb-8' : 'max-h-0 opacity-0 mb-0'}`}>
+                    <div className="bg-emerald-50 p-8 rounded-2xl border-r-4 border-emerald-500 shadow-sm text-right whitespace-pre-wrap text-emerald-900 text-xl leading-loose font-medium" dir="rtl">
+                      {activeSlide.contentAr}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm mt-8">
+                    <h3 className="text-2xl font-bold mb-6 flex items-center text-slate-800">
+                      <span className="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-xl flex justify-center items-center mr-4 text-sm font-black shadow-inner">Q</span>
+                      Knowledge Check
+                    </h3>
+                    <p className="font-semibold text-lg text-slate-700 mb-6">{activeSlide.mcq.question}</p>
+                    <div className="space-y-3">
+                      {activeSlide.mcq.options.map((opt, idx) => {
+                        const isSelected = mcqState[activeSlideId] === idx;
+                        const isCorrect = idx === activeSlide.mcq.answer;
+                        const showResult = mcqState[activeSlideId] !== undefined;
+                        
+                        let btnStyle = "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700";
+                        if (showResult) {
+                          if (isCorrect) btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm";
+                          else if (isSelected && !isCorrect) btnStyle = "bg-rose-50 border-rose-400 text-rose-800 font-semibold";
+                          else btnStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                        }
+                        return (
+                          <button
+                            key={idx}
+                            disabled={showResult}
+                            onClick={() => handleMcqSelect(idx)}
+                            className={`w-full text-left px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                          >
+                            <span>{opt}</span>
+                            {showResult && isCorrect && <span className="text-emerald-600 bg-emerald-100 p-1 rounded-md"><CheckIcon /></span>}
+                            {showResult && isSelected && !isCorrect && <span className="text-rose-500 bg-rose-100 p-1 rounded-md"><CrossIcon /></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {mcqState[activeSlideId] !== undefined && (
+                      <div className={`mt-6 p-5 rounded-xl border-2 animate-fadeIn ${mcqState[activeSlideId] === activeSlide.mcq.answer ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <LightBulbIcon />
+                          <p className="font-bold text-slate-800">Explanation:</p>
+                        </div>
+                        <p className="text-slate-700 font-medium leading-relaxed">{activeSlide.mcq.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white p-0 rounded-2xl border border-slate-200 shadow-sm mt-8 overflow-hidden">
+                    <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center gap-3" dir="rtl">
+                      <span className="bg-amber-100 text-amber-600 p-2 rounded-lg shadow-sm">
+                        <LightBulbIcon />
+                      </span>
+                      <h3 className="text-xl font-bold text-amber-900">نقاط يجدر بك معرفتها</h3>
+                    </div>
+                    <div className="overflow-x-auto p-4">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b-2 border-slate-200">
+                            <th className="p-4 font-bold text-slate-800 text-right w-1/2 bg-slate-50 rounded-tr-lg" dir="rtl">الملخص (عربي)</th>
+                            <th className="p-4 font-bold text-slate-800 w-1/2 bg-slate-50 rounded-tl-lg">Takeaway (English)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeSlide.keyPoints.map((point, index) => (
+                            <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                              <td className="p-4 text-slate-700 text-right font-medium leading-relaxed" dir="rtl">{point.ar}</td>
+                              <td className="p-4 text-slate-700 font-medium leading-relaxed">{point.en}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {modalData && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn" onClick={() => setModalData(null)}>
+                  <div 
+                    className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all scale-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className={`flex justify-between items-center p-5 border-b-2 ${modalData.type === 'keyword' ? 'bg-indigo-50 border-indigo-100' : 'bg-amber-50 border-amber-100'}`}>
+                      <h3 className={`text-xl font-black ${modalData.type === 'keyword' ? 'text-indigo-800' : 'text-amber-800'}`} dir="rtl">
+                        {modalData.type === 'keyword' ? 'شرح المفهوم العلمي' : 'الملخص التنفيذي'}
+                      </h3>
+                      <button onClick={() => setModalData(null)} className="text-slate-400 hover:text-rose-500 bg-white p-2 rounded-full hover:bg-rose-50 transition-colors shadow-sm border border-slate-200">
+                        <CloseIcon />
+                      </button>
+                    </div>
+                    <div className="p-8">
+                      {modalData.type === 'keyword' && (
+                        <div dir="rtl" className="text-right">
+                          <div className="inline-block bg-indigo-600 text-white text-xl font-bold mb-5 px-4 py-2 rounded-lg font-mono tracking-wide shadow-md" dir="ltr">
+                            {modalData.data.word}
+                          </div>
+                          <div className="text-lg text-slate-700 leading-loose font-medium border-r-4 border-indigo-400 pl-4 pr-6 bg-slate-50 py-4 rounded-l-xl">
+                            {modalData.data.meaning}
+                          </div>
+                        </div>
+                      )}
+                      {modalData.type === 'summary' && (
+                        <div className="space-y-8">
+                          <div className="relative p-6 rounded-2xl border-2 border-slate-200 bg-white">
+                            <span className="absolute -top-4 left-4 bg-slate-800 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">English</span>
+                            <p className="text-slate-700 leading-relaxed font-medium text-lg mt-2">{modalData.data.en}</p>
+                          </div>
+                          <div className="relative p-6 rounded-2xl border-2 border-amber-200 bg-amber-50/50" dir="rtl">
+                            <span className="absolute -top-4 right-4 bg-amber-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">عربي</span>
+                            <p className="text-amber-950 leading-relaxed font-medium text-lg mt-2 text-right">{modalData.data.ar}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // --- أمر تشغيل التطبيق في الصفحة ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

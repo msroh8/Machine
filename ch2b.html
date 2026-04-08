@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBS60201 — Lecture 2: PTES Technical Phases & Automation</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--surface3:#1e2d4a;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--accent4:#f59e0b;--danger:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:rgba(255,255,255,0.08);--border2:rgba(0,212,255,0.3);
+  --mono:'JetBrains Mono',monospace;--sans:'IBM Plex Sans Arabic',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.75;min-height:100vh;overflow-x:hidden;font-size:17px}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 24px}
+
+/* HEADER */
+header{padding:52px 0 32px;text-align:center}
+.course-tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--accent);border:1px solid var(--border2);padding:6px 18px;border-radius:2px;margin-bottom:20px;text-transform:uppercase}
+header h1{font-size:clamp(26px,4.5vw,48px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:12px}
+header h1 span{color:var(--accent)}
+.subtitle{color:var(--text2);font-size:16px;max-width:640px;margin:0 auto 26px}
+.header-meta{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.meta-pill{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:6px 14px;font-size:13px;color:var(--text2)}
+.meta-pill span{color:var(--accent3);font-weight:600}
+
+/* TABS NAV */
+.tabs-outer{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:26px 0 0;overflow:hidden}
+.tabs-scroll{display:flex;overflow-x:auto;padding:14px 14px 0;gap:7px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.tabs-scroll::-webkit-scrollbar{height:4px}
+.tabs-scroll::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+.tab-btn{display:flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:9px 15px;border-radius:7px 7px 0 0;cursor:pointer;font-size:13px;font-family:var(--sans);white-space:nowrap;transition:all .2s;flex-shrink:0;border-bottom:none}
+.tab-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.04)}
+.tab-btn.active{background:var(--surface2);border-color:var(--border2);color:var(--accent);font-weight:600}
+.tab-slide-num{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 6px;border-radius:2px}
+.tab-btn.active .tab-slide-num{color:var(--accent);background:rgba(0,212,255,0.12)}
+.exclaim-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,158,11,0.15);color:var(--accent4);font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(245,158,11,0.3);transition:all .15s;flex-shrink:0;line-height:1}
+.exclaim-btn:hover{background:rgba(245,158,11,0.28);transform:scale(1.18)}
+
+/* SECTIONS */
+.section{display:none;padding:32px 24px 38px;animation:fadeIn .25s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* SEC HEADER */
+.sec-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:1px solid var(--border)}
+.sec-num{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,212,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:4px 11px;white-space:nowrap;margin-top:4px;flex-shrink:0}
+.sec-title{font-size:clamp(20px,2.8vw,28px);font-weight:700;color:#fff;line-height:1.3}
+.sec-desc{color:var(--text2);font-size:15px;margin-top:6px;line-height:1.65}
+
+/* BULLET LIST */
+.bullet-list{list-style:none;padding:0;margin:10px 0}
+.bullet-list li{padding:10px 0 10px 20px;border-bottom:1px solid var(--border);font-size:16px;color:var(--text2);line-height:1.7;position:relative}
+.bullet-list li:last-child{border-bottom:none}
+.bullet-list li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700;font-size:18px;line-height:1.5}
+.bullet-list li strong{color:var(--text);font-weight:600}
+.sub-list{list-style:none;padding:6px 0 0 18px}
+.sub-list li{padding:5px 0 5px 16px;border-bottom:none;font-size:15px;color:var(--text3);position:relative}
+.sub-list li::before{content:'–';position:absolute;left:0;color:var(--accent3)}
+
+/* HIGHLIGHT BOXES */
+.highlight{background:linear-gradient(135deg,rgba(0,212,255,0.07),rgba(124,58,237,0.07));border:1px solid var(--border2);border-radius:10px;padding:20px 26px;margin:18px 0}
+.highlight-label{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:8px}
+.highlight p{font-size:16px;color:var(--text);line-height:1.75}
+.highlight-warn{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.28);border-radius:10px;padding:18px 22px;margin:14px 0}
+.highlight-warn .highlight-label{color:var(--danger)}
+.highlight-green{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.28);border-radius:10px;padding:18px 22px;margin:14px 0}
+.highlight-green .highlight-label{color:var(--accent3)}
+.highlight-green p{font-size:16px;color:var(--text);line-height:1.75}
+
+/* CARDS */
+.card-grid{display:grid;gap:16px;margin-top:18px}
+.card-grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card-grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:20px 22px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:8px}
+.card-body{font-size:15px;color:var(--text2);line-height:1.65}
+.card.al{border-left:3px solid var(--accent)}
+.card.ag{border-left:3px solid var(--accent3)}
+.card.ap{border-left:3px solid var(--accent2)}
+.card.aa{border-left:3px solid var(--accent4)}
+.card.ar{border-left:3px solid var(--danger)}
+
+/* COMPARE TABLE */
+.cmp-table{width:100%;border-collapse:collapse;font-size:15px;margin-top:16px}
+.cmp-table th{background:var(--surface2);padding:11px 16px;text-align:left;font-weight:600;color:var(--text2);font-size:12px;letter-spacing:1px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.cmp-table td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.6}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table tr:hover td{background:rgba(255,255,255,0.02)}
+
+/* STEPS */
+.steps{counter-reset:step;margin:12px 0}
+.step-item{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.step-item:last-child{border-bottom:none}
+.step-num{font-family:var(--mono);font-size:13px;font-weight:600;color:#fff;background:rgba(0,212,255,0.12);border:1px solid var(--border2);border-radius:6px;min-width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-text{font-size:16px;color:var(--text2);line-height:1.65;padding-top:6px}
+.step-text strong{color:var(--text)}
+
+/* TIMELINE */
+.timeline{padding-left:22px;border-left:2px solid;border-image:linear-gradient(to bottom,var(--accent),var(--accent2)) 1;margin:10px 0}
+.ph{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.ph:last-child{border-bottom:none}
+.ph-num{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,212,255,0.1);border:1px solid var(--border2);border-radius:3px;padding:3px 9px;flex-shrink:0;margin-top:3px;white-space:nowrap}
+.ph-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:4px}
+.ph-desc{font-size:15px;color:var(--text2);line-height:1.6}
+
+/* PHASE BADGE */
+.phase-header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.phase-badge{font-family:var(--mono);font-size:11px;font-weight:700;padding:5px 14px;border-radius:4px;letter-spacing:1px;flex-shrink:0}
+.pb-blue{background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid var(--border2)}
+.pb-green{background:rgba(16,185,129,0.1);color:var(--accent3);border:1px solid rgba(16,185,129,0.3)}
+.pb-amber{background:rgba(245,158,11,0.1);color:var(--accent4);border:1px solid rgba(245,158,11,0.3)}
+.pb-red{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.3)}
+.pb-purple{background:rgba(124,58,237,0.1);color:#a78bfa;border:1px solid rgba(124,58,237,0.3)}
+.pb-gray{background:rgba(100,116,139,0.15);color:var(--text2);border:1px solid var(--border)}
+
+/* KEYWORD */
+.kw{display:inline;background:rgba(0,212,255,0.11);color:var(--accent);border-radius:3px;padding:1px 7px;cursor:pointer;font-weight:600;font-size:0.93em;border:1px solid rgba(0,212,255,0.22);transition:background .15s;white-space:nowrap}
+.kw:hover{background:rgba(0,212,255,0.22)}
+.kw-g{background:rgba(16,185,129,0.1);color:var(--accent3);border-color:rgba(16,185,129,0.22)}
+.kw-g:hover{background:rgba(16,185,129,0.22)}
+.kw-a{background:rgba(245,158,11,0.1);color:var(--accent4);border-color:rgba(245,158,11,0.22)}
+.kw-a:hover{background:rgba(245,158,11,0.22)}
+.kw-r{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.22)}
+.kw-r:hover{background:rgba(239,68,68,0.22)}
+.kw-p{background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.22)}
+.kw-p:hover{background:rgba(124,58,237,0.22)}
+
+/* QUOTE */
+.quote-box{border-left:3px solid var(--accent);padding:14px 20px;margin:18px 0;font-style:italic;font-size:17px;color:var(--text2);line-height:1.7;background:rgba(0,212,255,0.04);border-radius:0 8px 8px 0}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:24px 0}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;align-items:center;justify-content:center;padding:18px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 0 50px rgba(0,212,255,0.07)}
+.modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.modal-kw-title{font-size:17px;font-weight:700;color:#fff}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-close:hover{border-color:var(--danger);color:var(--danger)}
+.modal-body{padding:20px 24px}
+.modal-lang-label{font-size:11px;font-family:var(--mono);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.lbl-ar{color:var(--accent3);direction:rtl;text-align:right;display:block}
+.lbl-en{color:var(--accent)}
+.modal-ar{font-size:15px;line-height:1.8;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:8px;padding:14px 18px;margin-bottom:18px;border:1px solid var(--border)}
+.modal-q-label{font-size:11px;font-family:var(--mono);color:var(--accent4);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.modal-q{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;line-height:1.6}
+.opt-btn{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px 16px;margin-bottom:8px;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s;line-height:1.5}
+.opt-btn:hover:not(.disabled){border-color:var(--accent);color:var(--text);background:rgba(0,212,255,0.04)}
+.opt-btn.correct{background:rgba(16,185,129,0.1);border-color:var(--accent3);color:var(--accent3)}
+.opt-btn.wrong{background:rgba(239,68,68,0.08);border-color:var(--danger);color:#f87171}
+.opt-btn.disabled{cursor:default}
+.feedback-box{font-size:14px;margin-top:10px;padding:11px 16px;border-radius:7px;display:none;line-height:1.55}
+.feedback-box.show-fb{display:block}
+.fb-ok{background:rgba(16,185,129,0.1);color:var(--accent3);border:1px solid rgba(16,185,129,0.2)}
+.fb-no{background:rgba(239,68,68,0.07);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.reset-q-btn{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 16px;border-radius:5px;cursor:pointer;font-size:13px;font-family:var(--sans);transition:all .2s;display:none}
+.reset-q-btn:hover{border-color:var(--accent);color:var(--accent)}
+.exec-en{font-size:15px;color:var(--text2);line-height:1.8;margin-bottom:16px;padding:16px 18px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.exec-ar{font-size:15px;line-height:1.85;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:8px;padding:16px 18px;border:1px solid var(--border)}
+
+/* SCROLL TOP */
+.scroll-top{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);font-size:16px;z-index:100;transition:all .2s}
+.scroll-top:hover{background:rgba(0,212,255,0.1)}
+
+footer{text-align:center;padding:38px 0 26px;color:var(--text3);font-size:13px;border-top:1px solid var(--border);margin-top:50px}
+footer span{color:var(--text2)}
+
+@media(max-width:640px){
+  .tab-btn{font-size:12px;padding:7px 11px}
+  .section{padding:24px 16px 30px}
+  .card-grid.cols-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="course-tag">CYBS60201 · Lecture 2 · Slides 2–25</div>
+  <h1>PTES Technical Phases &amp; <span>The Automation Mandate</span></h1>
+  <p class="subtitle">Click highlighted keywords for Arabic explanations + quiz questions. Use <strong style="color:var(--accent4)">!</strong> for bilingual executive summaries.</p>
+  <div class="header-meta">
+    <div class="meta-pill">Lecture: <span>2</span></div>
+    <div class="meta-pill">Slides: <span>2 – 25</span></div>
+    <div class="meta-pill">Focus: <span>PTES Phases 2–7 + Automation</span></div>
+    <div class="meta-pill">! <span>= executive summary</span></div>
+  </div>
+</header>
+
+<div class="tabs-outer">
+  <div class="tabs-scroll" id="tabsNav"></div>
+  <div id="tabsBody"></div>
+</div>
+
+</div>
+
+<!-- MODAL: Keyword -->
+<div class="modal-bg" id="kwModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-kw-title" id="kwTitle"></div>
+      <button class="modal-close" onclick="closeModal('kwModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-lang-label lbl-ar">الشرح بالعربي</div>
+      <div class="modal-ar" id="kwAr"></div>
+      <div class="modal-q-label">MCQ QUESTION</div>
+      <div class="modal-q" id="kwQ"></div>
+      <div id="kwOpts"></div>
+      <div class="feedback-box" id="kwFb"></div>
+      <button class="reset-q-btn" id="kwReset" onclick="resetKwQ()">↺ Try again</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Executive Summary -->
+<div class="modal-bg" id="execModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-kw-title" id="execTitle"></div>
+      <button class="modal-close" onclick="closeModal('execModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-lang-label lbl-en">Executive Summary — English</div>
+      <div class="exec-en" id="execEn"></div>
+      <div class="modal-lang-label lbl-ar">الملخص التنفيذي — بالعربي</div>
+      <div class="exec-ar" id="execAr"></div>
+    </div>
+  </div>
+</div>
+
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<footer><div class="wrap">CYBS60201 · Advanced Programming in Cybersecurity · <span>Al-Baha University</span> · Semester II 1446H</div></footer>
+
+<script>
+/* ================================================================
+   SLIDES DATA
+================================================================ */
+const slides = [
+
+/* ---- SLIDE 2 ---- */
+{num:"02", label:"Phase 2: Intelligence Gathering",
+execEn:"Intelligence Gathering is the second PTES phase. It involves systematic preliminary surveying of the target to accumulate maximum information. This information feeds directly into the vulnerability assessment and exploitation phases. For organizations, it reveals their external exposure — exactly what an outside attacker can see and learn about them.",
+execAr:"جمع المعلومات الاستخباراتية هو المرحلة الثانية من PTES. يتضمن مسحاً مبدئياً منهجياً للهدف لجمع أكبر قدر من المعلومات. تُغذي هذه المعلومات مباشرةً مراحل تقييم الثغرات والاستغلال. بالنسبة للمؤسسات، يكشف هذا ما يظهر منها للخارج — تحديداً ما يمكن لمهاجم خارجي رؤيته ومعرفته عنها.",
+html:`
+<div class="phase-header">
+  <span class="phase-badge pb-blue">PHASE 2 / 7</span>
+  <span style="font-size:16px;color:var(--text2)">Intelligence Gathering</span>
+</div>
+<ul class="bullet-list">
+  <li><strong>Definition:</strong> The second phase of PTES, involving <span class="kw" data-k="PreliminarySurveying">preliminary surveying</span> against a target to gather <strong>maximum information</strong>.</li>
+  <li><strong>Utility:</strong> Information is utilized during the <span class="kw kw-a" data-k="VulnerabilityAssessment">vulnerability assessment</span> and <span class="kw kw-r" data-k="ExploitationPhase2">exploitation</span> phases.</li>
+  <li><strong>Organizational Benefit:</strong> Helps organizations determine their <span class="kw kw-g" data-k="ExternalExposure">external exposure</span> as seen by the assessment team.</li>
+</ul>`},
+
+/* ---- SLIDE 3 ---- */
+{num:"03", label:"Intelligence Gathering: Levels 1 & 2",
+execEn:"Intelligence Gathering is structured into three levels of depth. Level 1 is automated — tools collect data with minimal human effort, suitable for basic compliance. Level 2 is business-centric — it combines automated tools with manual analysis and requires deep business understanding (org charts, physical locations, relationships) aimed at long-term security strategy.",
+execAr:"يتدرج جمع المعلومات عبر ثلاثة مستويات من العمق. المستوى الأول آلي — تجمع الأدوات البيانات بحد أدنى من الجهد البشري، مناسب للامتثال الأساسي. المستوى الثاني مُركّز على الأعمال — يجمع الأدوات الآلية مع التحليل اليدوي ويتطلب فهماً عميقاً للأعمال (الهياكل التنظيمية، المواقع الجغرافية، العلاقات) بهدف استراتيجية الأمن طويلة المدى.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title"><span class="kw" data-k="Level1Auto">Level 1: Automated</span></div>
+    <div class="card-body">
+      <p>Obtained almost entirely via <strong style="color:var(--text)">automated tools</strong>.</p>
+      <p style="margin-top:8px">Appropriate to meet basic <span class="kw" data-k="ComplianceReqs">compliance requirements</span>.</p>
+    </div>
+  </div>
+  <div class="card ag">
+    <div class="card-title"><span class="kw kw-g" data-k="Level2Biz">Level 2: Business-Centric</span></div>
+    <div class="card-body">
+      <p>Uses automated tools from Level 1 combined with <span class="kw kw-g" data-k="ManualAnalysis">manual analysis</span>.</p>
+      <p style="margin-top:8px">Requires a good understanding of the business (Physical location, relationships, <span class="kw kw-a" data-k="OrgCharts">org charts</span>).</p>
+      <p style="margin-top:8px">Aimed at <strong style="color:var(--text)">long-term security strategy</strong> and corporate acquisitions.</p>
+    </div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 4 ---- */
+{num:"04", label:"Intelligence Gathering: Level 3",
+execEn:"Level 3 intelligence gathering is reserved for the most advanced engagements, simulating highly sophisticated adversaries such as nation-state actors or advanced persistent threats. It builds on all Level 1 and Level 2 data, supplements it with extensive manual analysis, and focuses specifically on deep infrastructure mapping and personnel profiling.",
+execAr:"جمع المعلومات من المستوى الثالث مخصص للتعاملات الأكثر تقدماً، محاكياً خصوماً بالغي الاحترافية كجهات الدول أو التهديدات المستمرة المتقدمة. يبني على بيانات المستويين الأول والثاني ويُضيف تحليلاً يدوياً مكثفاً، مع التركيز تحديداً على رسم خرائط البنية التحتية العميقة وتحديد ملامح الأفراد.",
+html:`
+<div class="highlight-warn">
+  <div class="highlight-label">Advanced Penetration Testing</div>
+  <p>This level is reserved for the most advanced assessments, simulating <span class="kw kw-r" data-k="SophisticatedAdversaries">highly sophisticated adversaries</span>.</p>
+</div>
+<ul class="bullet-list" style="margin-top:16px">
+  <li>Includes all information from <span class="kw" data-k="Level1Auto">Level 1</span> and <span class="kw kw-g" data-k="Level2Biz">Level 2</span>.</li>
+  <li>Requires <span class="kw kw-r" data-k="ExtensiveManualAnalysis">extensive manual analysis</span>.</li>
+  <li>Focuses on <span class="kw" data-k="InfrastructureMapping">deep infrastructure mapping</span> and <span class="kw kw-a" data-k="PersonnelProfiling">specific personnel profiling</span>.</li>
+</ul>`},
+
+/* ---- SLIDE 5 ---- */
+{num:"05", label:"Phase 3: Threat Modeling",
+execEn:"Threat Modeling is the third PTES phase. It provides a structured approach to identifying and prioritizing potential threats. It can be used within a penetration test or as a standalone engagement. Crucially, it creates an information feedback loop — intelligence gathered in Phase 2 is rolled back into Phase 1 to refine the overall strategy.",
+execAr:"نمذجة التهديدات هي المرحلة الثالثة من PTES. توفر نهجاً منظماً لتحديد التهديدات المحتملة وتحديد أولوياتها. يمكن استخدامها ضمن اختبار اختراق أو كتعامل مستقل. الأهم من ذلك، أنها تُنشئ حلقة تغذية راجعة للمعلومات — تُعاد المعلومات المجمَّعة في المرحلة الثانية إلى المرحلة الأولى لتحسين الاستراتيجية الشاملة.",
+html:`
+<div class="phase-header">
+  <span class="phase-badge pb-amber">PHASE 3 / 7</span>
+  <span style="font-size:16px;color:var(--text2)">Threat Modeling</span>
+</div>
+<ul class="bullet-list">
+  <li><strong>Context:</strong> This is the third phase of PTES. A <span class="kw kw-a" data-k="ThreatModelingApproach">threat modeling approach</span> is required for the correct execution of penetration testing.</li>
+  <li><strong>Deployment:</strong> It can be used as part of a penetration test or as a <span class="kw" data-k="SeparateEngagement">separate engagement</span>.</li>
+  <li><strong>Function:</strong> Helps in <span class="kw kw-g" data-k="ItemizingThreats">itemizing potential threats</span> based on a number of factors.</li>
+</ul>
+<div class="highlight" style="margin-top:18px">
+  <div class="highlight-label">Information Feedback Loop</div>
+  <p>If used as part of a penetration test, the information gathered in the <strong style="color:#fff">second phase</strong> (Intelligence Gathering) would be <span class="kw" data-k="RolledBack">rolled back</span> into the first phase for refined strategy.</p>
+</div>`},
+
+/* ---- SLIDE 6 ---- */
+{num:"06", label:"Steps of Threat Modeling",
+execEn:"The threat modeling phase follows four structured steps: first, gathering all necessary and relevant information; second, identifying and categorizing primary and secondary assets; third, identifying and categorizing threats and the threat communities that might execute them; and fourth, mapping those threat communities against the identified assets to prioritize what to test.",
+execAr:"تتبع مرحلة نمذجة التهديدات أربع خطوات منظمة: أولاً، جمع جميع المعلومات الضرورية والذات الصلة؛ ثانياً، تحديد وتصنيف الأصول الأولية والثانوية؛ ثالثاً، تحديد وتصنيف التهديدات ومجتمعات التهديد التي قد تنفّذها؛ رابعاً، ربط مجتمعات التهديد بالأصول المُحددة لتحديد أولويات ما يجب اختباره.",
+html:`
+<p style="font-size:16px;color:var(--text2);margin-bottom:18px">The following steps constitute the <span class="kw" data-k="ThreatModelingPhaseSteps">threat-modelling phase</span>:</p>
+<div class="steps">
+  <div class="step-item">
+    <div class="step-num">01</div>
+    <div class="step-text"><strong>Gather</strong> necessary and relevant information.</div>
+  </div>
+  <div class="step-item">
+    <div class="step-num">02</div>
+    <div class="step-text"><strong>Identify and Categorize</strong> <span class="kw" data-k="PrimarySecondaryAssets">primary and secondary assets</span>.</div>
+  </div>
+  <div class="step-item">
+    <div class="step-num">03</div>
+    <div class="step-text"><strong>Identify and Categorize</strong> <span class="kw kw-r" data-k="ThreatCommunities">threats and threat communities</span>.</div>
+  </div>
+  <div class="step-item">
+    <div class="step-num">04</div>
+    <div class="step-text"><strong>Map</strong> <span class="kw kw-a" data-k="ThreatMapping">threat communities against primary and secondary assets</span>.</div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 7 ---- */
+{num:"07", label:"Phase 4: Vulnerability Analysis",
+execEn:"Vulnerability Analysis is the fourth PTES phase — a critical transition point where the assessor begins identifying feasible targets for active testing. Importantly, in the first three phases no systems were actually touched; only organizational information was gathered. This is also the most time-consuming phase of the entire PTES framework.",
+execAr:"تحليل الثغرات هو المرحلة الرابعة من PTES — نقطة تحول حاسمة حيث يبدأ المُقيِّم في تحديد الأهداف القابلة للاختبار الفعلي. الأهم من ذلك، في المراحل الثلاث الأولى لم يُلمَس أي نظام فعلياً؛ جُمعت معلومات تنظيمية فقط. هذه أيضاً المرحلة الأكثر استهلاكاً للوقت في إطار PTES بأكمله.",
+html:`
+<div class="phase-header">
+  <span class="phase-badge pb-red">PHASE 4 / 7</span>
+  <span style="font-size:16px;color:var(--text2)">Vulnerability Analysis</span>
+</div>
+<ul class="bullet-list">
+  <li><strong>Transition:</strong> This is the fourth phase of PTES where the assessor identifies <span class="kw" data-k="FeasibleTargets">feasible targets</span> for further testing.</li>
+  <li><strong>Critical Note:</strong> In the first three phases, only details about the organization were extracted. The assessor has <span class="kw kw-r" data-k="NotTouched">not touched</span> any resources for testing until now.</li>
+</ul>
+<div class="highlight-warn" style="margin-top:18px">
+  <div class="highlight-label">⚡ Effort Level</div>
+  <p>Vulnerability Analysis is the <span class="kw kw-r" data-k="MostTimeConsuming">most time-consuming phase</span> of PTES.</p>
+</div>`},
+
+/* ---- SLIDE 8 ---- */
+{num:"08", label:"Vulnerability Testing",
+execEn:"Vulnerability testing is the process of discovering flaws — misconfigurations and insecure application designs — in host systems and applications. It takes two forms: Active Testing involves direct interaction with the target component (automated or manual), while Passive Testing observes without interaction through techniques like metadata analysis and traffic monitoring.",
+execAr:"اختبار الثغرات هو عملية اكتشاف العيوب — التكوينات الخاطئة وتصميمات التطبيقات غير الآمنة — في أنظمة المضيف والتطبيقات. يتخذ شكلين: الاختبار النشط يتضمن تفاعلاً مباشراً مع المكوّن المستهدف (آلياً أو يدوياً)، بينما الاختبار السلبي يراقب دون تفاعل من خلال تقنيات كتحليل البيانات الوصفية ومراقبة الحركة.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Definition</div>
+  <p>The process of discovering flaws such as <span class="kw kw-r" data-k="Misconfiguration">misconfiguration</span> and <span class="kw kw-r" data-k="InsecureAppDesign">insecure application designs</span> in host systems and applications.</p>
+</div>
+<div class="card-grid cols-2" style="margin-top:18px">
+  <div class="card al">
+    <div class="card-title">⚡ Active Testing</div>
+    <div class="card-body">Involves <span class="kw" data-k="DirectInteraction">direct interaction</span> with the component being tested (Automated or Manual).</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">👁 Passive Testing</div>
+    <div class="card-body">Does not involve direct interaction — e.g., <span class="kw kw-g" data-k="MetadataAnalysis">Metadata Analysis</span> and <span class="kw kw-g" data-k="TrafficMonitoring">Traffic Monitoring</span>.</div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 9 ---- */
+{num:"09", label:"Validation & Research",
+execEn:"Once potential flaws are identified, two critical stages follow. Validation of Findings proves that a vulnerability genuinely exists using tool correlation techniques — preventing false positives from reaching the client. The Research stage then determines accuracy and investigates the exploitability of the vulnerability within the specific scope of the test.",
+execAr:"بمجرد تحديد الثغرات المحتملة، تتبع مرحلتان حاسمتان. التحقق من النتائج يُثبت أن الثغرة موجودة فعلاً باستخدام تقنيات ترابط الأدوات — يمنع إيصال النتائج الإيجابية الزائفة للعميل. ثم تحدد مرحلة البحث الدقة وتدرس قابلية استغلال الثغرة ضمن نطاق الاختبار المحدد.",
+html:`
+<p style="font-size:16px;color:var(--text2);margin-bottom:16px">Once potential flaws are identified, the following stages are critical:</p>
+<ul class="bullet-list">
+  <li>
+    <strong>Validation of Findings:</strong> Proving the vulnerability exists through techniques such as <span class="kw" data-k="CorrelationBetweenTools">Correlation between tools</span>.
+  </li>
+  <li>
+    <strong>Research:</strong>
+    <ul class="sub-list">
+      <li>Determining the <span class="kw kw-g" data-k="AccuracyOfIssue">accuracy</span> of the identified issue.</li>
+      <li>Researching the potential <span class="kw kw-a" data-k="Exploitability">exploitability</span> of the vulnerability within the specific scope of the test.</li>
+    </ul>
+  </li>
+</ul>
+<div class="quote-box" style="margin-top:20px">
+  "Validation prevents the delivery of <span class="kw kw-r" data-k="FalsePositives">false positives</span> to the client."
+</div>`},
+
+/* ---- SLIDE 10 ---- */
+{num:"10", label:"Phase 5: Exploitation",
+execEn:"Exploitation is the fifth PTES phase — the culmination of all prior work. Its focus is gaining unauthorized access to systems or resources by bypassing security restrictions. Access methods range from remote exploits and custom code, to bypassing antivirus solutions, to simply logging in via weak credentials.",
+execAr:"الاستغلال هو المرحلة الخامسة من PTES — ذروة كل العمل السابق. تركّز على الوصول غير المُصرَّح به للأنظمة والموارد عبر تجاوز القيود الأمنية. تتراوح أساليب الوصول من الاستغلال عن بُعد وإنشاء كود مخصص، إلى تجاوز حلول مكافحة الفيروسات، إلى تسجيل الدخول ببساطة عبر بيانات اعتماد ضعيفة.",
+html:`
+<div class="phase-header">
+  <span class="phase-badge pb-red">PHASE 5 / 7</span>
+  <span style="font-size:16px;color:var(--text2)">Exploitation</span>
+</div>
+<ul class="bullet-list">
+  <li><strong>Focus:</strong> Gaining access to the system or resource by <span class="kw kw-r" data-k="BypassingSecurity">bypassing security restrictions</span>.</li>
+  <li><strong>The Culmination:</strong> In this phase, all the work done in the previous phases leads to the <span class="kw kw-r" data-k="ActualBreach">actual breach</span>.</li>
+  <li>
+    <strong>Methods of Access:</strong>
+    <ul class="sub-list">
+      <li><span class="kw kw-r" data-k="RemoteExploits">Remote exploits</span> and custom code creation.</li>
+      <li><span class="kw kw-a" data-k="BypassingAV">Bypassing Antivirus (AV)</span> solutions.</li>
+      <li>Simple login via <span class="kw kw-r" data-k="WeakCredentials">weak credentials</span>.</li>
+    </ul>
+  </li>
+</ul>`},
+
+/* ---- SLIDE 11 ---- */
+{num:"11", label:"High Value Targets (HVT)",
+execEn:"Once initial access is achieved, the focus immediately shifts to identifying High Value Target assets — the most critical systems holding the most valuable data. A properly completed Vulnerability Analysis phase should have already produced an HVT list before exploitation began. The attack vector must always align with the organization's business goals.",
+execAr:"بمجرد تحقيق الوصول الأولي، ينتقل التركيز فوراً لتحديد أصول الأهداف عالية القيمة — الأنظمة الأكثر أهمية التي تحمل أثمن البيانات. يجب أن تكون مرحلة تحليل الثغرات المُكتملة بشكل صحيح قد أنتجت قائمة HVT قبل بدء الاستغلال. يجب أن يأخذ متجه الهجوم دائماً الأهداف التجارية للمؤسسة في الاعتبار.",
+html:`
+<ul class="bullet-list">
+  <li><strong>Main Entry Point:</strong> Once <span class="kw kw-g" data-k="InitialAccess">initial access</span> is achieved, the assessor must identify the main entry point.</li>
+  <li><strong>Target Prioritization:</strong> The focus shifts immediately to identifying <span class="kw kw-a" data-k="HighValueTargets">High Value Target assets</span>.</li>
+</ul>
+<div class="highlight" style="margin-top:18px">
+  <div class="highlight-label">Prerequisite</div>
+  <p>If the <span class="kw" data-k="VulnAnalysisPhase">Vulnerability Analysis</span> phase was properly completed, a high value target list should have been compiled <strong style="color:#fff">before this phase began</strong>.</p>
+</div>
+<div class="quote-box" style="margin-top:16px">
+  Note: The <span class="kw kw-a" data-k="AttackVector">attack vector</span> should always take the organization's <strong>business goals</strong> into consideration.
+</div>`},
+
+/* ---- SLIDE 12 ---- */
+{num:"12", label:"Phase 6: Post-Exploitation",
+execEn:"Post-Exploitation begins after a successful breach and answers a fundamental question: what is the true business value and impact of the compromised machine? The assessor determines what an attacker could actually achieve from that foothold — identifying data sensitivity and mapping how the compromised machine could be used to further penetrate the network.",
+execAr:"ما بعد الاستغلال يبدأ بعد الاختراق الناجح ويجيب على سؤال جوهري: ما القيمة التجارية الحقيقية وتأثير الجهاز المُخترَق؟ يحدد المُقيِّم ما يمكن للمهاجم تحقيقه فعلاً من موضع القدم هذا — محدداً حساسية البيانات ورسماً لكيفية استخدام الجهاز المُخترَق لاختراق الشبكة أكثر.",
+html:`
+<div class="phase-header">
+  <span class="phase-badge pb-purple">PHASE 6 / 7</span>
+  <span style="font-size:16px;color:var(--text2)">Post-Exploitation</span>
+</div>
+<ul class="bullet-list">
+  <li><strong>Definition:</strong> This phase begins after a <span class="kw kw-g" data-k="SuccessfulBreach">successful breach</span> and focuses on the <span class="kw kw-a" data-k="ValueOfMachine">value of the machine compromised</span>.</li>
+  <li><strong>Objective:</strong> To determine the <span class="kw" data-k="ImpactOfCompromise">impact of the compromise</span> and what an attacker could actually achieve once "inside."</li>
+  <li><strong>Business Value:</strong> The assessor identifies the <span class="kw kw-a" data-k="DataSensitivity">sensitivity of the data</span> residing on the machine and its usefulness in <span class="kw kw-r" data-k="FurtherCompromising">further compromising the network</span>.</li>
+</ul>`},
+
+/* ---- SLIDE 13 ---- */
+{num:"13", label:"Post-Exploitation: Analysis & Pillaging",
+execEn:"Post-Exploitation involves two major activities. Infrastructure Analysis is a total mapping of the compromised environment — interfaces, routing, DNS servers, cached entries, and proxy servers — to understand the internal network topology from the inside. Pillaging extracts operationally relevant data from targeted hosts including installed programs, database servers, and network devices.",
+execAr:"ما بعد الاستغلال يشمل نشاطين رئيسيين. تحليل البنية التحتية هو رسم خرائط كاملة للبيئة المُخترَقة — الواجهات والتوجيه وخوادم DNS والإدخالات المؤقتة وخوادم الوكيل — لفهم طوبولوجيا الشبكة الداخلية من الداخل. النهب يستخرج البيانات ذات الصلة بالأهداف المُحددة من المضيفين المستهدفين بما يشمل البرامج المُثبَّتة وخوادم قواعد البيانات وأجهزة الشبكة.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title">🗺 Infrastructure Analysis</div>
+    <div class="card-body">
+      <p>A total analysis of the environment used during testing.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Focus:</strong> Interfaces, routing, <span class="kw" data-k="DNSServers">DNS servers</span>, Cached DNS entries, and <span class="kw kw-a" data-k="ProxyServers">proxy servers</span>.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Goal:</strong> Understanding the <span class="kw kw-g" data-k="NetworkTopology">internal network topology</span> from the "inside" perspective.</p>
+    </div>
+  </div>
+  <div class="card ar">
+    <div class="card-title">💰 <span class="kw kw-r" data-k="Pillaging">Pillaging</span></div>
+    <div class="card-body">
+      <p>Obtaining information from targeted hosts relevant to <strong style="color:var(--text)">pre-defined goals</strong>.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Sources:</strong> Extracting data from installed programs, <span class="kw kw-a" data-k="DatabaseServers">database servers</span>, and network devices like printers.</p>
+    </div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 14 ---- */
+{num:"14", label:"Data Exfiltration & Persistence",
+execEn:"Two advanced post-exploitation activities: Data Exfiltration testing maps all possible paths through which sensitive data could leave the organization, measuring the strength of detection and blocking controls. Creating Persistence involves installing authenticated backdoors (surviving reboots) and creating alternate accounts with complex passwords to maintain a long-term foothold for analysis.",
+execAr:"نشاطان متقدمان في مرحلة ما بعد الاستغلال: اختبار تسريب البيانات يرسم خرائط لجميع المسارات المحتملة التي يمكن من خلالها خروج البيانات الحساسة من المؤسسة، قياساً لقوة ضوابط الكشف والحظر. إنشاء الاستمرارية يتضمن تثبيت أبواب خلفية مُصادق عليها (تبقى بعد إعادة التشغيل) وإنشاء حسابات بديلة بكلمات مرور معقدة للحفاظ على موضع قدم طويل المدى للتحليل.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card aa">
+    <div class="card-title">📤 <span class="kw kw-a" data-k="DataExfiltration">Data Exfiltration</span></div>
+    <div class="card-body">
+      <p>Mapping and testing all possible <span class="kw" data-k="ExfiltrationPaths">exfiltration paths</span>.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Metric:</strong> Measuring control strength for detecting and blocking sensitive information leaving the organization.</p>
+    </div>
+  </div>
+  <div class="card ap">
+    <div class="card-title">🔄 <span class="kw kw-p" data-k="CreatingPersistence">Creating Persistence</span></div>
+    <div class="card-body">
+      <p>Maintaining access for <strong style="color:var(--text)">long-term analysis</strong>.</p>
+      <p style="margin-top:8px">Installation of <span class="kw kw-p" data-k="AuthenticatedBackdoors">authenticated backdoors</span> surviving system reboots.</p>
+      <p style="margin-top:8px">Creation of alternate accounts to maintain a <span class="kw kw-r" data-k="Foothold">"foothold."</span></p>
+    </div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 15 ---- */
+{num:"15", label:"The Professional Cleanup",
+execEn:"Cleanup is a mandatory final technical step that returns all systems to their original pre-test state. It involves three activities: Restoration reverts system settings and application configurations; Removal deletes all backdoors, scripts, and artifacts installed during the test; Account Hygiene removes any user accounts created during persistence. This phase ensures the test itself does not become a security vulnerability.",
+execAr:"التنظيف خطوة تقنية نهائية إلزامية تُعيد جميع الأنظمة لحالتها الأصلية قبل الاختبار. يشمل ثلاثة أنشطة: الاستعادة تُرجع إعدادات النظام والتطبيقات لقيمها الأصلية؛ الإزالة تحذف جميع الأبواب الخلفية والسكريبتات والمُخرَّفات المُثبَّتة أثناء الاختبار؛ نظافة الحسابات تحذف أي حسابات مستخدمين أُنشئت خلال مرحلة الاستمرارية. هذه المرحلة تضمن ألا يكون الاختبار نفسه ثغرة أمنية.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Final Technical Step</div>
+  <p><span class="kw" data-k="CleanupMandatory">Cleanup</span> is a mandatory requirement to return the system to its original state.</p>
+</div>
+<ul class="bullet-list" style="margin-top:16px">
+  <li><strong>Restoration:</strong> Reverting <span class="kw" data-k="SystemSettings">system settings</span> and application configuration parameters to their original values.</li>
+  <li><strong>Removal:</strong> Deleting all <span class="kw kw-r" data-k="BackdoorsRemoval">backdoors</span>, temporary scripts, and <span class="kw kw-a" data-k="Artifacts">artifacts</span> installed during the test.</li>
+  <li><strong>Account Hygiene:</strong> Removing any <span class="kw kw-g" data-k="AccountHygiene">user accounts</span> created during the persistence phase.</li>
+</ul>
+<div class="quote-box" style="margin-top:18px">
+  Note: This phase ensures the test does not leave the organization vulnerable to <strong>actual attackers</strong>.
+</div>`},
+
+/* ---- SLIDE 16 ---- */
+{num:"16", label:"Phase 7: Reporting",
+execEn:"Reporting is the final and most important PTES phase — it is the tangible deliverable the client pays for. The report serves as a mirror of all findings discovered by the assessor. High-quality reporting transforms raw technical vulnerabilities into actionable business intelligence that management can understand and act upon.",
+execAr:"التقرير هو المرحلة الأخيرة والأهم في PTES — وهو المُخرَج الملموس الذي يدفع العميل مقابله. يعمل التقرير كمرآة لجميع النتائج المكتشفة من قِبل المُقيِّم. يُحوّل التقرير عالي الجودة الثغرات التقنية الخام إلى استخبارات أعمال قابلة للتنفيذ يمكن للإدارة فهمها والتصرف بناءً عليها.",
+html:`
+<div class="phase-header">
+  <span class="phase-badge pb-green">PHASE 7 / 7</span>
+  <span style="font-size:16px;color:var(--text2)">Reporting — Final Deliverable</span>
+</div>
+<div class="highlight-warn">
+  <div class="highlight-label">Final Deliverable</div>
+  <p>This is the <strong style="color:#f87171">final and most important phase</strong> of PTES. The client pays on the basis of the <span class="kw kw-r" data-k="FinalReport">final report</span> after completion of the penetration test.</p>
+</div>
+<ul class="bullet-list" style="margin-top:16px">
+  <li><strong>The Mirror:</strong> The report is essentially a <span class="kw" data-k="ReportMirror">mirror</span> of the findings discovered by the assessor.</li>
+  <li><strong>Value Proposition:</strong> High-quality reporting translates technical vulnerabilities into <span class="kw kw-g" data-k="ActionableIntelligence">actionable business intelligence</span>.</li>
+</ul>`},
+
+/* ---- SLIDE 17 ---- */
+{num:"17", label:"Executive Summary & Storyline",
+execEn:"The Reporting phase contains two key sections. The Executive Summary communicates specific goals and high-level findings to non-technical audiences — typically the advisory board or C-Suite executives. The Storyline provides a narrative account of what was done, details the actual security weaknesses found, and importantly highlights positive security controls the organization already has in place.",
+execAr:"تحتوي مرحلة التقرير على قسمين رئيسيين. يُوصل الملخص التنفيذي الأهداف المحددة والنتائج رفيعة المستوى للجماهير غير التقنية — عادةً أعضاء مجلس الاستشارة أو كبار المديرين التنفيذيين. تُقدم الرواية السردية وصفاً لما تم فعله وتُفصّل نقاط الضعف الأمنية الفعلية المكتشفة، وتُسلّط الضوء على الضوابط الأمنية الإيجابية التي تمتلكها المؤسسة بالفعل.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title">📋 <span class="kw" data-k="ExecutiveSummary">Executive Summary</span></div>
+    <div class="card-body">
+      <p>Communicates specific goals and <strong style="color:var(--text)">high-level findings</strong>.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Audience:</strong> <span class="kw kw-a" data-k="CSuite">Advisory board members or the C-Suite</span>.</p>
+    </div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">📖 <span class="kw kw-g" data-k="Storyline">Storyline</span></div>
+    <div class="card-body">
+      <p>Explains what was done during the engagement.</p>
+      <p style="margin-top:8px">Details actual <strong style="color:var(--text)">security findings/weaknesses</strong>.</p>
+      <p style="margin-top:8px">Highlights <span class="kw kw-g" data-k="PositiveControls">positive controls</span> already established by the organization.</p>
+    </div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 18 ---- */
+{num:"18", label:"Technical Report (Proof of Concept)",
+execEn:"The Technical Report section provides raw technical evidence required by IT and security teams. It is built around Key Success Indicators agreed during pre-engagement, and contains a detailed breakdown of four elements: Scope (exactly what was tested), Attack Path (step-by-step narrative of the breach), Impact (potential business damage), and Remediation (specific fix recommendations).",
+execAr:"يُقدم قسم التقرير التقني الأدلة التقنية الخام التي يحتاجها فرق تقنية المعلومات والأمن. يُبنى على مؤشرات النجاح الرئيسية المتفق عليها خلال مرحلة ما قبل التعاقد، ويحتوي على تفصيل دقيق لأربعة عناصر: النطاق (ما تم اختباره بالضبط)، مسار الهجوم (السرد التفصيلي للاختراق)، التأثير (الضرر التجاري المحتمل)، والعلاج (توصيات الإصلاح المحددة).",
+html:`
+<p style="font-size:16px;color:var(--text2);margin-bottom:18px">This section provides the raw <span class="kw" data-k="TechnicalEvidence">technical evidence</span> required by the IT and security teams:</p>
+<ul class="bullet-list">
+  <li><strong>Key Success Indicators:</strong> All components agreed upon during <span class="kw" data-k="PreEngagementKSI">pre-engagement</span>.</li>
+  <li>
+    <strong>Detailed Breakdown:</strong>
+    <ul class="sub-list" style="margin-top:8px">
+      <li><span class="kw" data-k="ReportScope">Scope:</span> Exactly what was tested.</li>
+      <li><span class="kw kw-r" data-k="AttackPath">Attack Path:</span> The step-by-step narrative of the breach.</li>
+      <li><span class="kw kw-a" data-k="ReportImpact">Impact:</span> The potential business damage of the flaw.</li>
+      <li><span class="kw kw-g" data-k="Remediation">Remediation:</span> Specific suggestions to fix the identified issues.</li>
+    </ul>
+  </li>
+</ul>`},
+
+/* ---- SLIDE 19 ---- */
+{num:"19", label:"Problems in Info Analysis & Planning",
+execEn:"Three fundamental problems plague the information analysis and planning stage of penetration testing. The Consolidation Crisis: it is difficult and time-consuming to synthesize gathered information into a coherent attack strategy. Dynamic Complexity: keeping an up-to-date overview of all components and their interactions is hard. Tool Gap: there are currently no dedicated tools specifically designed for this strategic planning phase.",
+execAr:"ثلاث مشاكل جوهرية تُعيق مرحلة تحليل المعلومات والتخطيط في اختبار الاختراق. أزمة التوحيد: من الصعب والمستهلك للوقت تجميع المعلومات في استراتيجية هجوم متماسكة. التعقيد الديناميكي: الحفاظ على نظرة عامة محدّثة لجميع المكونات وتفاعلاتها أمر صعب. فجوة الأدوات: لا توجد حالياً أدوات مخصصة مصممة تحديداً لمرحلة التخطيط الاستراتيجي هذه.",
+html:`
+<div class="card-grid cols-3">
+  <div class="card ar">
+    <div class="card-title">🔀 <span class="kw kw-r" data-k="ConsolidationCrisis">Consolidation Crisis</span></div>
+    <div class="card-body">Consolidating gathered information to extract high-level conclusions for an <strong style="color:var(--text)">attack strategy</strong> is difficult and time-consuming.</div>
+  </div>
+  <div class="card aa">
+    <div class="card-title">⚙️ <span class="kw kw-a" data-k="DynamicComplexity">Dynamic Complexity</span></div>
+    <div class="card-body">Hard to keep an up-to-date general overview of <strong style="color:var(--text)">components and their interactions</strong>.</div>
+  </div>
+  <div class="card ap">
+    <div class="card-title">🔧 <span class="kw kw-p" data-k="ToolGap">Tool Gap</span></div>
+    <div class="card-body">There are <strong style="color:var(--text)">no specific tools</strong> aimed at addressing this strategic phase.</div>
+  </div>
+</div>`},
+
+/* ---- SLIDE 20 ---- */
+{num:"20", label:"Problems: The Penetration Phase",
+execEn:"Four challenges plague the penetration phase itself. Time Constraints: high expertise is needed but time limits restrict depth. Resource Estimation: no formal tools exist to estimate effort for specific exploits. Unreliable Code: public exploits are generally quick hacks or POCs needing heavy customization. Theoretical vs. Practical: knowing a vulnerability exists doesn't mean it's easily exploitable — failing a theoretically possible exploit weakens the entire engagement.",
+execAr:"أربعة تحديات تُعيق مرحلة الاختراق نفسها. قيود الوقت: يلزم خبرة عالية لكن حدود الوقت تُقيّد العمق. تقدير الموارد: لا توجد أدوات رسمية لتقدير الجهد المطلوب لاستغلالات محددة. الكود غير الموثوق: الاستغلالات المتاحة للعموم عادةً اختراقات سريعة أو POCs تحتاج تخصيصاً مكثفاً. النظري مقابل العملي: معرفة وجود ثغرة لا تعني سهولة استغلالها — الفشل في استغلال 'ممكن نظرياً' يُضعف نتيجة التعامل بأكمله.",
+html:`
+<ul class="bullet-list">
+  <li><strong>Time Constraints:</strong> High-level expertise is required, but overall <span class="kw kw-r" data-k="TimeConstraints">time limits</span> often restrict the extent of the work.</li>
+  <li><strong>Resource Estimation:</strong> There are no formal processes or tools to help <span class="kw kw-a" data-k="ResourceEstimation">estimate the time and effort</span> needed for specific exploits.</li>
+  <li><strong>Unreliable Code:</strong> Publicly available exploits are generally <span class="kw kw-r" data-k="UnreliableCode">unreliable "quick hacks" or POCs</span> that require heavy customization and testing.</li>
+  <li><strong>Theoretical vs. Practical:</strong> Knowing a vulnerability exists does not mean it can be <span class="kw kw-a" data-k="TheoreticalVsPractical">exploited easily</span>; failing a "theoretically possible" exploit weakens the entire engagement result.</li>
+</ul>`},
+
+/* ---- SLIDE 21 ---- */
+{num:"21", label:"Problems: Attack & Privilege Escalation",
+execEn:"Three additional challenges affect the attack and privilege escalation stages. Specialization Required: significant expertise is needed for exploit and tool development including local host exploits and backdoors. The Pivoting Gap: pivoting between systems is a key success factor yet remains the least formalized process in manual testing. Security Weakness: there is often no dedicated security architecture protecting the tester's own tools and data during the engagement.",
+execAr:"ثلاثة تحديات إضافية تؤثر على مراحل الهجوم وتصعيد الامتيازات. يتطلب التخصص: خبرة كبيرة في تطوير الاستغلالات والأدوات بما يشمل استغلالات المضيف المحلي والأبواب الخلفية. فجوة التمحور: التمحور بين الأنظمة عامل نجاح رئيسي لكنه لا يزال الأقل تنظيماً في الاختبار اليدوي. نقطة الضعف الأمنية: غالباً لا توجد بنية أمنية مخصصة لحماية أدوات وبيانات المختبِر نفسه خلال التعامل.",
+html:`
+<ul class="bullet-list">
+  <li><strong>Specialization Required:</strong> Significant knowledge is needed for <span class="kw kw-r" data-k="ExploitDev">exploit and tool development</span> (local host exploits, backdoors, etc.).</li>
+  <li><strong>The Pivoting Gap:</strong> <span class="kw kw-a" data-k="Pivoting">Pivoting</span> is a key factor for success, yet it is currently the <strong style="color:#f87171">least formalized process</strong> in manual testing.</li>
+  <li><strong>Security Weakness:</strong> There is often a lack of a <span class="kw kw-p" data-k="SecurityArchitecture">dedicated security architecture</span> for the penetration test itself (protecting the tester's own tools and data).</li>
+</ul>`},
+
+/* ---- SLIDE 22 ---- */
+{num:"22", label:"Problems: The Clean Up Phase",
+execEn:"Cleanup presents three practical problems. Operational Risk: cleaning compromised hosts must be performed securely without disrupting the client's normal business operations. Verification: current practice lacks a verifiable and non-repudiable cleanup process — there's no formal proof that cleanup occurred. Customer Burden: cleanup is often incorrectly delegated as a backup-restore task to the client's IT team, wasting their resources.",
+execAr:"يطرح التنظيف ثلاث مشاكل عملية. المخاطر التشغيلية: يجب تنظيف الأجهزة المُخترَقة بأمان دون تعطيل العمليات التجارية الطبيعية للعميل. التحقق: الممارسة الحالية تفتقر لعملية تنظيف قابلة للتحقق وغير قابلة للإنكار — لا يوجد إثبات رسمي بحدوث التنظيف. عبء العميل: كثيراً ما يُفوَّض التنظيف خطأً كمهمة استعادة نسخة احتياطية لفريق تقنية المعلومات لدى العميل، مما يُهدر مواردهم.",
+html:`
+<ul class="bullet-list">
+  <li><strong>Operational Risk:</strong> Cleaning <span class="kw kw-r" data-k="CompromisedHosts">compromised hosts</span> must be done securely without affecting the client's <span class="kw kw-g" data-k="NormalOperations">normal operations</span>.</li>
+  <li><strong>Verification:</strong> Current practice lacks a <span class="kw kw-a" data-k="VerifiableCleanup">verifiable and non-repudiable</span> cleanup process.</li>
+  <li><strong>Customer Burden:</strong> Often, cleanup is incorrectly left as a <span class="kw kw-r" data-k="BackupRestore">"backup restore"</span> job for the customer's IT team, wasting their resources.</li>
+</ul>`},
+
+/* ---- SLIDE 23 ---- */
+{num:"23", label:"Why Automate Penetration Testing?",
+execEn:"The current state of penetration testing is a mix of hacker handiwork, monotonous repetitive tasks, and non-formalized knowledge — making results inconsistent and hard to replicate. Automation addresses this by introducing a necessary layer of professionalism to the practice. Most importantly, automation frees human experts from repetitive work, allowing them to focus their irreplaceable skills on high-level strategy and creative problem-solving.",
+execAr:"الحالة الراهنة لاختبار الاختراق هي مزيج من الحرفة الهاكرية والمهام الرتيبة المتكررة والمعرفة غير المُقنَّنة — مما يجعل النتائج غير متسقة وصعبة التكرار. الأتمتة تُعالج هذا بإدخال طبقة ضرورية من الاحترافية على الممارسة. الأهم من ذلك، تُحرر الأتمتة الخبراء البشريين من العمل المتكرر، مما يُتيح لهم تركيز مهاراتهم التي لا يمكن الاستعاضة عنها على الاستراتيجية رفيعة المستوى وحل المشكلات الإبداعي.",
+html:`
+<ul class="bullet-list">
+  <li><strong>The Current State:</strong> Penetration testing is often a mix of <span class="kw kw-r" data-k="HackerHandiwork">hacker handiwork</span>, <span class="kw kw-a" data-k="MonotonousTasks">monotonous tasks</span>, and <span class="kw kw-r" data-k="NonFormalKnowledge">non-formal knowledge</span>.</li>
+  <li><strong>The Solution:</strong> Automating these tests brings a necessary layer of <span class="kw kw-g" data-k="Professionalism">professionalism</span> to the practice.</li>
+  <li><strong>Human-Centric Focus:</strong> <span class="kw" data-k="AutomationFocus">Automation</span> allows the human expert to move away from repetitive work and focus on <strong style="color:#fff">high-level strategy</strong>.</li>
+</ul>`},
+
+/* ---- SLIDE 24 ---- */
+{num:"24", label:"What is Automation Good For?",
+execEn:"Automation delivers three concrete benefits. Resource Optimization: it frees up skilled personnel to focus on high-value activities — high-level analysis, strategic attack planning, and results analysis with remediation recommendations. Unified Frameworks: it encompasses all PTES phases under one cohesive system. Standardization: it defines and enforces consistent methodology across different teams and testing environments.",
+execAr:"تُقدم الأتمتة ثلاث فوائد ملموسة. تحسين الموارد: تُحرر الكوادر الماهرة للتركيز على الأنشطة عالية القيمة — التحليل رفيع المستوى والتخطيط الاستراتيجي للهجوم وتحليل النتائج مع توصيات العلاج. الأطر الموحدة: تشمل جميع مراحل PTES تحت نظام واحد متماسك. التوحيد القياسي: يُحدد ويُطبّق منهجية متسقة عبر فرق وبيئات اختبار مختلفة.",
+html:`
+<ul class="bullet-list">
+  <li>
+    <strong>Resource Optimization:</strong> Frees up valuable personnel for critical phases:
+    <ul class="sub-list">
+      <li>High-level overview and <span class="kw" data-k="HighLevelAnalysis">analysis</span>.</li>
+      <li>Strategic <span class="kw kw-r" data-k="AttackPlanning">attack planning</span>.</li>
+      <li>Results analysis and <span class="kw kw-g" data-k="RemediationRecs">remediation recommendations</span>.</li>
+    </ul>
+  </li>
+  <li><strong>Unified Frameworks:</strong> Encompasses all penetration test phases under a <span class="kw kw-a" data-k="UnifiedFramework">single, cohesive framework</span>.</li>
+  <li><strong>Standardization:</strong> Helps <span class="kw kw-g" data-k="Standardization">define and standardize the methodology</span> across different teams and environments.</li>
+</ul>`},
+
+/* ---- SLIDE 25 ---- */
+{num:"25", label:"Ensuring Quality and Speed",
+execEn:"Automation delivers quality and speed through three mechanisms. Quality Assurance enforces adherence to established methodologies, ensuring consistent high-quality output regardless of who performs the test. Operational Security improves by using vetted automated scripts rather than ad hoc approaches. Efficiency eliminates time spent on monotonous tasks like scanning thousands of ports or verifying cleanup. The bottom line: automation transforms penetration testing from a craft into an engineering discipline.",
+execAr:"تُحقق الأتمتة الجودة والسرعة عبر ثلاثة آليات. ضمان الجودة يُطبّق الالتزام بالمنهجيات المُعتمدة، ضامناً مُخرَجات عالية الجودة ومتسقة بغض النظر عمّن يُجري الاختبار. الأمن التشغيلي يتحسن باستخدام سكريبتات آلية مُتحقق منها بدلاً من الأساليب المرتجلة. الكفاءة تُزيل الوقت المُهدَر على المهام الرتيبة كمسح آلاف المنافذ أو التحقق من التنظيف. الخلاصة: تُحوّل الأتمتة اختبار الاختراق من 'حرفة' إلى 'انضباط هندسي'.",
+html:`
+<ul class="bullet-list">
+  <li><strong>Quality Assurance:</strong> Enforces the following of established methodologies to ensure <span class="kw kw-g" data-k="ConsistentOutput">consistent, high-quality output</span>.</li>
+  <li><strong>Operational Security:</strong> Improves the security of the testing practice itself by using <span class="kw" data-k="VettedScripts">vetted, automated scripts</span>.</li>
+  <li><strong>Efficiency:</strong> Simplifies and speeds up <span class="kw kw-a" data-k="MonotonousTasks2">monotonous, time-consuming tasks</span> (e.g., scanning thousands of ports or verifying cleanup).</li>
+</ul>
+<div class="highlight-green" style="margin-top:20px">
+  <div class="highlight-label">The Bottom Line</div>
+  <p>Automation turns a <span class="kw kw-r" data-k="CraftToEngineering">"craft"</span> into an <span class="kw kw-g" data-k="EngineeringDiscipline">"engineering discipline."</span></p>
+</div>`}
+
+]; /* end slides */
+
+/* ================================================================
+   KEYWORD DATA
+================================================================ */
+const kwData = {
+PreliminarySurveying:{ar:"المسح المبدئي: جمع معلومات عن الهدف من مصادر متاحة قبل أي اتصال مباشر بالأنظمة — يشمل DNS وWhois وتحليل الموقع والشبكات الاجتماعية.",q:"What is the primary goal of preliminary surveying in intelligence gathering?",opts:["To exploit vulnerabilities immediately","To collect maximum information about the target before active testing","To write the final report","To define the scope of testing"],ans:1},
+VulnerabilityAssessment:{ar:"تقييم الثغرات: المرحلة الرابعة من PTES حيث تُستخدم المعلومات المجمّعة لتحديد الثغرات القابلة للاستغلال في الأنظمة.",q:"Information gathered during intelligence gathering is primarily utilized in which phases?",opts:["Pre-engagement and reporting","Vulnerability assessment and exploitation","Threat modeling only","Cleanup and reporting"],ans:1},
+ExploitationPhase2:{ar:"مرحلة الاستغلال: المرحلة الخامسة من PTES حيث تُستخدم المعلومات الاستخباراتية المجمَّعة للوصول الفعلي غير المُصرَّح به.",q:"Intelligence gathered in Phase 2 directly feeds into which later phases?",opts:["Phase 1 only","Phase 7 only","Vulnerability Assessment (Phase 4) and Exploitation (Phase 5)","Phase 3 only"],ans:2},
+ExternalExposure:{ar:"التعرض الخارجي: ما يمكن لمهاجم خارجي رؤيته وجمعه عن المؤسسة دون وصول داخلي — يشمل الخدمات المفتوحة والبيانات المتاحة للعموم وبصمة المؤسسة على الإنترنت.",q:"Understanding 'external exposure' through intelligence gathering helps organizations see:",opts:["Only their internal network structure","What an outside attacker can discover about them without insider access","Only their physical security weaknesses","Only their employee information"],ans:1},
+Level1Auto:{ar:"المستوى الأول (آلي): جمع المعلومات بشكل كامل تقريباً عبر أدوات آلية بحد أدنى من التدخل البشري — مناسب للامتثال الأساسي لمتطلبات الأمن.",q:"Level 1 Intelligence Gathering is described as being obtained almost entirely via:",opts:["Manual human analysis","Automated tools","Social engineering","Physical reconnaissance"],ans:1},
+ComplianceReqs:{ar:"متطلبات الامتثال: المعايير والأنظمة الأمنية التي يجب على المؤسسات الالتزام بها — كـ PCI DSS وISO 27001 وHIPAA. المستوى الأول من جمع المعلومات كافٍ لتلبية المتطلبات الأساسية.",q:"Level 1 automated intelligence gathering is primarily appropriate for meeting:",opts:["Advanced persistent threat simulations","Basic compliance requirements","Long-term corporate security strategy","Personnel profiling objectives"],ans:1},
+Level2Biz:{ar:"المستوى الثاني (مُركّز على الأعمال): يجمع الأتمتة مع التحليل اليدوي العميق ويتطلب فهماً تجارياً شاملاً — يستهدف الاستراتيجية الأمنية طويلة المدى.",q:"What distinguishes Level 2 from Level 1 Intelligence Gathering?",opts:["Level 2 uses only automated tools","Level 2 combines automated tools with manual analysis and requires business understanding","Level 2 is faster than Level 1","Level 2 ignores organizational structure"],ans:1},
+ManualAnalysis:{ar:"التحليل اليدوي: تحليل بشري عميق للمعلومات المجمّعة — يكشف السياقات والعلاقات والأنماط التي تفوتها الأدوات الآلية.",q:"Manual analysis in Level 2 intelligence gathering is important because:",opts:["It replaces automated tools entirely","It reveals context, relationships, and patterns that automated tools miss","It is faster than automated analysis","It is only used for compliance purposes"],ans:1},
+OrgCharts:{ar:"المخططات التنظيمية: وثائق تُظهر هيكل المؤسسة وعلاقات التسلسل الهرمي — مفيدة في تحديد صانعي القرار وأهداف الهندسة الاجتماعية.",q:"Org charts are valuable in Level 2 intelligence gathering primarily for:",opts:["Identifying technical vulnerabilities","Understanding organizational structure for targeting decision-makers and social engineering","Mapping network topology","Finding open ports"],ans:1},
+SophisticatedAdversaries:{ar:"الخصوم البالغو الاحترافية: جهات تهديد ذات قدرات متقدمة جداً — كجهات الدول القومية والتهديدات المستمرة المتقدمة (APT) — تستخدم تكتيكات معقدة وطويلة المدى.",q:"Level 3 intelligence gathering simulates which type of threat actor?",opts:["Casual opportunistic hackers","Script kiddies using automated tools","Highly sophisticated adversaries like nation-state actors or APTs","Internal employees with basic access"],ans:2},
+ExtensiveManualAnalysis:{ar:"التحليل اليدوي المكثّف: عملية تحليل بشري عميقة ومستمرة لكميات كبيرة من البيانات المجمّعة — ضرورية في المستوى الثالث لبناء صورة شاملة عن الهدف.",q:"Level 3 intelligence gathering requires extensive manual analysis because:",opts:["Automated tools are unavailable at this level","The depth of insight needed exceeds what automation can provide","It is faster than automated analysis","Manual analysis is cheaper than automation"],ans:1},
+InfrastructureMapping:{ar:"رسم خرائط البنية التحتية: التوثيق التفصيلي لجميع مكونات الشبكة وعلاقاتها — الخوادم والأجهزة وبروتوكولات الاتصال ونقاط الدخول.",q:"Deep infrastructure mapping in Level 3 intelligence gathering focuses on:",opts:["Only mapping web applications","Comprehensively documenting all network components, their relationships, and connection points","Only identifying open ports","Only mapping physical locations"],ans:1},
+PersonnelProfiling:{ar:"تحديد ملامح الأفراد: جمع معلومات تفصيلية عن أفراد مُحددين في المؤسسة — مناصبهم وصلاحياتهم وسلوكياتهم — لتحديد أهداف الهندسة الاجتماعية والوصول الداخلي.",q:"Personnel profiling in Level 3 intelligence gathering is primarily used to:",opts:["Assess technical skill levels of IT staff","Identify specific individuals for targeted social engineering or insider threat simulation","Create employee performance reviews","Map network topology"],ans:1},
+ThreatModelingApproach:{ar:"نهج نمذجة التهديدات: منهجية منظمة لتحديد التهديدات المحتملة وتقييمها وتحديد أولوياتها بناءً على عوامل متعددة كالقيمة التجارية واحتمالية الهجوم.",q:"A threat modeling approach in PTES is described as:",opts:["Optional for basic engagements","Required for the correct execution of penetration testing","Only used in Level 3 assessments","A replacement for vulnerability scanning"],ans:1},
+SeparateEngagement:{ar:"التعامل المستقل: استخدام نمذجة التهديدات كخدمة منفصلة مستقلة عن اختبار الاختراق — تُقدم قيمة للمؤسسات التي تحتاج تقييم مخاطر دون اختبار اختراق كامل.",q:"Threat modeling can be deployed as:",opts:["Only as part of a full penetration test","Only as a standalone service","Either as part of a penetration test or as a separate engagement","Only during the pre-engagement phase"],ans:2},
+ItemizingThreats:{ar:"تصنيف التهديدات: إدراج وتصنيف التهديدات المحتملة بشكل منظم بناءً على عوامل متعددة — الاحتمالية والتأثير والقيمة التجارية للأصل المستهدف.",q:"The function of threat modeling in PTES is to help in:",opts:["Directly exploiting vulnerabilities","Itemizing potential threats based on multiple factors","Writing the final report","Defining the legal scope of the test"],ans:1},
+RolledBack:{ar:"الإعادة للمرحلة الأولى: حلقة تغذية راجعة حيث تُعاد المعلومات من المرحلة الثانية لتحسين وتعديل استراتيجية المرحلة الأولى.",q:"In PTES, intelligence gathered in Phase 2 is 'rolled back' to:",opts:["Phase 7 for reporting","The first phase to refine the overall strategy","Phase 4 for vulnerability analysis","The client directly"],ans:1},
+ThreatModelingPhaseSteps:{ar:"خطوات مرحلة نمذجة التهديدات الأربع: جمع المعلومات ← تحديد وتصنيف الأصول ← تحديد وتصنيف التهديدات ← ربط مجتمعات التهديد بالأصول",q:"In what order are the steps of threat modeling performed?",opts:["Exploit → Identify → Map → Gather","Gather → Identify Assets → Identify Threats → Map Threats to Assets","Map → Gather → Identify → Categorize","Identify Threats → Gather → Map → Categorize Assets"],ans:1},
+PrimarySecondaryAssets:{ar:"الأصول الأولية والثانوية: الأصول الأولية هي الأهداف الرئيسية ذات القيمة الأعلى (كقواعد البيانات وبيانات العملاء)؛ الثانوية هي الأنظمة الداعمة التي تُمكّن الوصول للأصول الأولية.",q:"In threat modeling, 'primary assets' are best described as:",opts:["Supporting systems that enable access to main targets","The main high-value targets such as databases and customer data","Only physical assets like servers","Only network devices"],ans:1},
+ThreatCommunities:{ar:"مجتمعات التهديد: مجموعات المهاجمين المُصنَّفين حسب الدوافع والقدرات — كالمجرمين الإلكترونيين وجهات الدول والمطلعين الخبيثين والناشطين الرقميين.",q:"Threat communities in threat modeling refer to:",opts:["Security teams defending the organization","Groups of potential attackers categorized by motivation and capability","Compliance auditors","Partner organizations"],ans:1},
+ThreatMapping:{ar:"ربط التهديدات بالأصول: تحليل أيّ مجتمعات التهديد تستهدف أيّ أصول — يُحدد الأهداف الأعلى خطورة ويوجّه تركيز الاختبار.",q:"Mapping threat communities against assets in threat modeling helps to:",opts:["Create a list of tools to use","Determine which threat actors are most likely to target which specific assets, prioritizing test focus","Write technical exploit code","Define the legal boundaries of the test"],ans:1},
+FeasibleTargets:{ar:"الأهداف القابلة للاختبار: الأنظمة والتطبيقات التي تحمل ثغرات قابلة للاستغلال ضمن نطاق الاختبار — تُحدد في مرحلة تحليل الثغرات.",q:"In Phase 4, 'feasible targets' are systems identified as:",opts:["Any system connected to the internet","Systems containing confirmed exploitable vulnerabilities within the test scope","Systems with the highest business value only","Systems that are easiest to access"],ans:1},
+NotTouched:{ar:"لم يُلمَس بعد: في المراحل الأولى الثلاث من PTES لا يتفاعل المُقيِّم مع أي من موارد الهدف بشكل مباشر — يجمع المعلومات فقط دون التأثير على الأنظمة.",q:"In PTES Phases 1-3, what is the assessor's relationship with target resources?",opts:["The assessor actively exploits systems","The assessor has not touched any resources — only organizational information was extracted","The assessor installs monitoring tools","The assessor contacts IT staff directly"],ans:1},
+MostTimeConsuming:{ar:"الأكثر استهلاكاً للوقت: تحليل الثغرات يستغرق وقتاً أطول من أي مرحلة أخرى في PTES بسبب عمق التحليل المطلوب لكل ثغرة محتملة.",q:"Which PTES phase is identified as the most time-consuming?",opts:["Intelligence Gathering","Threat Modeling","Vulnerability Analysis","Exploitation"],ans:2},
+Misconfiguration:{ar:"التكوين الخاطئ: إعداد غير صحيح لنظام أو تطبيق يُنشئ ثغرة أمنية — كالأذونات الزائدة أو الخدمات المفتوحة غير الضرورية أو الإعدادات الافتراضية.",q:"Misconfiguration in vulnerability testing refers to:",opts:["Software bugs in application code","Incorrect system or application settings that create security vulnerabilities","Network bandwidth issues","Hardware failures"],ans:1},
+InsecureAppDesign:{ar:"تصميم التطبيق غير الآمن: ثغرات هيكلية في بنية التطبيق — كغياب التحقق من المدخلات أو التشفير الضعيف أو منطق المصادقة المعيب.",q:"Insecure application designs in vulnerability testing refers to:",opts:["Poor user interface design","Structural architectural flaws in applications such as missing input validation or weak encryption","Slow application performance","Outdated software versions only"],ans:1},
+DirectInteraction:{ar:"التفاعل المباشر: إرسال طلبات أو استفسارات مباشرة للأنظمة المستهدفة خلال الاختبار — يمكن الكشف عنه ويُنتج ضجيجاً في سجلات الشبكة.",q:"Active testing involves direct interaction with the target, which means it:",opts:["Cannot be detected by security systems","Can potentially be detected through network logs and intrusion detection systems","Always requires physical access","Only works on web applications"],ans:1},
+MetadataAnalysis:{ar:"تحليل البيانات الوصفية: فحص البيانات المخفية المدمجة في الملفات (كملفات PDF والصور والوثائق) للكشف عن معلومات قيّمة كأسماء المستخدمين والبرامج ومسارات الملفات.",q:"Metadata Analysis in passive testing involves:",opts:["Sending probes to target systems","Examining hidden data embedded in files to reveal valuable information without direct system interaction","Monitoring physical access to buildings","Analyzing network bandwidth usage"],ans:1},
+TrafficMonitoring:{ar:"مراقبة الحركة: التقاط وتحليل حزم البيانات الشبكية دون التفاعل مع الأنظمة المستهدفة — للكشف عن البروتوكولات والأنماط والبيانات الحساسة.",q:"Traffic Monitoring as a passive testing technique:",opts:["Requires sending data to target systems","Captures and analyzes network packets without interacting with target systems","Always requires physical access to the target","Only works during active exploitation"],ans:1},
+CorrelationBetweenTools:{ar:"الترابط بين الأدوات: استخدام أدوات متعددة مختلفة للتحقق من نفس الثغرة — إذا أكدتها أدوات متعددة بشكل مستقل، يرتفع مستوى الثقة في صحتها.",q:"Correlation between tools in validation of findings is used to:",opts:["Speed up the scanning process","Confirm vulnerability existence by having multiple independent tools verify the same finding","Replace manual analysis","Generate the final report automatically"],ans:1},
+AccuracyOfIssue:{ar:"دقة المشكلة: التحقق من أن الثغرة المُحدَّدة حقيقية وليست نتيجة خاطئة — يتطلب تحقيقاً أعمق من النتيجة الأولية للأداة.",q:"Determining the 'accuracy of the identified issue' in research means:",opts:["Confirming the vulnerability is a genuine finding and not a false positive","Finding more vulnerabilities","Creating an exploit for the vulnerability","Reporting the vulnerability to the client immediately"],ans:0},
+Exploitability:{ar:"قابلية الاستغلال: تقييم ما إذا كانت الثغرة يمكن استغلالها فعلياً في البيئة المستهدفة المحددة ضمن نطاق الاختبار وقيوده.",q:"Researching the 'exploitability' of a vulnerability involves:",opts:["Immediately trying to exploit it","Assessing whether it can actually be exploited in the specific target environment within test constraints","Writing a detailed report about it","Informing the client about it"],ans:1},
+FalsePositives:{ar:"النتائج الإيجابية الزائفة: تقارير عن ثغرات غير موجودة فعلياً — تُضيع وقت العميل وتُضعف المصداقية. التحقق يمنع وصولها للتقرير النهائي.",q:"False positives in vulnerability assessment are:",opts:["Real vulnerabilities that are hard to exploit","Reports of vulnerabilities that don't actually exist, wasting client resources and undermining credibility","Vulnerabilities found outside the scope","Critical vulnerabilities requiring immediate action"],ans:1},
+BypassingSecurity:{ar:"تجاوز القيود الأمنية: إيجاد طرق لتجاوز ضوابط الأمن المُطبَّقة — كالجدران النارية وأنظمة الكشف عن التسلل والتحقق من الهوية — للوصول غير المُصرَّح به.",q:"The focus of the Exploitation phase is gaining access by:",opts:["Using only social engineering","Bypassing security restrictions through technical means","Requesting authorized access","Physical intrusion only"],ans:1},
+ActualBreach:{ar:"الاختراق الفعلي: لحظة تحقيق الوصول غير المُصرَّح به الأول — ذروة كل العمل الذي سبق في المراحل الأربع الأولى من PTES.",q:"The 'actual breach' in the Exploitation phase represents:",opts:["The beginning of the intelligence gathering process","The culmination of all work done in the previous four PTES phases","The final report delivery","The cleanup of test artifacts"],ans:1},
+RemoteExploits:{ar:"الاستغلال عن بُعد: تنفيذ الهجوم عبر الشبكة دون الحاجة للوصول الجسدي للجهاز المستهدف — الأكثر شيوعاً في اختبار الاختراق الاحترافي.",q:"Remote exploits in the exploitation phase are used to:",opts:["Gain physical access to servers","Attack systems over the network without needing physical access to the target machine","Only test web applications","Create backdoors on local systems"],ans:1},
+BypassingAV:{ar:"تجاوز مكافحة الفيروسات: تقنيات لتجنب اكتشاف كود الاستغلال من قِبل برامج مكافحة الفيروسات — تشمل التشفير والتعبئة والتشويش.",q:"Bypassing Antivirus (AV) solutions in penetration testing demonstrates:",opts:["That the antivirus software is unneeded","That the organization's AV can be evaded, proving a real-world attack path exists","Only theoretical vulnerabilities","That the tester has malicious intent"],ans:1},
+WeakCredentials:{ar:"بيانات الاعتماد الضعيفة: كلمات مرور يمكن تخمينها بسهولة أو اعتمادات افتراضية لم تُغيَّر — أحياناً يكفي تجربة 'admin/admin' للوصول.",q:"Gaining access via 'weak credentials' highlights which security failure?",opts:["Network firewall misconfiguration","Password policy failure — easily guessable or default credentials left unchanged","Unpatched software vulnerabilities","Lack of encryption"],ans:1},
+InitialAccess:{ar:"الوصول الأولي: أول موضع قدم في الشبكة المستهدفة — نقطة البداية لجميع الأنشطة اللاحقة في مرحلتي الاستغلال وما بعده.",q:"Once 'initial access' is achieved in the exploitation phase, the next focus is:",opts:["Immediately writing the final report","Identifying the main entry point and shifting focus to High Value Target assets","Cleaning up all artifacts","Stopping the test"],ans:1},
+HighValueTargets:{ar:"الأهداف عالية القيمة (HVT): الأصول الأكثر أهمية للمؤسسة — قواعد البيانات الحساسة وخوادم المصادقة وأنظمة التحكم — التي سيستهدفها المهاجم الحقيقي أولاً.",q:"High Value Target (HVT) assets are prioritized in exploitation because:",opts:["They are easiest to access","They represent the most critical organizational assets that a real attacker would target first","They are closest to the entry point","They have the weakest security controls"],ans:1},
+VulnAnalysisPhase:{ar:"مرحلة تحليل الثغرات: المرحلة الرابعة من PTES — يجب أن تكون قد أنتجت قائمة HVT قبل بدء الاستغلال لتوجيه تركيز الهجوم.",q:"A properly completed Vulnerability Analysis phase should provide:",opts:["A final report ready for delivery","A compiled High Value Target list before the Exploitation phase begins","A complete network map","Legal authorization for testing"],ans:1},
+AttackVector:{ar:"متجه الهجوم: المسار أو الأسلوب المُستخدم للوصول للهدف — يجب دائماً مراعاة الأهداف التجارية للمؤسسة عند اختياره.",q:"Why must the attack vector always consider the organization's business goals?",opts:["To make the test cheaper","To ensure findings are relevant to actual business risk, not just technical severity","To speed up the testing process","To reduce the number of systems tested"],ans:1},
+SuccessfulBreach:{ar:"الاختراق الناجح: تحقيق الوصول غير المُصرَّح به لنظام أو مورد — النقطة التي تبدأ عندها مرحلة ما بعد الاستغلال.",q:"Post-Exploitation begins:",opts:["Before any systems are accessed","After the final report is delivered","After a successful breach — once unauthorized access is achieved","During the pre-engagement phase"],ans:2},
+ValueOfMachine:{ar:"قيمة الجهاز المُخترَق: تقييم ما يحتويه الجهاز من بيانات حساسة وما يُتيحه من وصول إضافي للشبكة — يُحدد الأثر الحقيقي للاختراق.",q:"Assessing the 'value of the machine compromised' in post-exploitation determines:",opts:["The technical difficulty of the exploit used","The true business impact — what sensitive data is accessible and what further network access is possible","The tools needed for cleanup","The cost of remediation"],ans:1},
+ImpactOfCompromise:{ar:"أثر الاختراق: ما يمكن للمهاجم تحقيقه فعلياً من الموضع المُخترَق — سرقة البيانات أو الانتشار أو تصعيد الصلاحيات أو تعطيل العمليات.",q:"The objective of Post-Exploitation is to determine:",opts:["How the vulnerability was first discovered","What an attacker could actually achieve from the compromised position — real-world impact","The legal boundaries of the test","Which tools were most effective during exploitation"],ans:1},
+DataSensitivity:{ar:"حساسية البيانات: تصنيف البيانات حسب مستوى الضرر المحتمل من كشفها — من عامة إلى سرية وسرية للغاية.",q:"In Post-Exploitation, assessing 'data sensitivity' helps determine:",opts:["The cost to store the data","The potential business damage if that data were accessed or exfiltrated by a real attacker","The backup frequency of the data","The age of the data"],ans:1},
+FurtherCompromising:{ar:"مزيد من الاختراق: استخدام الجهاز المُخترَق كنقطة انطلاق للوصول لأجهزة وأنظمة أخرى في الشبكة — التمحور الجانبي.",q:"Assessing a machine's 'usefulness in further compromising the network' evaluates:",opts:["The machine's processing power","Whether the compromised machine can serve as a pivot point for lateral movement to other network systems","The machine's storage capacity","The machine's network bandwidth"],ans:1},
+DNSServers:{ar:"خوادم DNS: أنظمة تحويل أسماء النطاقات — تحليلها في مرحلة ما بعد الاستغلال يكشف بنية الشبكة الداخلية وأسماء الأنظمة وعلاقاتها.",q:"Analyzing DNS servers during post-exploitation infrastructure analysis helps the assessor:",opts:["Exploit web application vulnerabilities","Understand internal network topology — what systems exist and how they are named","Bypass firewalls","Create persistent backdoors"],ans:1},
+ProxyServers:{ar:"خوادم الوكيل: أنظمة وسيطة تُعالج طلبات الشبكة — تحليلها يكشف بنية الشبكة وقد يُوفر مسارات للتمحور.",q:"Analyzing proxy servers during post-exploitation is valuable for:",opts:["Improving network speed","Understanding network architecture and identifying potential pivot paths","Bypassing endpoint security","Creating user accounts"],ans:1},
+NetworkTopology:{ar:"طوبولوجيا الشبكة: البنية الهيكلية للشبكة — تخطيط كيفية اتصال الأنظمة ببعضها. فهمها من الداخل يُمكّن التمحور الجانبي المُوجَّه.",q:"Understanding the internal network topology from the 'inside' perspective during post-exploitation helps the assessor:",opts:["Write the final report","Plan targeted lateral movement to reach high value assets deeper in the network","Perform cleanup activities","Define the scope of future tests"],ans:1},
+Pillaging:{ar:"النهب: استخراج البيانات ذات الصلة بالأهداف المُحددة مسبقاً من الأجهزة المُخترَقة — كبيانات الاعتماد وقواعد البيانات والمستندات الحساسة.",q:"'Pillaging' in post-exploitation refers to:",opts:["Installing backdoors on compromised systems","Extracting operationally relevant data from targeted hosts aligned with pre-defined goals","Cleaning up test artifacts","Mapping the external network perimeter"],ans:1},
+DatabaseServers:{ar:"خوادم قواعد البيانات: أنظمة تخزين البيانات الهيكلية — من أولى الأهداف في النهب لأنها تحمل أثمن البيانات كمعلومات العملاء والبيانات المالية.",q:"Database servers are a primary source of data during pillaging because:",opts:["They are the easiest systems to access","They typically hold the most valuable organizational data such as customer records and financial information","They have the weakest security controls","They are always internet-facing"],ans:1},
+DataExfiltration:{ar:"تسريب البيانات: اختبار جميع مسارات خروج البيانات الحساسة من المؤسسة — يقيس فعالية ضوابط منع فقدان البيانات (DLP).",q:"Data exfiltration testing in post-exploitation measures:",opts:["How fast data can be transferred internally","The strength of controls for detecting and blocking sensitive data from leaving the organization","The total amount of data stored","The encryption strength of data at rest"],ans:1},
+ExfiltrationPaths:{ar:"مسارات التسريب: الطرق المحتملة التي يمكن استخدامها لإخراج البيانات من المؤسسة — تشمل HTTP وDNS tunneling والبريد الإلكتروني والتخزين السحابي والوسائط المادية.",q:"Mapping 'all possible exfiltration paths' tests whether:",opts:["The network has sufficient bandwidth","The organization's DLP and monitoring controls can detect and block data leaving through multiple channels","Employees follow data handling policies","Backups are functioning correctly"],ans:1},
+CreatingPersistence:{ar:"إنشاء الاستمرارية: الحفاظ على الوصول طويل المدى للأنظمة المُخترَقة من خلال أبواب خلفية وحسابات مخفية — يُثبت قدرة المهاجم على البقاء غير مكتشف.",q:"Creating persistence in post-exploitation demonstrates:",opts:["The difficulty of the initial compromise","An attacker's ability to maintain long-term, undetected access — showing gaps in detection capabilities","The strength of the organization's firewall","The effectiveness of antivirus solutions"],ans:1},
+AuthenticatedBackdoors:{ar:"الأبواب الخلفية المُصادق عليها: آليات وصول سرية تتطلب مصادقة — أصعب اكتشافاً من الأبواب الخلفية البسيطة وتبقى نشطة بعد إعادة تشغيل النظام.",q:"Authenticated backdoors in post-exploitation are installed to:",opts:["Improve system performance","Maintain persistent authenticated access that survives system reboots and is harder to detect","Create decoy accounts to confuse defenders","Test the organization's backup procedures"],ans:1},
+Foothold:{ar:"موضع القدم: الوصول الأولي المحدود الذي يُستخدم كنقطة انطلاق لتوسيع الاختراق — الحفاظ عليه يُتيح التحليل طويل المدى والتمحور.",q:"Maintaining a 'foothold' in post-exploitation refers to:",opts:["Gaining administrative access to all systems","Preserving a stable point of access in the network to enable long-term analysis and lateral movement","Completing the cleanup phase","Writing the post-exploitation section of the report"],ans:1},
+CleanupMandatory:{ar:"إلزامية التنظيف: التنظيف ليس خياراً بل متطلب مهني وأخلاقي — المختبِر مسؤول عن إعادة الأنظمة لحالتها الأصلية تماماً.",q:"Cleanup after a penetration test is described as:",opts:["Optional depending on client preference","A mandatory requirement to return all systems to their original pre-test state","The client's IT team's responsibility","Only required when backdoors were installed"],ans:1},
+SystemSettings:{ar:"إعدادات النظام: جميع تعديلات التكوين التي أُجريت أثناء الاختبار — يجب إعادتها لقيمها الأصلية تحديداً لمنع إبقاء الأنظمة في حالة ضعيفة.",q:"Restoring system settings during cleanup ensures:",opts:["The system performs better than before the test","The system returns to exactly its pre-test configuration, preventing test activities from leaving residual vulnerabilities","The client can replicate the test independently","Evidence of the test is preserved"],ans:1},
+BackdoorsRemoval:{ar:"إزالة الأبواب الخلفية: حذف جميع أدوات الوصول المُثبَّتة أثناء الاختبار — ضروري لمنع استخدامها من قِبل مهاجمين حقيقيين لاحقاً.",q:"Removing backdoors during cleanup is critical because:",opts:["They slow down system performance","Backdoors left in place could be discovered and used by real attackers after the test ends","Backdoors are illegal to have on any system","Backdoors consume too much storage space"],ans:1},
+Artifacts:{ar:"المُخرَّفات: أي ملفات أو سجلات أو تعديلات تركها الاختبار في الأنظمة — يجب حذفها لإعادة الأنظمة لحالتها النظيفة الأصلية.",q:"Removing 'artifacts' during cleanup refers to:",opts:["Deleting backup copies of important data","Eliminating all files, logs, and modifications left on systems by the testing activities","Removing network monitoring tools","Deleting the final report"],ans:1},
+AccountHygiene:{ar:"نظافة الحسابات: حذف جميع حسابات المستخدمين المُنشأة خلال مرحلة الاستمرارية — يمنع استخدامها كثغرات وصول لاحقة.",q:"Account hygiene during cleanup involves:",opts:["Changing passwords of all existing accounts","Removing all user accounts created during the persistence phase to prevent future unauthorized access","Creating new admin accounts for the client","Auditing all existing user accounts"],ans:1},
+FinalReport:{ar:"التقرير النهائي: المُخرَج الرسمي الرئيسي لاختبار الاختراق — يُوثّق جميع النتائج والأدلة والتوصيات ويُشكّل أساس الدفع للعميل.",q:"The final report in PTES is significant because:",opts:["It is only read by IT security staff","It is what the client pays for and translates technical findings into actionable business intelligence","It only contains the list of exploited vulnerabilities","It is submitted to regulatory authorities"],ans:1},
+ReportMirror:{ar:"مرآة النتائج: التقرير يعكس بدقة ما اكتشفه المُقيِّم — لا يُزيد ولا يُنقص — يُقدم صورة أمينة للواقع الأمني للمؤسسة.",q:"Describing the report as a 'mirror' of findings means:",opts:["It should be as brief as possible","It accurately reflects exactly what the assessor discovered — neither exaggerated nor minimized","It should be highly technical and detailed only","It copies findings from previous assessments"],ans:1},
+ActionableIntelligence:{ar:"الاستخبارات القابلة للتنفيذ: تحويل النتائج التقنية الخام إلى معلومات واضحة ومفيدة تُمكّن الإدارة من اتخاذ قرارات علاجية مستنيرة.",q:"Translating technical vulnerabilities into 'actionable business intelligence' means:",opts:["Making the report longer and more technical","Converting raw technical findings into clear information that management can understand and use to make remediation decisions","Removing all technical details from the report","Sending the report directly to regulatory authorities"],ans:1},
+ExecutiveSummary:{ar:"الملخص التنفيذي: قسم في التقرير يُوصل الأهداف والنتائج رفيعة المستوى لجمهور غير تقني — يُركّز على تأثير الأعمال لا التفاصيل التقنية.",q:"The Executive Summary section of a pen test report is written primarily for:",opts:["The IT security team that performed remediation","Advisory board members and C-Suite executives who need high-level business impact findings","External regulatory auditors only","The penetration testing team themselves"],ans:1},
+CSuite:{ar:"المجموعة التنفيذية (C-Suite): كبار المديرين التنفيذيين — المدير التنفيذي ومدير المعلومات ومدير الأمن ومدير المالية — الذين يتخذون القرارات الاستراتيجية.",q:"The C-Suite audience for an Executive Summary requires findings presented as:",opts:["Detailed technical exploit code","High-level business risk and strategic impact, not technical jargon","Complete network scanning output","A list of CVE numbers"],ans:1},
+Storyline:{ar:"الرواية السردية: قسم في التقرير يسرد ما تم فعله أثناء الاختبار ويُفصّل الثغرات المكتشفة ويُسلّط الضوء على الضوابط الإيجابية الموجودة.",q:"The Storyline section of a penetration test report differs from the Executive Summary in that it:",opts:["Is written for C-Suite executives only","Provides a narrative account of engagement activities, specific weaknesses found, and positive controls identified","Contains only the list of tools used","Is only included when critical vulnerabilities are found"],ans:1},
+PositiveControls:{ar:"الضوابط الإيجابية: الضوابط الأمنية التي تعمل بفعالية في المؤسسة — يجب الإشارة إليها في التقرير لإعطاء صورة متوازنة وتقدير الجهود الأمنية الحالية.",q:"Highlighting 'positive controls' in the report Storyline serves to:",opts:["Reduce the number of findings reported","Give a balanced picture by acknowledging what security measures are already working effectively","Avoid recommending expensive remediation","Justify charging the client more"],ans:1},
+TechnicalEvidence:{ar:"الأدلة التقنية: الأدلة الموثّقة بالتفصيل — لقطات الشاشة والسجلات وأكواد الاستغلال — التي تُثبت نجاح الاستغلال وتُساعد الفريق التقني على فهم كيفية الإصلاح.",q:"Raw technical evidence in the Technical Report section is primarily required by:",opts:["C-Suite executives for strategic decisions","IT and security teams who need to understand and remediate the specific vulnerabilities","Legal departments for compliance","External auditors only"],ans:1},
+PreEngagementKSI:{ar:"مؤشرات النجاح الرئيسية المتفق عليها في مرحلة ما قبل التعاقد: الأهداف والمعايير المحددة مسبقاً التي تُحدد نجاح الاختبار — يجب أن تنعكس في التقرير التقني.",q:"'Key Success Indicators' in the Technical Report are based on:",opts:["The assessor's personal judgment of what's important","Components and objectives agreed upon during the pre-engagement phase","Industry benchmarks only","The highest severity vulnerabilities found"],ans:1},
+ReportScope:{ar:"نطاق التقرير: توثيق دقيق لما تم اختباره بالضبط — يُثبت الامتثال لحدود الاختبار المتفق عليها ويُتيح للعميل فهم التغطية.",q:"Including 'Scope' in the Technical Report breakdown ensures:",opts:["The report is as short as possible","The client knows exactly what was tested, confirming the agreed boundaries were respected","All vulnerabilities are documented","The report is legally binding"],ans:1},
+AttackPath:{ar:"مسار الهجوم: السرد التفصيلي خطوة بخطوة لكيفية تحقيق الاختراق — يُمكّن الفريق التقني من فهم كيفية إعادة إنتاج وإصلاح الثغرة.",q:"The 'Attack Path' in the Technical Report provides:",opts:["A list of all tools used","A step-by-step narrative of exactly how the breach was achieved, enabling technical teams to understand and remediate","Only the final vulnerability severity rating","The client's network diagram"],ans:1},
+ReportImpact:{ar:"أثر الثغرة في التقرير: تقييم الضرر التجاري المحتمل الفعلي للثغرة — يُساعد الإدارة على تحديد أولويات الإصلاح بناءً على المخاطر الحقيقية.",q:"'Impact' in the Technical Report breakdown refers to:",opts:["The technical complexity of the exploit","The potential business damage the flaw could cause if exploited by a real attacker","The time taken to discover the vulnerability","The CVSS score of the vulnerability"],ans:1},
+Remediation:{ar:"العلاج: توصيات محددة وقابلة للتنفيذ لإصلاح الثغرات المُكتشفة — يجب أن تكون عملية وذات أولويات ومناسبة للموارد التقنية للعميل.",q:"'Remediation' in the Technical Report provides:",opts:["A list of all vulnerabilities found","Specific, actionable recommendations to fix each identified vulnerability","Legal liability disclaimers","Future test planning guidance"],ans:1},
+ConsolidationCrisis:{ar:"أزمة التوحيد: صعوبة جمع كميات كبيرة من المعلومات غير المنظمة من مصادر متعددة في استراتيجية هجوم متماسكة — أحد أكبر التحديات في الاختبار اليدوي.",q:"The 'Consolidation Crisis' in pen testing analysis refers to:",opts:["Too many assessors working on the same engagement","The difficulty and time cost of synthesizing large volumes of gathered information into a coherent attack strategy","Running out of time during exploitation","Having too many vulnerabilities to report"],ans:1},
+DynamicComplexity:{ar:"التعقيد الديناميكي: التغير المستمر في بيئات الشبكة يجعل الحفاظ على نظرة عامة محدّثة ودقيقة أمراً بالغ الصعوبة خلال الاختبار.",q:"'Dynamic Complexity' in pen testing analysis refers to the difficulty of:",opts:["Learning new hacking techniques","Keeping an up-to-date overview of all system components and their constantly changing interactions","Managing multiple client engagements simultaneously","Writing clear technical reports"],ans:1},
+ToolGap:{ar:"فجوة الأدوات: غياب أدوات برمجية مخصصة لمرحلة التخطيط الاستراتيجي في اختبار الاختراق — على عكس مراحل الفحص والاستغلال التي تمتلك أدوات متطورة.",q:"The 'Tool Gap' in the information analysis phase means:",opts:["Security teams lack basic hacking tools","There are currently no dedicated tools specifically designed for the strategic planning and information consolidation phase","Testing tools are too expensive","Automated tools have replaced manual testing entirely"],ans:1},
+TimeConstraints:{ar:"قيود الوقت: المشاركات المحدودة زمنياً تُقيّد عمق ونطاق الاختبار — قد تمنع استكشاف جميع الثغرات المحتملة.",q:"Time constraints in the penetration phase mean that:",opts:["More vulnerabilities will be found","The depth of testing is often limited — not all potential vulnerabilities can be explored within the available time","The test will always be incomplete","Automated tools cannot be used"],ans:1},
+ResourceEstimation:{ar:"تقدير الموارد: تحديد الوقت والجهد والمهارات اللازمة لاستغلال ثغرة محددة — لا توجد أدوات رسمية لهذا الغرض حالياً.",q:"The lack of formal resource estimation tools in penetration testing means:",opts:["Testing is always on-budget and on-time","It is difficult to accurately predict the time and effort needed for specific exploit development","Automated tools handle all planning","Project management tools solve this problem"],ans:1},
+UnreliableCode:{ar:"الكود غير الموثوق: الاستغلالات المتاحة للعموم عادةً غير موثوقة وتحتاج تخصيصاً مكثفاً — استخدامها مباشرةً قد يُفشل الاستغلال أو يُسبب أضراراً جانبية.",q:"Publicly available exploits being 'unreliable quick hacks or POCs' means penetration testers must:",opts:["Avoid using any public exploits","Use them exactly as found without modification","Heavily customize and test them before use in professional engagements","Report them to vulnerability databases"],ans:2},
+TheoreticalVsPractical:{ar:"النظري مقابل العملي: الفجوة بين معرفة وجود ثغرة نظرياً وإثبات استغلالها فعلياً في بيئة حقيقية — الفشل في الإثبات يُضعف مصداقية النتائج.",q:"The 'Theoretical vs. Practical' problem in exploitation means:",opts:["All known vulnerabilities can be easily exploited","Knowing a vulnerability exists theoretically doesn't guarantee it's exploitable in practice — failing weakens the engagement","Practice is always harder than theory","Theoretical vulnerabilities should always be reported"],ans:1},
+ExploitDev:{ar:"تطوير الاستغلالات: إنشاء كود مُخصص يستهدف ثغرة محددة في بيئة مُحددة — يتطلب خبرة متخصصة عميقة في هندسة الأنظمة والبرمجة الأمنية.",q:"Exploit and tool development in penetration testing requires:",opts:["Basic programming knowledge only","Significant specialized knowledge in systems architecture, vulnerability mechanics, and security programming","Only the use of existing public tools","Understanding only of network protocols"],ans:1},
+Pivoting:{ar:"التمحور: استخدام جهاز مُخترَق كنقطة انطلاق للوصول لأجهزة أخرى في الشبكة الداخلية — الأقل تنظيماً في الاختبار اليدوي الحالي.",q:"'Pivoting' in penetration testing refers to:",opts:["Changing the testing strategy mid-engagement","Using a compromised machine as a launching point to access other systems deeper in the internal network","Rotating between different testing tools","Switching between active and passive testing"],ans:1},
+SecurityArchitecture:{ar:"البنية الأمنية للاختبار: إطار لحماية أدوات وبيانات ونتائج المختبِر أثناء التعامل — غالباً مُهملة، مما يُعرّض بيانات العميل الحساسة للخطر.",q:"A 'dedicated security architecture for the penetration test itself' protects:",opts:["The target organization from the test","The tester's own tools, data, and findings during the engagement from being compromised or exposed","The legal liability of the testing firm","The reputation of the testing team"],ans:1},
+CompromisedHosts:{ar:"الأجهزة المُخترَقة: الأنظمة التي حصل المختبِر على وصول إليها خلال الاختبار — يجب تنظيفها بعناية لإزالة جميع آثار الاختبار.",q:"'Compromised hosts' during cleanup refers to:",opts:["Systems that experienced hardware failure","Systems the tester gained access to during the test that must be carefully restored to their original state","Systems that were found vulnerable but not exploited","Systems that failed automated scans"],ans:1},
+NormalOperations:{ar:"العمليات العادية: الأنشطة التجارية الاعتيادية للمؤسسة — يجب ألا يتعطل أي منها خلال أو بعد عملية التنظيف.",q:"Ensuring cleanup doesn't affect 'normal operations' means:",opts:["Testing should only be done on weekends","Cleanup activities must be performed without disrupting the client's ongoing business processes","All business systems should be taken offline during cleanup","Cleanup is optional if operations are already interrupted"],ans:1},
+VerifiableCleanup:{ar:"التنظيف القابل للتحقق: عملية تنظيف موثّقة وموقّعة يمكن التحقق منها وغير قابلة للإنكار — تُثبت إتمام التنظيف بشكل كامل.",q:"A 'verifiable and non-repudiable' cleanup process means:",opts:["Cleanup is done quickly without documentation","There is formal documented proof that cleanup was fully completed, which cannot be disputed by either party","Only the tester needs to confirm cleanup is done","Cleanup is only verified by automated scanning"],ans:1},
+BackupRestore:{ar:"الاستعادة من النسخ الاحتياطية: تُعبّر عن الممارسة السيئة المتمثلة في إلقاء مسؤولية التنظيف على فريق تقنية المعلومات لدى العميل — مُكلفة وغير احترافية.",q:"Leaving cleanup as a 'backup restore' job for the client's IT team is problematic because:",opts:["It is faster than professional cleanup","It wastes the client's IT resources on something the testing team should handle professionally","It is the industry standard practice","It provides better documentation"],ans:1},
+HackerHandiwork:{ar:"الحرفة الهاكرية: الطابع الفردي غير المُقنَّن لاختبار الاختراق التقليدي — يعتمد على المهارات الشخصية غير الموثّقة بدلاً من العمليات المنهجية القابلة للتكرار.",q:"Penetration testing being described as 'hacker handiwork' implies it is currently:",opts:["Highly automated and consistent","Too dependent on individual skill rather than standardized, repeatable processes","Always performed by certified professionals","Based entirely on established methodologies"],ans:1},
+MonotonousTasks:{ar:"المهام الرتيبة: الأنشطة المتكررة ذات القيمة المنخفضة في الاختبار — كمسح المنافذ والتحقق من النتائج وتنسيق التقارير — المرشحة الأولى للأتمتة.",q:"'Monotonous tasks' in penetration testing that should be automated include:",opts:["Creative attack planning and strategy","Repetitive low-value activities like port scanning, verification runs, and cleanup checking","Writing executive summaries","Building rapport with the client"],ans:1},
+NonFormalKnowledge:{ar:"المعرفة غير المُقنَّنة: الخبرة الضمنية غير الموثّقة التي يحملها المختبِرون الفرديون — لا يمكن نقلها بسهولة أو توحيدها أو ضمان جودتها.",q:"'Non-formal knowledge' in penetration testing is problematic because:",opts:["It makes testing more creative","It is implicit, undocumented expertise that cannot be easily transferred, standardized, or quality-assured","It reduces the cost of testing","It makes reports more readable"],ans:1},
+Professionalism:{ar:"الاحترافية في الاختبار: اعتماد عمليات موثّقة ومنهجيات موحّدة ونتائج قابلة للتكرار بدلاً من الاعتماد على المهارات الفردية وحدها.",q:"Automation brings 'professionalism' to penetration testing by:",opts:["Making testing more expensive","Introducing documented, standardized, repeatable processes that reduce dependence on individual skill","Replacing all human testers","Making tests faster but less accurate"],ans:1},
+AutomationFocus:{ar:"التركيز البشري في الأتمتة: تُحرر الأتمتة المختبِرين البشريين من المهام الروتينية للتركيز على الأنشطة التي تتطلب الإبداع والحكم والخبرة الاستراتيجية.",q:"The 'Human-Centric Focus' of automation means it:",opts:["Replaces human testers entirely","Frees human experts from repetitive tasks to focus on high-level strategic analysis and creative problem-solving","Makes human expertise less important","Only automates the reporting phase"],ans:1},
+HighLevelAnalysis:{ar:"التحليل رفيع المستوى: التحليل الاستراتيجي الذي يُفسّر النتائج في سياقها الأوسع ويُحدد الآثار التجارية — يتطلب حكماً بشرياً لا يمكن أتمتته.",q:"'High-level overview and analysis' freed by automation requires:",opts:["Only automated scanning tools","Human judgment and expertise to interpret findings in their broader strategic context","No specialized security knowledge","Only report writing skills"],ans:1},
+AttackPlanning:{ar:"التخطيط الاستراتيجي للهجوم: تصميم استراتيجية الهجوم بناءً على جميع المعلومات المتاحة — يتطلب إبداعاً وخبرة استراتيجية لا يمكن استبدالهما بالأتمتة.",q:"Strategic attack planning is a high-value activity for human experts because:",opts:["It can be fully automated with existing tools","It requires creativity, strategic thinking, and deep expertise that automation cannot replicate","It takes the least amount of time","It is the simplest part of penetration testing"],ans:1},
+RemediationRecs:{ar:"توصيات العلاج: إرشادات مُخصَّصة للإصلاح مُبنية على فهم عميق للسياق التقني والتجاري — تتطلب خبرة بشرية لضمان قابليتها للتطبيق.",q:"Automation frees human experts to focus on remediation recommendations because:",opts:["Automated tools can generate complete remediation plans","Effective remediation recommendations require human expertise to tailor fixes to the specific technical and business context","Remediation is the least important part of the report","Automated tools already fix all vulnerabilities"],ans:1},
+UnifiedFramework:{ar:"الإطار الموحد: نظام يدمج جميع مراحل PTES في منصة أو عملية واحدة متماسكة — يُقلل الفجوات ويضمن استمرارية العمل.",q:"A 'unified framework' in automation encompasses all penetration test phases to:",opts:["Reduce the number of phases required","Eliminate gaps between phases and ensure seamless workflow from pre-engagement through reporting","Replace the need for skilled testers","Only automate the scanning phase"],ans:1},
+Standardization:{ar:"التوحيد القياسي: تطبيق نفس المنهجيات والعمليات والمعايير عبر جميع الفرق والبيئات — يضمن اتساق الجودة وقابلية المقارنة بين التقييمات المختلفة.",q:"Standardization through automation in penetration testing ensures:",opts:["All tests take exactly the same amount of time","Consistent methodology and quality across different teams, environments, and engagements","Tests are always performed by the same team","Only one testing tool is used across all engagements"],ans:1},
+ConsistentOutput:{ar:"المُخرَجات المتسقة: نتائج ذات جودة موحّدة بغض النظر عمّن يُجري الاختبار — الأتمتة تُطبّق المنهجيات المُعتمدة وتمنع التباين الفردي.",q:"Automation ensures 'consistent, high-quality output' by:",opts:["Making all tests produce identical results","Enforcing adherence to established methodologies regardless of which team performs the test","Eliminating the need for human review","Only testing the same vulnerability types"],ans:1},
+VettedScripts:{ar:"السكريبتات المُتحقق منها: أكواد أتمتة مُختبَرة ومُراجَعة ومُعتمدة — أكثر أماناً وموثوقية من الأدوات المرتجلة أو الاستغلالات غير الموثّقة.",q:"Using 'vetted, automated scripts' improves Operational Security because:",opts:["They run faster than custom scripts","Reviewed and approved scripts reduce the risk of unintended system damage or data exposure during testing","They require less skill to use","They always produce the most findings"],ans:1},
+MonotonousTasks2:{ar:"المهام الرتيبة المستهلكة للوقت: مسح آلاف المنافذ، التحقق من صحة النتائج، فحص حالة التنظيف — أنشطة مثالية للأتمتة توفر وقتاً كبيراً.",q:"Examples of monotonous, time-consuming tasks that automation speeds up include:",opts:["Writing the executive summary","Creative attack strategy development","Scanning thousands of ports and verifying cleanup — repetitive verification tasks","Threat modeling and analysis"],ans:2},
+CraftToEngineering:{ar:"من الحرفة إلى الهندسة: الأتمتة تُحوّل اختبار الاختراق من ممارسة تعتمد على المهارات الفردية الضمنية إلى انضباط هندسي قابل للتكرار والتوحيد والقياس.",q:"The phrase 'automation turns a craft into an engineering discipline' means:",opts:["Automation makes pen testing more artistic","Automation transforms pen testing from individual-skill-dependent practice to a standardized, repeatable, measurable engineering process","Automation removes creativity from testing","Engineering disciplines are less effective than crafts"],ans:1},
+EngineeringDiscipline:{ar:"الانضباط الهندسي: تطبيق مبادئ الهندسة على اختبار الاختراق — العمليات الموثّقة والمنهجيات القابلة للتكرار والمُخرَجات القابلة للقياس وضمان الجودة.",q:"An 'engineering discipline' approach to penetration testing emphasizes:",opts:["Relying entirely on individual talent and creativity","Documented processes, repeatable methodologies, measurable outputs, and quality assurance systems","Working without any methodology","Faster but less thorough testing"],ans:1}
+};
+
+/* ================================================================
+   RENDER TABS & SECTIONS
+================================================================ */
+const nav = document.getElementById('tabsNav');
+const body = document.getElementById('tabsBody');
+
+slides.forEach((s, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+  btn.innerHTML = `<span class="tab-slide-num">${s.num}</span>${s.label}<span class="exclaim-btn" title="Executive Summary" data-slide="${i}">!</span>`;
+  btn.addEventListener('click', e => {
+    if (e.target.classList.contains('exclaim-btn')) return;
+    switchTab(i);
+  });
+  nav.appendChild(btn);
+
+  const sec = document.createElement('div');
+  sec.className = 'section' + (i === 0 ? ' active' : '');
+  sec.id = 'sec-' + i;
+  sec.innerHTML = `
+    <div class="sec-header">
+      <div class="sec-num">Slide ${s.num}</div>
+      <div><div class="sec-title">${s.label}</div></div>
+    </div>
+    <div>${s.html}</div>`;
+  body.appendChild(sec);
+});
+
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === idx));
+}
+
+/* ================================================================
+   EXCLAIM MODAL
+================================================================ */
+document.addEventListener('click', e => {
+  const eb = e.target.closest('.exclaim-btn');
+  if (eb) {
+    e.stopPropagation();
+    const idx = parseInt(eb.dataset.slide);
+    const s = slides[idx];
+    document.getElementById('execTitle').textContent = 'Executive Summary — Slide ' + s.num + ': ' + s.label;
+    document.getElementById('execEn').textContent = s.execEn;
+    document.getElementById('execAr').textContent = s.execAr;
+    document.getElementById('execModal').classList.add('open');
+  }
+});
+
+/* ================================================================
+   KEYWORD MODAL
+================================================================ */
+let currentKwKey = null;
+
+document.addEventListener('click', e => {
+  const kw = e.target.closest('.kw');
+  if (!kw) return;
+  const k = kw.dataset.k;
+  if (!k || !kwData[k]) return;
+  currentKwKey = k;
+  const d = kwData[k];
+  document.getElementById('kwTitle').textContent = k.replace(/([A-Z])/g, ' $1').trim();
+  document.getElementById('kwAr').textContent = d.ar;
+  document.getElementById('kwQ').textContent = d.q;
+  const optsDiv = document.getElementById('kwOpts');
+  optsDiv.innerHTML = '';
+  document.getElementById('kwFb').className = 'feedback-box';
+  document.getElementById('kwFb').textContent = '';
+  document.getElementById('kwReset').style.display = 'none';
+  d.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = ['A', 'B', 'C', 'D'][i] + '. ' + o;
+    btn.addEventListener('click', () => checkOpt(i, d.ans, optsDiv));
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('kwModal').classList.add('open');
+});
+
+function checkOpt(chosen, correct, container) {
+  const btns = container.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.classList.add('disabled'));
+  btns[chosen].classList.add(chosen === correct ? 'correct' : 'wrong');
+  if (chosen !== correct) btns[correct].classList.add('correct');
+  const fb = document.getElementById('kwFb');
+  fb.className = 'feedback-box show-fb ' + (chosen === correct ? 'fb-ok' : 'fb-no');
+  fb.textContent = chosen === correct ? '✓ Correct!' : '✗ Incorrect — the correct answer is highlighted above.';
+  document.getElementById('kwReset').style.display = 'inline-block';
+}
+
+function resetKwQ() {
+  if (!currentKwKey || !kwData[currentKwKey]) return;
+  const d = kwData[currentKwKey];
+  const optsDiv = document.getElementById('kwOpts');
+  optsDiv.innerHTML = '';
+  document.getElementById('kwFb').className = 'feedback-box';
+  document.getElementById('kwFb').textContent = '';
+  document.getElementById('kwReset').style.display = 'none';
+  d.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = ['A', 'B', 'C', 'D'][i] + '. ' + o;
+    btn.addEventListener('click', () => checkOpt(i, d.ans, optsDiv));
+    optsDiv.appendChild(btn);
+  });
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBS60201 — Lecture 4: IP, TCP, UDP, ICMP & Ports</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--surface3:#1e2d4a;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--accent4:#f59e0b;--danger:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:rgba(255,255,255,0.08);--border2:rgba(0,212,255,0.3);
+  --mono:'JetBrains Mono',monospace;--sans:'IBM Plex Sans Arabic',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.75;min-height:100vh;overflow-x:hidden;font-size:17px}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0 24px}
+
+/* HEADER */
+header{padding:50px 0 28px;text-align:center}
+.course-tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--accent);border:1px solid var(--border2);padding:6px 18px;border-radius:2px;margin-bottom:18px;text-transform:uppercase}
+header h1{font-size:clamp(24px,4vw,44px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:10px}
+header h1 span{color:var(--accent)}
+.subtitle{color:var(--text2);font-size:15px;max-width:660px;margin:0 auto 22px}
+.header-meta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.meta-pill{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:5px 13px;font-size:13px;color:var(--text2)}
+.meta-pill span{color:var(--accent3);font-weight:600}
+
+/* TABS */
+.tabs-outer{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:24px 0 0;overflow:hidden}
+.tabs-scroll{display:flex;overflow-x:auto;padding:13px 13px 0;gap:6px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.tabs-scroll::-webkit-scrollbar{height:4px}
+.tabs-scroll::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+.tab-btn{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;font-size:12.5px;font-family:var(--sans);white-space:nowrap;transition:all .2s;flex-shrink:0;border-bottom:none}
+.tab-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.04)}
+.tab-btn.active{background:var(--surface2);border-color:var(--border2);color:var(--accent);font-weight:600}
+.tab-slide-num{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 6px;border-radius:2px}
+.tab-btn.active .tab-slide-num{color:var(--accent);background:rgba(0,212,255,0.12)}
+.exclaim-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,158,11,0.15);color:var(--accent4);font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(245,158,11,0.3);transition:all .15s;flex-shrink:0;line-height:1}
+.exclaim-btn:hover{background:rgba(245,158,11,0.28);transform:scale(1.18)}
+
+/* SECTIONS */
+.section{display:none;padding:30px 24px 36px;animation:fadeIn .25s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.sec-header{display:flex;align-items:flex-start;gap:15px;margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.sec-num{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,212,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:3px 10px;white-space:nowrap;margin-top:4px;flex-shrink:0}
+.sec-title{font-size:clamp(19px,2.6vw,26px);font-weight:700;color:#fff;line-height:1.3}
+
+/* BULLETS */
+.bullet-list{list-style:none;padding:0;margin:10px 0}
+.bullet-list li{padding:10px 0 10px 20px;border-bottom:1px solid var(--border);font-size:16px;color:var(--text2);line-height:1.7;position:relative}
+.bullet-list li:last-child{border-bottom:none}
+.bullet-list li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700;font-size:18px;line-height:1.5}
+.bullet-list li strong{color:var(--text);font-weight:600}
+.sub-list{list-style:none;padding:6px 0 0 18px}
+.sub-list li{padding:4px 0 4px 14px;font-size:15px;color:var(--text3);position:relative;border-bottom:none}
+.sub-list li::before{content:'–';position:absolute;left:0;color:var(--accent3)}
+
+/* HIGHLIGHTS */
+.highlight{background:linear-gradient(135deg,rgba(0,212,255,0.07),rgba(124,58,237,0.07));border:1px solid var(--border2);border-radius:10px;padding:18px 22px;margin:16px 0}
+.highlight-label{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:7px}
+.highlight p,.highlight-label+p{font-size:16px;color:var(--text);line-height:1.75}
+.highlight-warn{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.28);border-radius:10px;padding:16px 20px;margin:14px 0}
+.highlight-warn .highlight-label{color:var(--danger)}
+.highlight-warn p{font-size:16px;color:var(--text);line-height:1.75}
+.highlight-green{background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.28);border-radius:10px;padding:16px 20px;margin:14px 0}
+.highlight-green .highlight-label{color:var(--accent3)}
+.highlight-green p{font-size:16px;color:var(--text);line-height:1.75}
+
+/* CARDS */
+.card-grid{display:grid;gap:14px;margin-top:16px}
+.card-grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+.card-grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.card-grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:7px}
+.card-body{font-size:14px;color:var(--text2);line-height:1.65}
+.card.al{border-left:3px solid var(--accent)}
+.card.ag{border-left:3px solid var(--accent3)}
+.card.ap{border-left:3px solid var(--accent2)}
+.card.aa{border-left:3px solid var(--accent4)}
+.card.ar{border-left:3px solid var(--danger)}
+
+/* HEADER FIELD VISUAL */
+.hdr-vis{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+.hdr-field{padding:10px 14px;border-radius:7px;cursor:pointer;transition:all .15s;border:1px solid var(--border);font-size:13px;font-family:var(--mono)}
+.hdr-field:hover{transform:translateY(-2px);border-color:var(--accent)}
+.hdr-field.f-blue{background:rgba(0,212,255,0.08);color:var(--accent)}
+.hdr-field.f-green{background:rgba(16,185,129,0.08);color:var(--accent3)}
+.hdr-field.f-amber{background:rgba(245,158,11,0.08);color:var(--accent4)}
+.hdr-field.f-red{background:rgba(239,68,68,0.08);color:#f87171}
+.hdr-field.f-purple{background:rgba(124,58,237,0.08);color:#a78bfa}
+.hdr-field.f-teal{background:rgba(20,184,166,0.08);color:#2dd4bf}
+.hdr-detail{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:14px 18px;font-size:15px;color:var(--text2);line-height:1.65;margin-top:8px;display:none}
+
+/* HANDSHAKE STEPS */
+.hs-steps{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.hs-step{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.hs-step:last-child{border-bottom:none}
+.hs-num{font-family:var(--mono);font-size:13px;font-weight:700;background:rgba(0,212,255,0.1);border:1px solid var(--border2);border-radius:6px;min-width:40px;height:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--accent)}
+.hs-content{font-size:16px;color:var(--text2);line-height:1.65;padding-top:7px}
+.hs-content strong{color:var(--text)}
+
+/* FLAGS */
+.flags-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:14px 0}
+.flag-card{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px 14px;text-align:center}
+.flag-name{font-family:var(--mono);font-size:14px;font-weight:700;margin-bottom:5px}
+.flag-desc{font-size:13px;color:var(--text2);line-height:1.5}
+.flag-hex{font-size:11px;color:var(--text3);margin-top:4px;font-family:var(--mono)}
+
+/* PORTS TABLE */
+.ports-table{width:100%;border-collapse:collapse;font-size:15px;margin:14px 0}
+.ports-table th{background:var(--surface2);padding:10px 14px;text-align:left;font-weight:600;font-size:12px;letter-spacing:1px;border-bottom:1px solid var(--border);color:var(--text2);font-family:var(--mono)}
+.ports-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+.ports-table tr:last-child td{border-bottom:none}
+.ports-table tr:hover td{background:rgba(255,255,255,0.02)}
+.port-num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent)}
+.port-proto{display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-family:var(--mono);font-weight:600;border:1px solid}
+.pt{background:rgba(0,212,255,0.08);color:var(--accent);border-color:var(--border2)}
+.pu{background:rgba(245,158,11,0.08);color:var(--accent4);border-color:rgba(245,158,11,0.3)}
+.ptu{background:rgba(16,185,129,0.08);color:var(--accent3);border-color:rgba(16,185,129,0.3)}
+
+/* ICMP TYPES */
+.icmp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}
+.icmp-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.icmp-type{font-family:var(--mono);font-size:11px;color:var(--accent3);margin-bottom:5px}
+.icmp-name{font-size:15px;font-weight:600;color:#fff;margin-bottom:5px}
+.icmp-desc{font-size:14px;color:var(--text2);line-height:1.55}
+
+/* KEYWORD */
+.kw{display:inline;background:rgba(0,212,255,0.11);color:var(--accent);border-radius:3px;padding:1px 7px;cursor:pointer;font-weight:600;font-size:0.93em;border:1px solid rgba(0,212,255,0.22);transition:background .15s;white-space:nowrap}
+.kw:hover{background:rgba(0,212,255,0.22)}
+.kw-g{background:rgba(16,185,129,0.1);color:var(--accent3);border-color:rgba(16,185,129,0.22)}
+.kw-g:hover{background:rgba(16,185,129,0.22)}
+.kw-a{background:rgba(245,158,11,0.1);color:var(--accent4);border-color:rgba(245,158,11,0.22)}
+.kw-a:hover{background:rgba(245,158,11,0.22)}
+.kw-r{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.22)}
+.kw-r:hover{background:rgba(239,68,68,0.22)}
+.kw-p{background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.22)}
+.kw-p:hover{background:rgba(124,58,237,0.22)}
+
+/* KEY POINTS TABLE */
+.keypoints{margin-top:30px;border-top:2px solid rgba(0,212,255,0.2);padding-top:18px}
+.kp-header{display:flex;align-items:center;gap:10px;margin-bottom:13px}
+.kp-icon{width:26px;height:26px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.kp-title-en{font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--accent4);text-transform:uppercase}
+.kp-title-ar{font-size:13px;color:var(--text2);direction:rtl;margin-right:auto}
+.kp-table{width:100%;border-collapse:collapse;font-size:15px}
+.kp-table thead tr{background:var(--surface2)}
+.kp-table th{padding:10px 15px;font-weight:600;font-size:12px;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+.kp-table th.th-en{text-align:left;color:var(--accent);font-family:var(--mono);width:50%}
+.kp-table th.th-ar{text-align:right;color:var(--accent3);font-family:var(--sans);direction:rtl;width:50%}
+.kp-table td{padding:10px 15px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.65}
+.kp-table tr:last-child td{border-bottom:none}
+.kp-table tr:hover td{background:rgba(255,255,255,0.015)}
+.kp-table td.td-en{color:var(--text2);font-size:14px}
+.kp-table td.td-ar{text-align:right;direction:rtl;color:var(--text2);font-size:14px;line-height:1.7}
+.kp-table td.td-en strong,.kp-table td.td-ar strong{font-weight:600;color:var(--text)}
+.kp-row-num{font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--surface3);padding:1px 6px;border-radius:2px;margin-right:6px}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;align-items:center;justify-content:center;padding:18px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 0 50px rgba(0,212,255,0.07)}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.modal-kw-title{font-size:17px;font-weight:700;color:#fff}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-close:hover{border-color:var(--danger);color:var(--danger)}
+.modal-body{padding:18px 22px}
+.lbl-ar{color:var(--accent3);direction:rtl;text-align:right;display:block;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.lbl-en{color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:block}
+.modal-ar{font-size:15px;line-height:1.8;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:8px;padding:14px 18px;margin-bottom:18px;border:1px solid var(--border)}
+.modal-q-label{font-size:11px;font-family:var(--mono);color:var(--accent4);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.modal-q{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;line-height:1.6}
+.opt-btn{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:11px 15px;margin-bottom:8px;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s;line-height:1.5}
+.opt-btn:hover:not(.disabled){border-color:var(--accent);color:var(--text);background:rgba(0,212,255,0.04)}
+.opt-btn.correct{background:rgba(16,185,129,0.1);border-color:var(--accent3);color:var(--accent3)}
+.opt-btn.wrong{background:rgba(239,68,68,0.08);border-color:var(--danger);color:#f87171}
+.opt-btn.disabled{cursor:default}
+.feedback-box{font-size:14px;margin-top:10px;padding:11px 15px;border-radius:7px;display:none;line-height:1.5}
+.feedback-box.show-fb{display:block}
+.fb-ok{background:rgba(16,185,129,0.1);color:var(--accent3);border:1px solid rgba(16,185,129,0.2)}
+.fb-no{background:rgba(239,68,68,0.07);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.reset-q-btn{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 15px;border-radius:5px;cursor:pointer;font-size:13px;font-family:var(--sans);transition:all .2s;display:none}
+.reset-q-btn:hover{border-color:var(--accent);color:var(--accent)}
+.exec-en{font-size:15px;color:var(--text2);line-height:1.8;margin-bottom:16px;padding:15px 18px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.exec-ar{font-size:15px;line-height:1.85;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:8px;padding:15px 18px;border:1px solid var(--border)}
+
+.scroll-top{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);font-size:16px;z-index:100;transition:all .2s}
+.scroll-top:hover{background:rgba(0,212,255,0.1)}
+.divider{height:1px;background:var(--border);margin:20px 0}
+footer{text-align:center;padding:36px 0 24px;color:var(--text3);font-size:13px;border-top:1px solid var(--border);margin-top:48px}
+footer span{color:var(--text2)}
+@media(max-width:640px){.tab-btn{font-size:11px;padding:6px 10px}.section{padding:22px 14px 28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="course-tag">CYBS60201 · Lecture 4 · Chapter 2 (Part 1 cont.)</div>
+  <h1>IP, TCP, UDP, ICMP <span>&amp; Ports</span></h1>
+  <p class="subtitle">Click keywords for Arabic explanations + MCQ. Use <strong style="color:var(--accent4)">!</strong> for bilingual summaries. Each slide ends with a bilingual key-points table.</p>
+  <div class="header-meta">
+    <div class="meta-pill">Lecture: <span>4</span></div>
+    <div class="meta-pill">Slides: <span>2 – 20</span></div>
+    <div class="meta-pill">Focus: <span>IPv4 · IPv6 · TCP · UDP · ICMP · Ports</span></div>
+    <div class="meta-pill">📋 <span>= Key Points (EN / AR)</span></div>
+  </div>
+</header>
+<div class="tabs-outer">
+  <div class="tabs-scroll" id="tabsNav"></div>
+  <div id="tabsBody"></div>
+</div>
+</div>
+
+<!-- KEYWORD MODAL -->
+<div class="modal-bg" id="kwModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-kw-title" id="kwTitle"></div><button class="modal-close" onclick="closeModal('kwModal')">✕</button></div>
+    <div class="modal-body">
+      <span class="lbl-ar">الشرح بالعربي</span>
+      <div class="modal-ar" id="kwAr"></div>
+      <div class="modal-q-label">MCQ QUESTION</div>
+      <div class="modal-q" id="kwQ"></div>
+      <div id="kwOpts"></div>
+      <div class="feedback-box" id="kwFb"></div>
+      <button class="reset-q-btn" id="kwReset" onclick="resetKwQ()">↺ Try again</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXEC MODAL -->
+<div class="modal-bg" id="execModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-kw-title" id="execTitle"></div><button class="modal-close" onclick="closeModal('execModal')">✕</button></div>
+    <div class="modal-body">
+      <span class="lbl-en">Executive Summary — English</span>
+      <div class="exec-en" id="execEn"></div>
+      <span class="lbl-ar">الملخص التنفيذي — بالعربي</span>
+      <div class="exec-ar" id="execAr"></div>
+    </div>
+  </div>
+</div>
+
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<footer><div class="wrap">CYBS60201 · Advanced Programming in Cybersecurity · <span>Al-Baha University</span> · Semester II 1446H</div></footer>
+
+<script>
+/* ── helper ── */
+function kpTable(kps){
+  const rows=kps.map((k,i)=>`<tr><td class="td-en"><span class="kp-row-num">${String(i+1).padStart(2,'0')}</span>${k.en}</td><td class="td-ar">${k.ar}</td></tr>`).join('');
+  return `<div class="keypoints"><div class="kp-header"><div class="kp-icon">📋</div><span class="kp-title-en">Key Points to Know</span><span class="kp-title-ar">نقاط يجدر بك معرفتها</span></div><table class="kp-table"><thead><tr><th class="th-en">Key Point (English)</th><th class="th-ar">النقطة الأساسية (عربي)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+/* ═══════════════════════════════════════
+   SLIDES
+═══════════════════════════════════════ */
+const slides=[
+
+/* SLIDE 02 */
+{num:"02",label:"What is the Internet Protocol (IP)?",
+execEn:"IP is the core protocol of the TCP/IP suite, operating at the Network Layer (OSI) and Internet Layer (TCP/IP). It identifies devices with logical IP addresses and routes data across networks. IP uses Best-Effort Delivery — it does not guarantee packets arrive, only tries its best. Two versions exist: IPv4 (32-bit, widely used) and IPv6 (128-bit, newer, supports more devices).",
+execAr:"IP هو البروتوكول الأساسي في مجموعة TCP/IP، يعمل في طبقة الشبكة (OSI) وطبقة الإنترنت (TCP/IP). يُعرّف الأجهزة بعناوين IP منطقية ويُوجّه البيانات عبر الشبكات. يستخدم IP التسليم بأقصى جهد — لا يضمن وصول الحزم، فقط يحاول. يوجد نسختان: IPv4 (32 بت، الأكثر استخداماً) وIPv6 (128 بت، الأحدث، يدعم المزيد من الأجهزة).",
+html:`
+<div class="highlight"><div class="highlight-label">Core Role</div><p><span class="kw" data-k="IPRole">IP (Internet Protocol)</span> is a core protocol in the <span class="kw kw-a" data-k="TCPIPSuite">TCP/IP suite</span>. It operates at the <strong>Network Layer</strong> (OSI) and the <strong>Internet Layer</strong> (TCP/IP).</p></div>
+<div class="card-grid cols-2" style="margin-top:16px">
+  <div class="card al"><div class="card-title">🎯 Responsibilities</div><div class="card-body"><p>• Identifies devices using <span class="kw" data-k="LogicalIPAddr">logical IP addresses</span>.</p><p style="margin-top:6px">• <span class="kw kw-g" data-k="RoutesData">Routes data</span> across networks to reach the destination.</p></div></div>
+  <div class="card aa"><div class="card-title">⚡ Key Features</div><div class="card-body"><p>• <span class="kw kw-r" data-k="BestEffortIP">Best-Effort Delivery</span>: Does not guarantee packet delivery.</p><p style="margin-top:6px">• Unique <span class="kw" data-k="IPAddressing">IP Addressing</span> scheme to identify every device.</p></div></div>
+</div>
+<div class="card-grid cols-2" style="margin-top:14px">
+  <div class="card ag"><div class="card-title"><span class="kw kw-g" data-k="IPv4Overview">IPv4</span></div><div class="card-body">Most widely used version — uses <strong style="color:var(--text)">32-bit addresses</strong>.</div></div>
+  <div class="card ap"><div class="card-title"><span class="kw kw-p" data-k="IPv6Overview">IPv6</span></div><div class="card-body">Newer version — uses <strong style="color:var(--text)">128-bit addresses</strong>, supports more devices and features.</div></div>
+</div>
+`+kpTable([
+  {en:"<strong>IP</strong> is the core protocol at the Network Layer — identifies devices with logical addresses and routes data.",ar:"<strong>IP</strong> هو البروتوكول الأساسي في طبقة الشبكة — يُعرّف الأجهزة بعناوين منطقية ويُوجّه البيانات."},
+  {en:"IP uses <strong>Best-Effort Delivery</strong> — it tries to deliver packets but does NOT guarantee arrival.",ar:"IP يستخدم <strong>التسليم بأقصى جهد</strong> — يحاول تسليم الحزم لكن لا يضمن الوصول."},
+  {en:"<strong>IPv4</strong> uses 32-bit addresses; <strong>IPv6</strong> uses 128-bit addresses for a vastly larger address space.",ar:"<strong>IPv4</strong> يستخدم عناوين 32 بت؛ <strong>IPv6</strong> يستخدم عناوين 128 بت لفضاء عناوين أكبر بكثير."}
+])},
+
+/* SLIDE 03-04 */
+{num:"03",label:"IPv4 Header Structure",
+execEn:"The IPv4 header provides all metadata needed to route a 32-bit addressed packet across networks. Key fields include: Version (4 bits, value 4), IHL (header length in 32-bit words, minimum 5 = 20 bytes), TOS (traffic priority), Total Length (full packet size), Identification (fragment reassembly), Flags (DF/MF fragmentation control), Fragment Offset (position of fragment), TTL (hop count limit), Protocol (TCP=6, UDP=17), Header Checksum (integrity), Source and Destination Addresses.",
+execAr:"رأس IPv4 يُوفر جميع البيانات الوصفية اللازمة لتوجيه حزمة بعنوان 32 بت عبر الشبكات. الحقول الرئيسية: الإصدار (4 بت، قيمته 4)، IHL (طول الرأس بوحدات 32 بت، الحد الأدنى 5 = 20 بايت)، TOS (أولوية الحركة)، الطول الكلي (حجم الحزمة الكامل)، التعريف (إعادة تجميع الشظايا)، الأعلام (التحكم في التجزئة)، إزاحة الشظية، TTL (حد عدد القفزات)، البروتوكول (TCP=6، UDP=17)، مجموع التحقق، عنوان المصدر والوجهة.",
+html:`
+<div class="highlight"><div class="highlight-label">Overview</div><p><span class="kw" data-k="IPv4Header">IPv4</span> uses a <strong>32-bit logical address</strong>. The header provides essential metadata for delivering packets across networks (minimum <strong>20 bytes</strong>).</p></div>
+<p style="font-size:16px;color:var(--text2);margin:14px 0 8px">Click any field to see details:</p>
+<div class="hdr-vis" id="ipv4Vis">
+  <span class="hdr-field f-blue" onclick="showHdrDetail('ipv4','version')">Version</span>
+  <span class="hdr-field f-teal" onclick="showHdrDetail('ipv4','ihl')">IHL</span>
+  <span class="hdr-field f-green" onclick="showHdrDetail('ipv4','tos')">TOS</span>
+  <span class="hdr-field f-amber" onclick="showHdrDetail('ipv4','totlen')">Total Length</span>
+  <span class="hdr-field f-blue" onclick="showHdrDetail('ipv4','id')">Identification</span>
+  <span class="hdr-field f-purple" onclick="showHdrDetail('ipv4','flags')">Flags</span>
+  <span class="hdr-field f-teal" onclick="showHdrDetail('ipv4','fragoff')">Fragment Offset</span>
+  <span class="hdr-field f-red" onclick="showHdrDetail('ipv4','ttl')">TTL</span>
+  <span class="hdr-field f-green" onclick="showHdrDetail('ipv4','proto')">Protocol</span>
+  <span class="hdr-field f-amber" onclick="showHdrDetail('ipv4','chksum')">Header Checksum</span>
+  <span class="hdr-field f-blue" onclick="showHdrDetail('ipv4','src')">Source Address</span>
+  <span class="hdr-field f-purple" onclick="showHdrDetail('ipv4','dst')">Destination Address</span>
+  <span class="hdr-field f-teal" onclick="showHdrDetail('ipv4','opt')">Options</span>
+</div>
+<div class="hdr-detail" id="ipv4Detail"></div>
+`+kpTable([
+  {en:"<strong>IPv4 header</strong> is minimum <strong>20 bytes</strong> (5 × 32-bit words); optional fields can extend it.",ar:"<strong>رأس IPv4</strong> حده الأدنى <strong>20 بايت</strong> (5 × كلمات 32 بت)؛ الحقول الاختيارية يمكن أن تُمدّده."},
+  {en:"<strong>TTL</strong> prevents infinite loops — decremented by 1 at each router; discarded at 0.",ar:"<strong>TTL</strong> يمنع الحلقات اللانهائية — يتناقص بمقدار 1 عند كل راوتر؛ يُتجاهل عند 0."},
+  {en:"<strong>Protocol field</strong> identifies the Transport Layer protocol: TCP=6, UDP=17, ICMP=1.",ar:"<strong>حقل البروتوكول</strong> يُحدد بروتوكول طبقة النقل: TCP=6، UDP=17، ICMP=1."},
+  {en:"<strong>Flags (DF/MF)</strong> control fragmentation: DF prevents splitting; MF signals more fragments follow.",ar:"<strong>الأعلام (DF/MF)</strong> تتحكم في التجزئة: DF يمنع التقسيم؛ MF يُشير لوجود المزيد من الشظايا."}
+])},
+
+/* SLIDE 06-07 */
+{num:"06",label:"IPv6 Header & Features",
+execEn:"IPv6 is the most recent IP version, solving IPv4 address exhaustion with 128-bit addresses. Its header is simplified to a fixed 40 bytes for routing efficiency — no fragmentation fields. Key fields: Traffic Class (8-bit QoS priority), Flow Label (20-bit special handling), Payload Length (16-bit data size), Next Header (replaces Protocol field, also identifies extensions), Hop Limit (replaces TTL, discarded at 0), plus 128-bit Source and Destination addresses.",
+execAr:"IPv6 هو أحدث إصدار من IP، يحل مشكلة نضوب عناوين IPv4 بعناوين 128 بت. رأسه مُبسَّط لحجم ثابت 40 بايت لكفاءة التوجيه — بدون حقول تجزئة. الحقول الرئيسية: فئة الحركة (8 بت لجودة الخدمة)، تسمية التدفق (20 بت للمعالجة الخاصة)، طول الحمولة (16 بت)، الرأس التالي (يُحل محل حقل البروتوكول)، حد القفز (يُحل محل TTL)، إضافة إلى عناوين مصدر ووجهة 128 بت.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al"><div class="card-title">Overview</div><div class="card-body"><p>Most recent IP version — offers a <span class="kw" data-k="IPv6Addr">128-bit address space</span>.</p><p style="margin-top:6px">Fixed <strong style="color:var(--text)">40-byte header</strong> for routing efficiency. <strong>No fragmentation fields</strong> in the header.</p></div></div>
+  <div class="card ag"><div class="card-title">IPv6 Advantages</div><div class="card-body"><p>• Vast address space: <span class="kw kw-g" data-k="IPv6Space">2¹²⁸ unique addresses</span>.</p><p style="margin-top:5px">• Improved security &amp; efficiency over IPv4.</p><p style="margin-top:5px">• Better support for <span class="kw kw-a" data-k="IoT">mobile and IoT devices</span>.</p></div></div>
+</div>
+<p style="font-size:16px;font-weight:600;color:var(--text);margin:18px 0 10px">IPv6 Header Fields:</p>
+<div class="hdr-vis" id="ipv6Vis">
+  <span class="hdr-field f-blue" onclick="showHdrDetail('ipv6','version')">Version</span>
+  <span class="hdr-field f-green" onclick="showHdrDetail('ipv6','tc')">Traffic Class</span>
+  <span class="hdr-field f-purple" onclick="showHdrDetail('ipv6','fl')">Flow Label</span>
+  <span class="hdr-field f-amber" onclick="showHdrDetail('ipv6','pl')">Payload Length</span>
+  <span class="hdr-field f-teal" onclick="showHdrDetail('ipv6','nh')">Next Header</span>
+  <span class="hdr-field f-red" onclick="showHdrDetail('ipv6','hl')">Hop Limit</span>
+  <span class="hdr-field f-blue" onclick="showHdrDetail('ipv6','src')">Source Address</span>
+  <span class="hdr-field f-purple" onclick="showHdrDetail('ipv6','dst')">Destination Address</span>
+</div>
+<div class="hdr-detail" id="ipv6Detail"></div>
+`+kpTable([
+  {en:"<strong>IPv6</strong> uses <strong>128-bit addresses</strong> — supports 2¹²⁸ unique addresses vs. IPv4's ~4.3 billion.",ar:"<strong>IPv6</strong> يستخدم <strong>عناوين 128 بت</strong> — يدعم 2¹²⁸ عنواناً فريداً مقابل ~4.3 مليار في IPv4."},
+  {en:"IPv6 header is a <strong>fixed 40 bytes</strong> — simpler and faster to process than IPv4's variable header.",ar:"رأس IPv6 <strong>ثابت 40 بايت</strong> — أبسط وأسرع معالجةً من رأس IPv4 المتغير."},
+  {en:"<strong>Hop Limit</strong> replaces TTL; <strong>Next Header</strong> replaces Protocol; <strong>Traffic Class</strong> replaces TOS.",ar:"<strong>حد القفز</strong> يُحل محل TTL؛ <strong>الرأس التالي</strong> يُحل محل البروتوكول؛ <strong>فئة الحركة</strong> تُحل محل TOS."},
+  {en:"IPv6 address structure: <strong>8 groups × 4 hex digits × 4 bits = 128 bits</strong> total.",ar:"هيكل عنوان IPv6: <strong>8 مجموعات × 4 أرقام hex × 4 بت = 128 بت</strong> إجمالياً."}
+])},
+
+/* SLIDE 09 */
+{num:"09",label:"TCP Overview",
+execEn:"TCP (Transmission Control Protocol) is a connection-oriented Transport Layer protocol. Before any data is sent, a session must be established between the two communicating devices. Once data transfer is complete, the connection is formally closed. TCP guarantees reliable data delivery — every byte is accounted for, retransmitted if lost, and delivered in order.",
+execAr:"TCP (بروتوكول التحكم في الإرسال) بروتوكول نقل موجّه للاتصال. قبل إرسال أي بيانات، يجب إنشاء جلسة بين الجهازين. بمجرد اكتمال النقل، يُغلَق الاتصال رسمياً. يضمن TCP التسليم الموثوق للبيانات — كل بايت محسوب، يُعاد إرساله إذا ضاع، ويُسلَّم بالترتيب الصحيح.",
+html:`
+<div class="highlight"><div class="highlight-label">Overview</div><p><span class="kw" data-k="TCPOverview">TCP (Transmission Control Protocol)</span> is a <span class="kw kw-a" data-k="ConnectionOriented">connection-oriented</span> protocol at the Transport Layer.</p></div>
+<ul class="bullet-list">
+  <li>TCP is <strong>connection-oriented</strong> — a <span class="kw" data-k="TCPSession">session must be established</span> before data transfer.</li>
+  <li>Communication is <strong>formally closed</strong> once data transfer is complete.</li>
+  <li>Provides <span class="kw kw-g" data-k="ReliableDelivery">reliable data delivery</span> — data is sent, received, and delivered in the correct order.</li>
+</ul>
+`+kpTable([
+  {en:"TCP is <strong>connection-oriented</strong> — a session must be established (via 3-way handshake) before any data flows.",ar:"TCP <strong>موجّه للاتصال</strong> — يجب إنشاء جلسة (عبر المصافحة الثلاثية) قبل تدفق أي بيانات."},
+  {en:"TCP provides <strong>reliable delivery</strong> — data is ordered, acknowledged, and retransmitted if lost.",ar:"TCP يوفر <strong>تسليماً موثوقاً</strong> — البيانات مُرتَّبة ومُؤكَّدة ومُعادة إرسالها إذا ضاعت."},
+  {en:"TCP connections are <strong>formally closed</strong> with a FIN/FIN-ACK sequence after data transfer.",ar:"تُغلَق اتصالات TCP <strong>رسمياً</strong> بتسلسل FIN/FIN-ACK بعد اكتمال نقل البيانات."}
+])},
+
+/* SLIDE 10 */
+{num:"10",label:"TCP Three-Way Handshake",
+execEn:"The Three-Way Handshake is the process TCP uses to establish a reliable connection before data transfer. Step 1 — SYN: Host P sends a synchronization packet (SYN, seq=x) to Host Q. Step 2 — SYN-ACK: Host Q acknowledges (ACK=x+1) and sends its own SYN (seq=y). Step 3 — ACK: Host P acknowledges Q's SYN (ACK=y+1). After this exchange, both hosts are synchronized and data transfer begins.",
+execAr:"المصافحة الثلاثية هي العملية التي يستخدمها TCP لإنشاء اتصال موثوق قبل نقل البيانات. الخطوة 1 — SYN: يُرسل المضيف P حزمة تزامن (SYN، seq=x) للمضيف Q. الخطوة 2 — SYN-ACK: يُقرّ Q (ACK=x+1) ويُرسل SYN الخاص به (seq=y). الخطوة 3 — ACK: يُقرّ P بـ SYN الخاص بـ Q (ACK=y+1). بعد هذا التبادل يكون كلا المضيفين متزامنين ويبدأ نقل البيانات.",
+html:`
+<div class="highlight"><div class="highlight-label">Purpose</div><p>The <span class="kw" data-k="ThreeWayHandshake">Three-Way Handshake</span> ensures both devices are ready for communication before data is transferred.</p></div>
+<div class="hs-steps">
+  <div class="hs-step"><div class="hs-num">①</div><div class="hs-content"><strong><span class="kw" data-k="SYN">SYN</span></strong> — Host P sends a <em>synchronization request</em> (SYN, seq = x) to Host Q.</div></div>
+  <div class="hs-step"><div class="hs-num">②</div><div class="hs-content"><strong><span class="kw kw-a" data-k="SYNACK">SYN-ACK</span></strong> — Host Q acknowledges the SYN (ACK = x + 1) and sends its own SYN (seq = y).</div></div>
+  <div class="hs-step"><div class="hs-num">③</div><div class="hs-content"><strong><span class="kw kw-g" data-k="ACKFlag">ACK</span></strong> — Host P acknowledges Host Q's SYN (ACK = y + 1). Communication begins.</div></div>
+</div>
+`+kpTable([
+  {en:"<strong>SYN</strong>: Sender initiates connection with a synchronization packet containing an initial sequence number.",ar:"<strong>SYN</strong>: المُرسِل يبدأ الاتصال بحزمة تزامن تحتوي على رقم تسلسل ابتدائي."},
+  {en:"<strong>SYN-ACK</strong>: Receiver acknowledges (ACK = x+1) and sends its own SYN sequence number (y).",ar:"<strong>SYN-ACK</strong>: المستقبِل يُقرّ (ACK = x+1) ويُرسل رقم تسلسل SYN الخاص به (y)."},
+  {en:"<strong>ACK</strong>: Initiator acknowledges the receiver's SYN (ACK = y+1) — connection is now established.",ar:"<strong>ACK</strong>: المبادر يُقرّ بـ SYN المستقبِل (ACK = y+1) — الاتصال الآن مُنشأ."},
+  {en:"After the 3-way handshake, both hosts are <strong>synchronized</strong> and data transfer begins immediately.",ar:"بعد المصافحة الثلاثية، يكون كلا المضيفين <strong>متزامنَين</strong> ويبدأ نقل البيانات فوراً."}
+])},
+
+/* SLIDE 11 */
+{num:"11",label:"TCP Header & Flags",
+execEn:"The TCP header contains fields for reliable communication. Source/Destination Ports identify applications. Sequence/Acknowledgment Numbers track data order and receipt. TCP Flags control connection state: SYN (establish), ACK (acknowledge), FIN (close), RST (reset). The Window field specifies how much data can be sent before needing acknowledgment (flow control). Checksum verifies data integrity. TCP Options add features like selective acknowledgment and timestamps.",
+execAr:"رأس TCP يحتوي على حقول للاتصال الموثوق. منافذ المصدر/الوجهة تُحدد التطبيقات. أرقام التسلسل/الإقرار تتبع ترتيب البيانات. أعلام TCP تتحكم في حالة الاتصال: SYN (إنشاء)، ACK (إقرار)، FIN (إغلاق)، RST (إعادة ضبط). حقل النافذة يُحدد حجم البيانات القابلة للإرسال قبل الإقرار (التحكم في التدفق). مجموع التحقق يتحقق من سلامة البيانات. خيارات TCP تُضيف ميزات كالإقرار الانتقائي والطوابع الزمنية.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al"><div class="card-title">Header Fields</div><div class="card-body">
+    <p>• <span class="kw" data-k="SrcDstPort">Source / Destination Port</span>: Identifies source and target applications.</p>
+    <p style="margin-top:6px">• <span class="kw kw-a" data-k="SeqAckNum">Sequence / Acknowledgment Numbers</span>: Track order and receipt.</p>
+    <p style="margin-top:6px">• <span class="kw kw-g" data-k="TCPWindow">Window</span>: Data sender may send before ACK (flow control).</p>
+    <p style="margin-top:6px">• <strong>Checksum</strong>: Verifies data integrity.</p>
+  </div></div>
+  <div class="card ag"><div class="card-title">TCP Options</div><div class="card-body"><p>Allows additional features:</p><ul class="sub-list" style="margin-top:6px"><li>Selective acknowledgment (SACK)</li><li>Timestamps</li><li>Maximum segment size (MSS)</li></ul></div></div>
+</div>
+<p style="font-size:16px;font-weight:600;color:var(--text);margin:18px 0 10px">TCP Flags:</p>
+<div class="flags-grid">
+  <div class="flag-card"><div class="flag-name" style="color:var(--accent)"><span class="kw" data-k="SYN">SYN</span></div><div class="flag-desc">Synchronize — initiates a connection</div><div class="flag-hex">0x02</div></div>
+  <div class="flag-card"><div class="flag-name" style="color:var(--accent3)"><span class="kw kw-g" data-k="ACKFlag">ACK</span></div><div class="flag-desc">Acknowledge — confirms receipt</div><div class="flag-hex">0x10</div></div>
+  <div class="flag-card"><div class="flag-name" style="color:var(--accent4)"><span class="kw kw-a" data-k="FIN">FIN</span></div><div class="flag-desc">Finish — gracefully closes connection</div><div class="flag-hex">0x01</div></div>
+  <div class="flag-card"><div class="flag-name" style="color:#f87171"><span class="kw kw-r" data-k="RST">RST</span></div><div class="flag-desc">Reset — abruptly terminates connection</div><div class="flag-hex">0x04</div></div>
+  <div class="flag-card"><div class="flag-name" style="color:#a78bfa"><span class="kw kw-p" data-k="PSH">PSH</span></div><div class="flag-desc">Push — send buffered data immediately</div><div class="flag-hex">0x08</div></div>
+  <div class="flag-card"><div class="flag-name" style="color:#2dd4bf"><span class="kw" data-k="URG">URG</span></div><div class="flag-desc">Urgent — prioritize urgent data</div><div class="flag-hex">0x20</div></div>
+</div>
+`+kpTable([
+  {en:"<strong>Sequence &amp; Acknowledgment Numbers</strong> enable TCP to track data order and detect missing segments.",ar:"<strong>أرقام التسلسل والإقرار</strong> تُمكّن TCP من تتبع ترتيب البيانات واكتشاف المقاطع المفقودة."},
+  {en:"<strong>SYN</strong>=connect, <strong>ACK</strong>=confirm, <strong>FIN</strong>=close gracefully, <strong>RST</strong>=abort immediately.",ar:"<strong>SYN</strong>=اتصال، <strong>ACK</strong>=تأكيد، <strong>FIN</strong>=إغلاق سلس، <strong>RST</strong>=إلغاء فوري."},
+  {en:"The <strong>Window</strong> field controls flow — limits how much data can be in-flight before an ACK is required.",ar:"حقل <strong>النافذة</strong> يتحكم في التدفق — يُحدد حجم البيانات التي يمكن إرسالها قبل طلب الإقرار."},
+  {en:"TCP header minimum is <strong>20 bytes</strong>; TCP Options field can extend it.",ar:"حد أدنى رأس TCP <strong>20 بايت</strong>؛ حقل TCP Options يمكن أن يُمدّده."}
+])},
+
+/* SLIDE 13 */
+{num:"13",label:"UDP Overview",
+execEn:"UDP (User Datagram Protocol) is a connectionless Transport Layer protocol — it sends data without establishing a connection or waiting for acknowledgments. This makes UDP faster and more efficient than TCP but less reliable since there is no guarantee of delivery or error correction. UDP is ideal for applications where speed is critical and minor data loss is acceptable: video streaming, online gaming, DNS lookups, and VoIP.",
+execAr:"UDP (بروتوكول مخطط البيانات المستخدم) بروتوكول نقل غير موجّه للاتصال — يُرسل البيانات دون إنشاء اتصال أو انتظار إقرارات. هذا يجعله أسرع وأكثر كفاءةً من TCP لكن أقل موثوقيةً لأنه لا يوجد ضمان للتسليم أو تصحيح الأخطاء. UDP مثالي للتطبيقات التي تُعدّ السرعة فيها حيوية ويُقبل فيها فقدان طفيف للبيانات: بث الفيديو والألعاب عبر الإنترنت وDNS وVoIP.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card ar"><div class="card-title">⚡ <span class="kw kw-r" data-k="UDPConnectionless">Connectionless Protocol</span></div><div class="card-body"><p>Unlike TCP, UDP does <strong>not establish a connection</strong> before sending data.</p><p style="margin-top:6px">There is <strong>no acknowledgment</strong> from the receiver.</p></div></div>
+  <div class="card ag"><div class="card-title">🚀 Efficiency</div><div class="card-body">Minimizes <span class="kw kw-g" data-k="CommOverhead">communication overhead</span>, making it <strong>faster and more efficient</strong>.</div></div>
+  <div class="card aa"><div class="card-title">⚠ Unreliable</div><div class="card-body">No <span class="kw kw-a" data-k="NoAck">acknowledgments or error-checking mechanisms</span> — less reliable than TCP.</div></div>
+  <div class="card ap"><div class="card-title">📱 Use Cases</div><div class="card-body">Speed-critical, minor loss acceptable: <span class="kw kw-p" data-k="UDPUseCases">video streaming, gaming, DNS, VoIP</span>.</div></div>
+</div>
+`+kpTable([
+  {en:"UDP is <strong>connectionless</strong> — no handshake, no acknowledgment, no guaranteed delivery.",ar:"UDP <strong>غير موجّه للاتصال</strong> — لا مصافحة، لا إقرار، لا ضمان للتسليم."},
+  {en:"UDP is <strong>faster than TCP</strong> because it has minimal overhead — no connection establishment or tracking.",ar:"UDP <strong>أسرع من TCP</strong> لأن له حملاً إضافياً أدنى — لا إنشاء اتصال أو تتبع."},
+  {en:"Best for <strong>real-time applications</strong>: video streaming, online gaming, DNS, VoIP — where speed > reliability.",ar:"الأفضل للتطبيقات <strong>الفورية</strong>: بث الفيديو، الألعاب، DNS، VoIP — حيث السرعة أهم من الموثوقية."}
+])},
+
+/* SLIDE 14 */
+{num:"14",label:"UDP Header Structure",
+execEn:"The UDP header is extremely simple — only 8 bytes total. It contains just four fields: Source Port (16 bits) identifies the sending application, Destination Port (16 bits) identifies the receiving application, Length (16 bits) specifies total UDP packet size including header and data, and Checksum (16 bits) provides optional error checking. This minimal structure is what makes UDP fast and lightweight, but it means no sequencing, no flow control, and no retransmission.",
+execAr:"رأس UDP بالغ البساطة — 8 بايت إجمالياً فقط. يحتوي على أربعة حقول فقط: منفذ المصدر (16 بت) يُحدد التطبيق المُرسِل، منفذ الوجهة (16 بت) يُحدد التطبيق المستقبِل، الطول (16 بت) يُحدد الحجم الإجمالي لحزمة UDP، مجموع التحقق (16 بت) يُوفر فحص أخطاء اختياري. هذا الهيكل البسيط هو ما يجعل UDP سريعاً وخفيفاً، لكنه يعني غياب الترتيب والتحكم في التدفق وإعادة الإرسال.",
+html:`
+<div class="highlight"><div class="highlight-label">Simple 8-Byte Header</div><p>UDP trades <span class="kw kw-r" data-k="ReliabilityVsSpeed">reliability for speed</span> — its minimal header makes it ideal for real-time data transmission.</p></div>
+<div class="hdr-vis">
+  <span class="hdr-field f-blue" onclick="showUDPDetail('srcport')">Source Port</span>
+  <span class="hdr-field f-green" onclick="showUDPDetail('dstport')">Destination Port</span>
+  <span class="hdr-field f-amber" onclick="showUDPDetail('length')">Length</span>
+  <span class="hdr-field f-red" onclick="showUDPDetail('chksum')">Checksum</span>
+</div>
+<div class="hdr-detail" id="udpDetail"></div>
+<ul class="bullet-list" style="margin-top:14px">
+  <li><strong>Source Port (16 bits):</strong> Port number of the sender.</li>
+  <li><strong>Destination Port (16 bits):</strong> Port number of the intended recipient.</li>
+  <li><strong>Length (16 bits):</strong> Total length of UDP packet, including header and data.</li>
+  <li><strong>Checksum (16 bits):</strong> <span class="kw kw-a" data-k="UDPChecksum">Optional</span> error-checking for data integrity.</li>
+</ul>
+`+kpTable([
+  {en:"UDP header is only <strong>8 bytes</strong> — Source Port, Destination Port, Length, Checksum.",ar:"رأس UDP فقط <strong>8 بايت</strong> — منفذ المصدر، منفذ الوجهة، الطول، مجموع التحقق."},
+  {en:"The <strong>Checksum</strong> in UDP is <em>optional</em> (unlike TCP where it is mandatory).",ar:"<strong>مجموع التحقق</strong> في UDP <em>اختياري</em> (على عكس TCP حيث هو إلزامي)."},
+  {en:"No Sequence Number, no ACK, no Window — UDP has <strong>no flow control or ordering</strong> mechanisms.",ar:"لا رقم تسلسل، لا إقرار، لا نافذة — UDP لا يحتوي على <strong>آليات تحكم في التدفق أو الترتيب</strong>."}
+])},
+
+/* SLIDE 16 */
+{num:"16",label:"ICMP: Internet Control Message Protocol",
+execEn:"ICMP (Internet Control Message Protocol) is a Network Layer protocol used exclusively for control and management — not for user data transfer like TCP or UDP. Its primary roles are Error Reporting (notifying devices about unreachable hosts, network congestion, routing failures) and providing Operational/Diagnostic messages. The two most famous ICMP applications are Ping (tests host reachability and measures round-trip time) and Traceroute (maps the path packets take to a destination).",
+execAr:"ICMP (بروتوكول رسائل التحكم في الإنترنت) بروتوكول طبقة شبكة يُستخدم حصراً للتحكم والإدارة — وليس لنقل بيانات المستخدم مثل TCP أو UDP. أدواره الأساسية هي الإبلاغ عن الأخطاء (إخطار الأجهزة بالمضيفين غير القابلين للوصول واختناقات الشبكة وفشل التوجيه) وتوفير رسائل التشغيل والتشخيص. أشهر تطبيقَي ICMP هما Ping (يختبر قابلية الوصول للمضيف ويقيس زمن الرحلة) وTraceroute (يرسم خريطة المسار للوجهة).",
+html:`
+<div class="card-grid cols-3">
+  <div class="card ar"><div class="card-title">🚨 Error Reporting</div><div class="card-body">Notifies devices of issues: <span class="kw kw-r" data-k="ICMPErrors">unreachable hosts, congestion, routing failures</span>.</div></div>
+  <div class="card ag"><div class="card-title">📊 Operational Messages</div><div class="card-body">Provides diagnostic and <span class="kw kw-g" data-k="ICMPDiagnostic">informational messages</span> about network status.</div></div>
+  <div class="card aa"><div class="card-title">🚫 Not for Data</div><div class="card-body">Unlike TCP or UDP, ICMP does <span class="kw kw-a" data-k="ICMPNoData">not carry user data</span> — only control &amp; management.</div></div>
+</div>
+<p style="font-size:16px;font-weight:600;color:var(--text);margin:18px 0 10px">Common Use Cases:</p>
+<div class="card-grid cols-2">
+  <div class="card al"><div class="card-title">🏓 <span class="kw" data-k="PingTool">Ping</span></div><div class="card-body">Checks if a host is <strong>reachable</strong> and measures <strong>round-trip time</strong>. Uses ICMP Echo Request (Type 8) and Echo Reply (Type 0).</div></div>
+  <div class="card ap"><div class="card-title">🗺 <span class="kw kw-p" data-k="Traceroute">Traceroute</span></div><div class="card-body">Determines the <strong>path packets take</strong> to a destination by exploiting TTL expiry (ICMP Type 11).</div></div>
+</div>
+`+kpTable([
+  {en:"ICMP is for <strong>error reporting and diagnostics</strong> — not for transferring user data.",ar:"ICMP مخصص <strong>للإبلاغ عن الأخطاء والتشخيص</strong> — وليس لنقل بيانات المستخدم."},
+  {en:"<strong>Ping</strong> uses ICMP Echo Request (Type 8) and Echo Reply (Type 0) to test reachability.",ar:"<strong>Ping</strong> يستخدم ICMP Echo Request (النوع 8) وEcho Reply (النوع 0) لاختبار قابلية الوصول."},
+  {en:"<strong>Traceroute</strong> maps the packet path using TTL manipulation and ICMP Time Exceeded (Type 11) responses.",ar:"<strong>Traceroute</strong> يرسم مسار الحزمة باستخدام التلاعب بـ TTL واستجابات ICMP Time Exceeded (النوع 11)."},
+  {en:"ICMP operates at <strong>Network Layer (3)</strong> — it is encapsulated inside IP packets.",ar:"ICMP يعمل في <strong>طبقة الشبكة (3)</strong> — يُغلَّف داخل حزم IP."}
+])},
+
+/* SLIDE 17-18 */
+{num:"17",label:"ICMP Header & Message Types",
+execEn:"The ICMP header is 8 bytes. The Type field (8 bits) identifies the general category of the message. The Code field (8 bits) further classifies the message within that type (e.g., Type 3 Code 0 = Network Unreachable, Code 1 = Host Unreachable). The Checksum (16 bits) verifies integrity. Key message types: Echo Reply (0) for Ping responses, Destination Unreachable (3) when a host/port can't be reached, Time Exceeded (11) when TTL expires.",
+execAr:"رأس ICMP هو 8 بايت. حقل النوع (8 بت) يُحدد الفئة العامة للرسالة. حقل الكود (8 بت) يُصنّف الرسالة بشكل أدق ضمن ذلك النوع (مثلاً النوع 3 الكود 0 = الشبكة غير قابلة للوصول، الكود 1 = المضيف غير قابل للوصول). مجموع التحقق (16 بت) يتحقق من السلامة. أنواع الرسائل الرئيسية: Echo Reply (0) لاستجابات Ping، Destination Unreachable (3) عندما لا يمكن الوصول، Time Exceeded (11) عند انتهاء TTL.",
+html:`
+<div class="card-grid cols-3">
+  <div class="card al"><div class="card-title"><span class="kw" data-k="ICMPType">Type (8 bits)</span></div><div class="card-body">Specifies the <strong>type of ICMP message</strong> (e.g., Echo Reply, Destination Unreachable).</div></div>
+  <div class="card ag"><div class="card-title"><span class="kw kw-g" data-k="ICMPCode">Code (8 bits)</span></div><div class="card-body">Further <strong>classifies the message type</strong> (e.g., Host Unreachable, Port Unreachable).</div></div>
+  <div class="card aa"><div class="card-title">Checksum (16 bits)</div><div class="card-body">Verifies the <strong>integrity</strong> of the ICMP message.</div></div>
+</div>
+<p style="font-size:16px;font-weight:600;color:var(--text);margin:18px 0 10px">Key ICMP Message Types:</p>
+<div class="icmp-grid">
+  <div class="icmp-card"><div class="icmp-type">TYPE 0</div><div class="icmp-name"><span class="kw" data-k="EchoReply">Echo Reply</span></div><div class="icmp-desc">Used in Ping — the response to an Echo Request.</div></div>
+  <div class="icmp-card"><div class="icmp-type">TYPE 3</div><div class="icmp-name"><span class="kw kw-r" data-k="DestUnreachable">Destination Unreachable</span></div><div class="icmp-desc">Target host, port, or network cannot be reached.</div></div>
+  <div class="icmp-card"><div class="icmp-type">TYPE 8</div><div class="icmp-name">Echo Request</div><div class="icmp-desc">Sent by Ping to test if a host is alive.</div></div>
+  <div class="icmp-card"><div class="icmp-type">TYPE 11</div><div class="icmp-name"><span class="kw kw-a" data-k="TimeExceeded">Time Exceeded</span></div><div class="icmp-desc">TTL expired — used by Traceroute to map hops.</div></div>
+</div>
+`+kpTable([
+  {en:"ICMP header: <strong>Type</strong> (category) + <strong>Code</strong> (sub-type) + <strong>Checksum</strong> + message-specific fields = 8 bytes.",ar:"رأس ICMP: <strong>النوع</strong> (الفئة) + <strong>الكود</strong> (النوع الفرعي) + <strong>مجموع التحقق</strong> + حقول خاصة بالرسالة = 8 بايت."},
+  {en:"<strong>Type 0</strong> = Echo Reply (Ping response); <strong>Type 3</strong> = Destination Unreachable; <strong>Type 11</strong> = Time Exceeded.",ar:"<strong>النوع 0</strong> = Echo Reply (استجابة Ping)؛ <strong>النوع 3</strong> = Destination Unreachable؛ <strong>النوع 11</strong> = Time Exceeded."},
+  {en:"Type 3 has multiple <strong>Codes</strong>: 0=Net unreachable, 1=Host unreachable, 2=Protocol unreachable, 3=Port unreachable.",ar:"النوع 3 له عدة <strong>أكواد</strong>: 0=الشبكة غير قابلة للوصول، 1=المضيف، 2=البروتوكول، 3=المنفذ."}
+])},
+
+/* SLIDE 20 */
+{num:"20",label:"What is a Port?",
+execEn:"A port is a 16-bit number (0–65535) used to identify a specific service or application on a device. Ports direct incoming data to the correct application — the web server, email server, or file transfer service. Ports are associated with TCP or UDP. Well-known ports (0–1023) are standardized: FTP=20/21, SSH=22, Telnet=23, SMTP=25, DNS=53, DHCP=67/68, HTTP=80, HTTPS=443. Security implication: blocking or restricting ports protects systems from unauthorized access.",
+execAr:"المنفذ رقم 16 بت (0-65535) يُستخدم لتحديد خدمة أو تطبيق معين على جهاز. المنافذ تُوجّه البيانات الواردة للتطبيق الصحيح — خادم الويب أو البريد الإلكتروني أو نقل الملفات. ترتبط المنافذ بـ TCP أو UDP. المنافذ المعروفة (0-1023) مُعيَّرة: FTP=20/21، SSH=22، Telnet=23، SMTP=25، DNS=53، DHCP=67/68، HTTP=80، HTTPS=443. الأثر الأمني: حجب المنافذ أو تقييدها يحمي الأنظمة من الوصول غير المُصرَّح.",
+html:`
+<div class="highlight"><div class="highlight-label">Definition</div><p>A <span class="kw" data-k="PortDef">port</span> is a number (0–65535) used to identify a specific <strong>service or application</strong> on a device within a network. It directs data to the right service.</p></div>
+<div class="card-grid cols-2" style="margin-top:14px">
+  <div class="card al"><div class="card-title">Purpose</div><div class="card-body">Directs incoming data to the correct application — web server, email server, or file transfer service.</div></div>
+  <div class="card ar"><div class="card-title">Security</div><div class="card-body"><span class="kw kw-r" data-k="PortSecurity">Blocking or restricting ports</span> can protect systems from unauthorized access.</div></div>
+</div>
+<p style="font-size:16px;font-weight:600;color:var(--text);margin:18px 0 10px">Key Common Ports:</p>
+<table class="ports-table">
+  <thead><tr><th>Port</th><th>Protocol</th><th>Service</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><span class="port-num">20/21</span></td><td><span class="port-proto pt">TCP</span></td><td><span class="kw" data-k="FTPPort">FTP</span></td><td style="color:var(--text2);font-size:14px">File Transfer Protocol — transfers files</td></tr>
+    <tr><td><span class="port-num">22</span></td><td><span class="port-proto ptu">TCP/UDP</span></td><td><span class="kw kw-g" data-k="SSHPort">SSH</span></td><td style="color:var(--text2);font-size:14px">Secure Shell — encrypted remote login</td></tr>
+    <tr><td><span class="port-num">23</span></td><td><span class="port-proto pt">TCP</span></td><td><span class="kw kw-a" data-k="TelnetPort">Telnet</span></td><td style="color:var(--text2);font-size:14px">Unencrypted remote login (insecure)</td></tr>
+    <tr><td><span class="port-num">25</span></td><td><span class="port-proto pt">TCP</span></td><td><span class="kw" data-k="SMTPPort">SMTP</span></td><td style="color:var(--text2);font-size:14px">Simple Mail Transfer — email sending</td></tr>
+    <tr><td><span class="port-num">53</span></td><td><span class="port-proto ptu">TCP/UDP</span></td><td><span class="kw kw-p" data-k="DNSPort">DNS</span></td><td style="color:var(--text2);font-size:14px">Domain Name System — name resolution</td></tr>
+    <tr><td><span class="port-num">67/68</span></td><td><span class="port-proto pu">UDP</span></td><td><span class="kw kw-a" data-k="DHCPPort">DHCP</span></td><td style="color:var(--text2);font-size:14px">Dynamic Host Configuration — assigns IPs</td></tr>
+    <tr><td><span class="port-num">80</span></td><td><span class="port-proto pt">TCP</span></td><td><span class="kw" data-k="HTTPPort">HTTP</span></td><td style="color:var(--text2);font-size:14px">HyperText Transfer Protocol — web traffic</td></tr>
+    <tr><td><span class="port-num">443</span></td><td><span class="port-proto ptu">TCP/UDP</span></td><td><span class="kw kw-g" data-k="HTTPSPort">HTTPS</span></td><td style="color:var(--text2);font-size:14px">HTTP with SSL — secure web traffic</td></tr>
+  </tbody>
+</table>
+`+kpTable([
+  {en:"A <strong>port</strong> is a 16-bit number (0–65535) identifying a specific service on a device.",ar:"<strong>المنفذ</strong> رقم 16 بت (0-65535) يُحدد خدمة معينة على جهاز."},
+  {en:"<strong>Well-known ports</strong> (0–1023) are standardized — memorize: FTP=20/21, SSH=22, HTTP=80, HTTPS=443, DNS=53.",ar:"<strong>المنافذ المعروفة</strong> (0-1023) مُعيَّرة — احفظ: FTP=20/21، SSH=22، HTTP=80، HTTPS=443، DNS=53."},
+  {en:"<strong>TCP ports</strong>: connection-based services (HTTP, SSH, FTP). <strong>UDP ports</strong>: connectionless (DHCP, DNS, streaming).",ar:"<strong>منافذ TCP</strong>: خدمات قائمة على الاتصال (HTTP، SSH، FTP). <strong>منافذ UDP</strong>: بدون اتصال (DHCP، DNS، البث)."},
+  {en:"Blocking ports is a key <strong>security measure</strong> — firewalls filter traffic based on port numbers.",ar:"حجب المنافذ إجراء أمني رئيسي — الجدران النارية تُصفّي الحركة بناءً على أرقام المنافذ."},
+  {en:"<strong>Telnet (port 23)</strong> is insecure — transmits in plaintext; replaced by <strong>SSH (port 22)</strong> for secure access.",ar:"<strong>Telnet (المنفذ 23)</strong> غير آمن — يُرسل نصاً عادياً؛ يُستبدل بـ <strong>SSH (المنفذ 22)</strong> للوصول الآمن."}
+])}
+
+]; /* end slides */
+
+/* ═══════════════════════════════════════
+   HEADER FIELD DETAILS
+═══════════════════════════════════════ */
+const ipv4Fields={
+  version:"<strong style='color:var(--accent)'>Version (4 bits)</strong> — Identifies the IP version. Value 4 = IPv4; value 6 = IPv6. This field allows network devices to parse the header correctly.",
+  ihl:"<strong style='color:var(--accent)'>IHL — Internet Header Length (4 bits)</strong> — Number of 32-bit words in the IPv4 header. Minimum value is 5 (= 5 × 4 = <strong>20 bytes</strong>). Multiply by 4 to get byte count.",
+  tos:"<strong style='color:var(--accent3)'>TOS — Type of Service (8 bits)</strong> — Specifies packet priority (e.g., low delay, high throughput, high reliability). Modern networks use this for QoS (Quality of Service).",
+  totlen:"<strong style='color:var(--accent4)'>Total Length (16 bits)</strong> — Total size of the IP datagram (header + data) in bytes. Maximum = 65,535 bytes.",
+  id:"<strong style='color:var(--accent)'>Identification (16 bits)</strong> — Uniquely identifies each packet's fragments so they can be reassembled in the correct order at the destination.",
+  flags:"<strong style='color:#a78bfa'>Flags (3 bits)</strong> — Controls fragmentation:<br>• <strong>x (bit 0)</strong>: Reserved (must be 0)<br>• <strong>D (bit 1 — Don't Fragment)</strong>: If set, routers must NOT fragment this packet.<br>• <strong>M (bit 2 — More Fragments)</strong>: Set on all fragments except the last.",
+  fragoff:"<strong style='color:#2dd4bf'>Fragment Offset (13 bits)</strong> — Position of this fragment's data relative to the start of the original packet. Measured in 8-byte blocks.",
+  ttl:"<strong style='color:#f87171'>TTL — Time to Live (8 bits)</strong> — Prevents packets from looping forever. Each router decrements TTL by 1. If TTL reaches 0, the packet is discarded and an ICMP 'Time Exceeded' (Type 11) is sent back.",
+  proto:"<strong style='color:var(--accent3)'>Protocol (8 bits)</strong> — Identifies the Transport Layer protocol in the payload:<br>• 1 = ICMP<br>• 6 = TCP<br>• 17 = UDP<br>• 89 = OSPF",
+  chksum:"<strong style='color:var(--accent4)'>Header Checksum (16 bits)</strong> — Verifies the integrity of the IPv4 header only (not the payload). Recomputed at every router since TTL changes.",
+  src:"<strong style='color:var(--accent)'>Source Address (32 bits)</strong> — The IPv4 address of the original sender of the packet.",
+  dst:"<strong style='color:#a78bfa'>Destination Address (32 bits)</strong> — The IPv4 address of the intended recipient of the packet.",
+  opt:"<strong style='color:#2dd4bf'>Options (variable)</strong> — Optional field for testing, debugging, or special routing. Not commonly used in normal traffic. IHL > 5 indicates options are present."
+};
+const ipv6Fields={
+  version:"<strong style='color:var(--accent)'>Version (4 bits)</strong> — Always 6 for IPv6. Allows routers to distinguish between IPv4 and IPv6 packets.",
+  tc:"<strong style='color:var(--accent3)'>Traffic Class (8 bits)</strong> — Equivalent to IPv4's TOS field. Used for Quality of Service (QoS) — prioritizes packets like voice or video over regular data.",
+  fl:"<strong style='color:#a78bfa'>Flow Label (20 bits)</strong> — Labels packets belonging to the same 'flow' (e.g., a video call) so routers can handle them with special treatment without inspecting higher-layer headers.",
+  pl:"<strong style='color:var(--accent4)'>Payload Length (16 bits)</strong> — Length of the data following the IPv6 header in bytes. Extension headers are considered part of the payload.",
+  nh:"<strong style='color:#2dd4bf'>Next Header (8 bits)</strong> — Identifies the type of header following the IPv6 header. Uses the same values as IPv4's Protocol field (6=TCP, 17=UDP, 58=ICMPv6). Extension headers form a chain.",
+  hl:"<strong style='color:#f87171'>Hop Limit (8 bits)</strong> — Replaces IPv4's TTL. Decremented by 1 at each hop. Packet is discarded when it reaches 0 — prevents infinite routing loops.",
+  src:"<strong style='color:var(--accent)'>Source Address (128 bits)</strong> — The 128-bit IPv6 address of the originator of the packet. Written as 8 groups of 4 hex digits.",
+  dst:"<strong style='color:#a78bfa'>Destination Address (128 bits)</strong> — 128-bit IPv6 address of the intended recipient (possibly not the ultimate recipient if a Routing header is present)."
+};
+const udpFields={
+  srcport:"<strong style='color:var(--accent)'>Source Port (16 bits)</strong> — Identifies the sending application's port. The recipient uses this to send a reply.",
+  dstport:"<strong style='color:var(--accent3)'>Destination Port (16 bits)</strong> — Identifies the receiving application's port (e.g., 53 for DNS, 67 for DHCP).",
+  length:"<strong style='color:var(--accent4)'>Length (16 bits)</strong> — Total length of the UDP segment including header (8 bytes) and data. Minimum value is 8.",
+  chksum:"<strong style='color:#f87171'>Checksum (16 bits)</strong> — Optional in IPv4; mandatory in IPv6. Verifies data integrity of the entire UDP segment and a pseudo-header from the IP layer."
+};
+
+function showHdrDetail(proto, field){
+  const detailId = proto+'Detail';
+  const d = document.getElementById(detailId);
+  if(!d) return;
+  const map = proto==='ipv4' ? ipv4Fields : ipv6Fields;
+  d.style.display='block';
+  d.innerHTML = map[field]||'';
+}
+function showUDPDetail(field){
+  const d = document.getElementById('udpDetail');
+  if(!d) return;
+  d.style.display='block';
+  d.innerHTML = udpFields[field]||'';
+}
+
+/* ═══════════════════════════════════════
+   KEYWORD DATA
+═══════════════════════════════════════ */
+const kwData={
+IPRole:{ar:"IP (بروتوكول الإنترنت): البروتوكول الأساسي في مجموعة TCP/IP — مسؤول عن تعريف الأجهزة بعناوين منطقية وتوجيه الحزم عبر الشبكات.",q:"What is the primary role of the Internet Protocol (IP)?",opts:["Encrypting data between devices","Identifying devices with logical addresses and routing packets across networks","Managing application sessions","Providing guaranteed data delivery"],ans:1},
+TCPIPSuite:{ar:"مجموعة TCP/IP: مجموعة البروتوكولات التي تُشكّل أساس اتصالات الإنترنت — تشمل IP وTCP وUDP وICMP وغيرها.",q:"The TCP/IP suite refers to:",opts:["Only TCP and IP protocols","A family of protocols that form the foundation of Internet communications","Only protocols used for web browsing","A hardware specification for network equipment"],ans:1},
+LogicalIPAddr:{ar:"العنوان المنطقي IP: عنوان رقمي (32 بت في IPv4، 128 بت في IPv6) يُعرّف جهازاً على الشبكة بشكل فريد — على عكس عنوان MAC الجسدي.",q:"A 'logical IP address' differs from a MAC address in that:",opts:["It is burned into hardware permanently","It is a software-assigned address that can change and identifies the device on the network","It only works on local networks","It is a physical address"],ans:1},
+RoutesData:{ar:"توجيه البيانات: دور IP في إيصال الحزم من المصدر للوجهة عبر شبكات متعددة — يختار الراوتر المسار الأمثل في كل خطوة.",q:"IP routes data by:",opts:["Sending data directly to all devices","Forwarding packets hop-by-hop through routers to reach the destination","Establishing a dedicated circuit between sender and receiver","Encrypting data at each hop"],ans:1},
+BestEffortIP:{ar:"التسليم بأقصى جهد: IP يحاول تسليم الحزم دون ضمان وصولها — البروتوكولات الأعلى مثل TCP تُضيف الموثوقية اللازمة.",q:"'Best-Effort Delivery' in IP means:",opts:["IP always guarantees packet delivery","IP attempts delivery but does not guarantee packets arrive, are ordered, or are delivered once","IP retransmits lost packets automatically","IP checks for errors in every packet"],ans:1},
+IPAddressing:{ar:"نظام عنونة IP: نظام فريد لتحديد هوية كل جهاز على الشبكة — IPv4 يستخدم عناوين 32 بت وIPv6 يستخدم 128 بت.",q:"IP Addressing provides:",opts:["A unique identification system for every device on a network","A method to encrypt communications","A way to compress data for transmission","A routing algorithm"],ans:0},
+IPv4Overview:{ar:"IPv4: الإصدار الرابع من بروتوكول الإنترنت — يستخدم عناوين 32 بت، يدعم حوالي 4.3 مليار عنوان. الأكثر استخداماً حالياً رغم نضوب عناوينه.",q:"IPv4 uses address sizes of:",opts:["16 bits","32 bits","64 bits","128 bits"],ans:1},
+IPv6Overview:{ar:"IPv6: الإصدار السادس من بروتوكول الإنترنت — يستخدم عناوين 128 بت لحل مشكلة نضوب عناوين IPv4، يدعم 2¹²⁸ عنواناً فريداً.",q:"IPv6 was developed primarily to solve:",opts:["Security weaknesses in IPv4","Exhaustion of IPv4's 32-bit address space","Routing inefficiency in IPv4","TCP connection overhead"],ans:1},
+IPv4Header:{ar:"رأس IPv4: يحتوي على جميع المعلومات اللازمة لتوجيه الحزمة — الحد الأدنى 20 بايت (5 كلمات 32 بت). يشمل عناوين المصدر والوجهة والبروتوكول وTTL وغيرها.",q:"The minimum size of an IPv4 header is:",opts:["8 bytes","16 bytes","20 bytes","40 bytes"],ans:2},
+IPv6Addr:{ar:"عنوان IPv6: 128 بت مُقسَّمة على 8 مجموعات من 4 أرقام هيكساديسيمال — مثال: 2001:0db8:85a3:0000:0000:8a2e:0370:7334.",q:"An IPv6 address consists of:",opts:["32 bits in 4 decimal groups","64 bits in 8 hex groups","128 bits in 8 groups of 4 hex digits","256 bits in 16 hex groups"],ans:2},
+IPv6Space:{ar:"فضاء عناوين IPv6: 2¹²⁸ عنواناً فريداً — عدد هائل يكفي كل جهاز متوقع على الإنترنت لعقود قادمة بما فيها أجهزة IoT.",q:"IPv6 provides 2¹²⁸ addresses primarily to:",opts:["Make routing faster","Support the virtually unlimited number of devices including IoT, solving IPv4 address exhaustion","Improve data encryption","Replace all TCP/IP protocols"],ans:1},
+IoT:{ar:"إنترنت الأشياء (IoT): مليارات الأجهزة المتصلة بالإنترنت — أجهزة استشعار وأجهزة منزلية ذكية وسيارات — تحتاج عناوين IP فريدة وفّرها IPv6.",q:"IPv6's large address space is particularly beneficial for:",opts:["Traditional desktop computers only","Mobile and IoT devices requiring billions of unique IP addresses","Improving web browser performance","Reducing network latency"],ans:1},
+TCPOverview:{ar:"TCP (بروتوكول التحكم في الإرسال): بروتوكول نقل موجّه للاتصال يضمن التسليم الموثوق المُرتَّب للبيانات. يُستخدم لـ HTTP وSSH وFTP وغيرها.",q:"TCP (Transmission Control Protocol) is best described as:",opts:["A connectionless, fast protocol","A connection-oriented protocol providing reliable, ordered data delivery","A protocol used only for file transfers","A Network Layer protocol"],ans:1},
+ConnectionOriented:{ar:"موجّه للاتصال: البروتوكول الذي يُنشئ اتصالاً مُخصَّصاً قبل نقل البيانات — يضمن أن كلا الطرفين جاهزان ومتزامنان.",q:"A 'connection-oriented' protocol like TCP requires:",opts:["No setup before sending data","A connection to be established before any data is transferred","Only the sender to be ready","A dedicated physical circuit"],ans:1},
+TCPSession:{ar:"جلسة TCP: اتصال مُنشأ بين جهازين لنقل بيانات موثوق — يبدأ بالمصافحة الثلاثية وينتهي بتسلسل FIN.",q:"In TCP, a 'session' must be established before data transfer to:",opts:["Speed up the connection","Ensure both devices are synchronized and ready — enabling reliable, ordered delivery","Encrypt the data","Compress the data"],ans:1},
+ReliableDelivery:{ar:"التسليم الموثوق: TCP يضمن وصول جميع البيانات بالترتيب الصحيح — يُعيد إرسال الحزم المفقودة ويُرقّم المقاطع.",q:"TCP provides reliable delivery by:",opts:["Using the fastest route available","Using sequence numbers, acknowledgments, and retransmission of lost segments","Sending data multiple times","Compressing data to reduce errors"],ans:1},
+ThreeWayHandshake:{ar:"المصافحة الثلاثية: آلية TCP لإنشاء اتصال موثوق — ثلاث خطوات (SYN → SYN-ACK → ACK) تضمن جاهزية الطرفين وتزامن أرقام التسلسل.",q:"The Three-Way Handshake in TCP consists of which steps (in order)?",opts:["ACK → SYN → SYN-ACK","SYN → SYN-ACK → ACK","SYN-ACK → SYN → ACK","FIN → ACK → FIN-ACK"],ans:1},
+SYN:{ar:"SYN (تزامن): العلم الأول في المصافحة الثلاثية — يحمل رقم التسلسل الابتدائي ويُطلب من الطرف الآخر تأكيد الاتصال.",q:"The SYN flag in TCP is used to:",opts:["Acknowledge receipt of data","Initiate a connection by sending an initial sequence number","Reset an existing connection","Close a connection gracefully"],ans:1},
+SYNACK:{ar:"SYN-ACK: الخطوة الثانية في المصافحة الثلاثية — المستقبِل يُقرّ بـ SYN (ACK=x+1) ويُرسل SYN الخاص به (seq=y).",q:"During the Three-Way Handshake, the SYN-ACK packet:",opts:["Is sent by the initiating host","Acknowledges the received SYN and sends the receiver's own sequence number","Terminates the connection","Resets the connection on error"],ans:1},
+ACKFlag:{ar:"ACK (إقرار): علم TCP يُؤكّد استلام البيانات — يُرسَل في الخطوة الثالثة من المصافحة وفي كل تأكيد استلام بيانات.",q:"The ACK flag in TCP is used to:",opts:["Initiate a new connection","Acknowledge successful receipt of data or a synchronization request","Reset the connection","Indicate urgent data"],ans:1},
+FIN:{ar:"FIN (إنهاء): علم TCP يُبدأ به الإغلاق السلس للاتصال — يُشير للطرف الآخر بأن المُرسِل لن يُرسل المزيد من البيانات.",q:"The FIN flag in TCP is used to:",opts:["Reset a connection abruptly","Initiate a graceful close — notify the other party no more data will be sent","Acknowledge data receipt","Establish a new connection"],ans:1},
+RST:{ar:"RST (إعادة الضبط): علم TCP يُنهي الاتصال بشكل مفاجئ — يُستخدم عند حدوث خطأ أو اتصال غير متوقع أو يكتشفه المضيف.",q:"The RST flag in TCP is used to:",opts:["Close a connection gracefully","Acknowledge the last packet","Abruptly terminate a connection — used on errors or unexpected connections","Synchronize sequence numbers"],ans:2},
+PSH:{ar:"PSH (دفع): علم TCP يُخبر الطبقات الأعلى بإرسال البيانات المؤقتة مباشرةً دون الانتظار لملء المخزن.",q:"The PSH (Push) flag in TCP instructs the receiver to:",opts:["Reset the connection","Acknowledge data immediately","Push buffered data to the receiving application immediately without waiting for the buffer to fill","Initiate a connection"],ans:2},
+URG:{ar:"URG (عاجل): علم TCP يُشير لوجود بيانات عاجلة يجب معالجتها فوراً — يُستخدم نادراً في الممارسة الحديثة.",q:"The URG flag in TCP marks data as:",opts:["Unreliable and may be dropped","Requiring immediate processing ahead of normal data","Needing to be retransmitted","Encrypted and compressed"],ans:1},
+SrcDstPort:{ar:"منافذ المصدر والوجهة: حقلان في رأس TCP كل منهما 16 بت — يُحددان التطبيقَين المتواصلَين. المنفذ 80 لـ HTTP، 443 لـ HTTPS، 22 لـ SSH.",q:"Source and Destination Ports in the TCP header identify:",opts:["The source and destination IP addresses","The specific applications communicating on each end","The routing path for the packet","The size of the data payload"],ans:1},
+SeqAckNum:{ar:"أرقام التسلسل والإقرار: رقم التسلسل يُحدد موضع البيانات في التدفق؛ رقم الإقرار يُحدد البايت التالي المتوقع — معاً يضمنان التسليم المُرتَّب.",q:"TCP Sequence and Acknowledgment Numbers are used to:",opts:["Encrypt the data payload","Track the order of data segments and confirm which bytes have been received","Identify the source and destination applications","Control the connection speed"],ans:1},
+TCPWindow:{ar:"حقل النافذة في TCP: يُحدد عدد البايتات التي يمكن للمُرسِل إرسالها قبل انتظار الإقرار — آلية التحكم في التدفق تمنع إغراق المستقبِل.",q:"The TCP Window field is used for:",opts:["Encryption of data","Flow control — specifying how much data can be sent before requiring an acknowledgment","Error detection","Identifying the protocol type"],ans:1},
+UDPConnectionless:{ar:"UDP غير موجّه للاتصال: يُرسل الحزم مباشرةً دون إنشاء جلسة مسبقة — أسرع من TCP لكن بدون ضمانات.",q:"UDP is called 'connectionless' because:",opts:["It runs on cable connections only","It sends data without establishing a session first — no handshake, no connection setup","It doesn't use IP addresses","It only works within local networks"],ans:1},
+CommOverhead:{ar:"الحمل الإضافي للاتصال: الوقت والموارد المُستهلَكة في إنشاء الاتصال وإدارته وإغلاقه — UDP يُلغيه بالكامل فيكون أسرع.",q:"UDP minimizes 'communication overhead' by:",opts:["Using smaller data packets","Eliminating connection establishment, acknowledgments, and session management","Using faster routing algorithms","Compressing all data before sending"],ans:1},
+NoAck:{ar:"غياب الإقرار: UDP لا يُرسل إقرارات استلام — المُرسِل لا يعرف إذا وصلت البيانات. التطبيقات التي تحتاج موثوقية تُضيفها بنفسها.",q:"The lack of acknowledgments in UDP means:",opts:["Data is always delivered reliably","The sender has no confirmation that data was received — the application must handle reliability if needed","Data is encrypted by default","The connection is faster but uses more bandwidth"],ans:1},
+UDPUseCases:{ar:"حالات استخدام UDP: تطبيقات الوقت الفعلي التي تقبل فقدان طفيف: بث الفيديو (Netflix/YouTube)، الألعاب عبر الإنترنت، DNS، VoIP.",q:"UDP is preferred over TCP for video streaming because:",opts:["Video requires guaranteed delivery","Minor packet loss is acceptable and the real-time speed of UDP is more important than TCP's reliability","Video data cannot be split into segments","TCP cannot handle large file sizes"],ans:1},
+ReliabilityVsSpeed:{ar:"الموثوقية مقابل السرعة: المفاضلة الأساسية بين TCP (موثوق لكن أبطأ) وUDP (سريع لكن غير موثوق) — يُختار البروتوكول حسب متطلبات التطبيق.",q:"The fundamental trade-off UDP makes is:",opts:["Reliability for smaller packet size","Reliability for speed — UDP is faster but provides no delivery guarantees","Encryption for efficiency","Connection management for bandwidth"],ans:1},
+UDPChecksum:{ar:"مجموع تحقق UDP: اختياري في IPv4 (إلزامي في IPv6) — يتحقق من سلامة بيانات UDP وجزء من رأس IP (pseudo-header).",q:"The Checksum field in UDP is:",opts:["Mandatory in both IPv4 and IPv6","Optional in IPv4 but mandatory in IPv6","Always mandatory","Never used in practice"],ans:1},
+ICMPErrors:{ar:"أخطاء ICMP: ICMP يُرسل رسائل للمصدر عند فشل التوجيه — مضيف غير قابل للوصول أو شبكة مزدحمة أو منفذ مغلق.",q:"ICMP error messages are sent to:",opts:["The destination host","The source host to notify it of delivery problems","All hosts on the network","The default gateway only"],ans:1},
+ICMPDiagnostic:{ar:"رسائل ICMP التشخيصية: تُوفر معلومات عن حالة الشبكة مثل قابلية وصول المضيف وزمن الاستجابة والمسار الذي تسلكه الحزم.",q:"ICMP 'informational/diagnostic messages' are used for:",opts:["Transferring user files","Providing network status information — reachability, response time, and routing paths","Managing user authentication","Encrypting network communications"],ans:1},
+ICMPNoData:{ar:"ICMP لا ينقل بيانات المستخدم: على عكس TCP وUDP، ICMP لا يحمل بيانات تطبيقات — يُستخدم فقط للتحكم والإدارة الشبكية.",q:"Unlike TCP and UDP, ICMP:",opts:["Provides more reliable delivery","Does not carry user application data — it is only for network control and management","Establishes sessions before communication","Operates at the Transport Layer"],ans:1},
+PingTool:{ar:"Ping: أداة شبكية تستخدم ICMP Echo Request (النوع 8) وEcho Reply (النوع 0) لاختبار قابلية وصول المضيف وقياس زمن الاستجابة (RTT).",q:"The 'Ping' tool uses ICMP to:",opts:["Transfer files between hosts","Test if a host is reachable and measure the round-trip time","Map the complete network topology","Scan for open ports"],ans:1},
+Traceroute:{ar:"Traceroute: أداة تستخدم TTL وICMP Time Exceeded (النوع 11) لتحديد كل راوتر على مسار الحزمة حتى الوجهة.",q:"Traceroute works by:",opts:["Sending large packets to test bandwidth","Exploiting TTL expiry — sending packets with increasing TTL values to reveal each hop","Scanning all network ports","Using DNS to resolve hostnames"],ans:1},
+ICMPType:{ar:"حقل النوع في ICMP: 8 بت تُحدد الفئة الرئيسية لرسالة ICMP — النوع 0 (Echo Reply)، النوع 3 (Destination Unreachable)، النوع 8 (Echo Request)، النوع 11 (Time Exceeded).",q:"The 'Type' field in an ICMP header specifies:",opts:["The size of the ICMP message","The general category of the ICMP message (e.g., Echo Reply, Destination Unreachable)","The source IP address","The priority of the message"],ans:1},
+ICMPCode:{ar:"حقل الكود في ICMP: 8 بت تُصنّف النوع بشكل أدق — مثلاً النوع 3 له أكواد متعددة: 0=الشبكة غير قابلة للوصول، 1=المضيف، 2=البروتوكول، 3=المنفذ.",q:"The 'Code' field in an ICMP header provides:",opts:["The destination port number","A sub-classification within the Type — e.g., for Type 3 it specifies what was unreachable (host, port, network)","The packet priority level","The error correction method"],ans:1},
+EchoReply:{ar:"Echo Reply (ICMP النوع 0): الاستجابة التي يُرسلها المضيف عند تلقيه Echo Request — الأساس الذي يعتمد عليه Ping.",q:"ICMP Type 0 (Echo Reply) is used in:",opts:["Traceroute to map hops","Ping — as the response to an Echo Request, confirming the host is alive","Error reporting for unreachable hosts","TTL expiry notification"],ans:1},
+DestUnreachable:{ar:"Destination Unreachable (ICMP النوع 3): يُرسَل عندما لا يمكن الوصول للهدف — الكود يُحدد السبب: شبكة (0)، مضيف (1)، بروتوكول (2)، منفذ (3).",q:"ICMP Type 3 (Destination Unreachable) is sent when:",opts:["The TTL of a packet expires","A host is unreachable, a port is closed, or a network is unreachable","An Echo Request is received","A packet is fragmented"],ans:1},
+TimeExceeded:{ar:"Time Exceeded (ICMP النوع 11): يُرسَل عندما يصل TTL الحزمة إلى صفر في راوتر ما — Traceroute يستغل هذا للكشف عن كل قفزة.",q:"ICMP Type 11 (Time Exceeded) is generated when:",opts:["A destination port is closed","The packet TTL reaches 0 at a router — Traceroute exploits this to map network hops","A connection is refused","The packet payload is corrupt"],ans:1},
+PortDef:{ar:"المنفذ: رقم 16 بت (0-65535) يُحدد تطبيقاً أو خدمة بعينها على جهاز — يُتيح لنظام التشغيل توجيه البيانات للتطبيق الصحيح.",q:"A network port is best described as:",opts:["A physical connector on a network device","A 16-bit number identifying a specific service or application on a device","A type of network protocol","A firewall rule"],ans:1},
+PortSecurity:{ar:"أمن المنافذ: حجب المنافذ غير الضرورية في الجدار الناري يُقلّل سطح الهجوم — المهاجمون يفحصون المنافذ المفتوحة بحثاً عن خدمات ضعيفة.",q:"Blocking or restricting ports enhances security by:",opts:["Increasing network bandwidth","Reducing the attack surface — preventing unauthorized access to services on open ports","Encrypting all network traffic","Speeding up network communication"],ans:1},
+FTPPort:{ar:"FTP (المنافذ 20 و21): المنفذ 21 للتحكم والأوامر؛ المنفذ 20 لنقل البيانات الفعلية. FTP غير مشفّر — استخدم SFTP أو FTPS.",q:"FTP uses ports 20 and 21 for:",opts:["Port 20 for control, port 21 for data transfer","Port 20 for data transfer, port 21 for control commands","Both ports for simultaneous file transfer","Authentication on port 20, data on port 21"],ans:1},
+SSHPort:{ar:"SSH (المنفذ 22): الخدمة المشفّرة للوصول عن بُعد — يستخدم المنفذ 22 ويُحل محل Telnet (23) غير الآمن.",q:"SSH (Secure Shell) operates on which default port?",opts:["21","23","22","25"],ans:2},
+TelnetPort:{ar:"Telnet (المنفذ 23): بروتوكول وصول عن بُعد قديم وغير آمن — يُرسل البيانات بما فيها كلمات المرور بنص عادي. استُبدل بـ SSH.",q:"Telnet on port 23 is considered insecure because:",opts:["It is too slow for modern networks","It transmits all data including passwords in plaintext — can be intercepted","It requires special hardware","It only works on specific operating systems"],ans:1},
+SMTPPort:{ar:"SMTP (المنفذ 25): بروتوكول نقل البريد البسيط — يُستخدم لإرسال البريد الإلكتروني بين الخوادم.",q:"Port 25 (SMTP) is primarily used for:",opts:["Receiving email from a mail server","Sending email between mail servers","Transferring files","Web browsing"],ans:1},
+DNSPort:{ar:"DNS (المنفذ 53): نظام أسماء النطاقات — يستخدم UDP للاستعلامات السريعة وTCP للنقل الكبير وتزامن المناطق.",q:"DNS uses port 53 with both TCP and UDP because:",opts:["DNS always uses TCP for security","UDP for fast queries (most lookups), TCP for large transfers and zone transfers","DNS only uses UDP","DNS only uses TCP"],ans:1},
+DHCPPort:{ar:"DHCP (المنافذ 67 و68): يُعيّن عناوين IP تلقائياً — الخادم على المنفذ 67، العميل على المنفذ 68. يستخدم UDP لأن العميل لا يملك عنوان IP بعد.",q:"DHCP uses UDP (not TCP) on ports 67/68 because:",opts:["TCP is not available at this stage","The client has no IP address yet — cannot establish a TCP connection before getting an address from DHCP","UDP is more secure than TCP","DHCP only works on local networks"],ans:1},
+HTTPPort:{ar:"HTTP (المنفذ 80): بروتوكول نقل النص التشعبي — أساس تصفح الويب. غير مشفّر؛ استخدم HTTPS (443) للاتصالات الآمنة.",q:"HTTP traffic uses port 80 and is:",opts:["Encrypted by default","Unencrypted plaintext — HTTPS on port 443 should be used for secure communication","Faster than HTTPS","Only used for file downloads"],ans:1},
+HTTPSPort:{ar:"HTTPS (المنفذ 443): HTTP مع تشفير SSL/TLS — يُؤمّن اتصالات الويب ويمنع التنصت. يُشار إليه بالقفل في شريط عنوان المتصفح.",q:"HTTPS uses port 443 and provides security by:",opts:["Using a separate network from HTTP","Adding SSL/TLS encryption to HTTP — protecting data from interception","Blocking all cookies","Requiring two-factor authentication"],ans:1}
+};
+
+/* ═══════════════════════════════════════
+   RENDER
+═══════════════════════════════════════ */
+const nav=document.getElementById('tabsNav');
+const body=document.getElementById('tabsBody');
+slides.forEach((s,i)=>{
+  const btn=document.createElement('button');
+  btn.className='tab-btn'+(i===0?' active':'');
+  btn.innerHTML=`<span class="tab-slide-num">${s.num}</span>${s.label}<span class="exclaim-btn" title="Executive Summary" data-slide="${i}">!</span>`;
+  btn.addEventListener('click',e=>{if(e.target.classList.contains('exclaim-btn'))return;switchTab(i);});
+  nav.appendChild(btn);
+  const sec=document.createElement('div');
+  sec.className='section'+(i===0?' active':'');
+  sec.id='sec-'+i;
+  sec.innerHTML=`<div class="sec-header"><div class="sec-num">Slide ${s.num}</div><div><div class="sec-title">${s.label}</div></div></div><div>${s.html}</div>`;
+  body.appendChild(sec);
+});
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===idx));
+}
+document.addEventListener('click',e=>{
+  const eb=e.target.closest('.exclaim-btn');
+  if(eb){e.stopPropagation();const idx=parseInt(eb.dataset.slide);const s=slides[idx];
+    document.getElementById('execTitle').textContent='Executive Summary — Slide '+s.num+': '+s.label;
+    document.getElementById('execEn').textContent=s.execEn;
+    document.getElementById('execAr').textContent=s.execAr;
+    document.getElementById('execModal').classList.add('open');}
+});
+let currentKwKey=null;
+document.addEventListener('click',e=>{
+  const kw=e.target.closest('.kw');if(!kw)return;
+  const k=kw.dataset.k;if(!k||!kwData[k])return;
+  currentKwKey=k;const d=kwData[k];
+  document.getElementById('kwTitle').textContent=k.replace(/([A-Z])/g,' $1').trim();
+  document.getElementById('kwAr').textContent=d.ar;
+  document.getElementById('kwQ').textContent=d.q;
+  const optsDiv=document.getElementById('kwOpts');optsDiv.innerHTML='';
+  document.getElementById('kwFb').className='feedback-box';document.getElementById('kwFb').textContent='';
+  document.getElementById('kwReset').style.display='none';
+  d.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt-btn';btn.textContent=['A','B','C','D'][i]+'. '+o;btn.addEventListener('click',()=>checkOpt(i,d.ans,optsDiv));optsDiv.appendChild(btn);});
+  document.getElementById('kwModal').classList.add('open');
+});
+function checkOpt(chosen,correct,container){
+  const btns=container.querySelectorAll('.opt-btn');btns.forEach(b=>b.classList.add('disabled'));
+  btns[chosen].classList.add(chosen===correct?'correct':'wrong');if(chosen!==correct)btns[correct].classList.add('correct');
+  const fb=document.getElementById('kwFb');fb.className='feedback-box show-fb '+(chosen===correct?'fb-ok':'fb-no');
+  fb.textContent=chosen===correct?'✓ Correct!':'✗ Incorrect — correct answer highlighted.';
+  document.getElementById('kwReset').style.display='inline-block';
+}
+function resetKwQ(){if(!currentKwKey||!kwData[currentKwKey])return;const d=kwData[currentKwKey];
+  const optsDiv=document.getElementById('kwOpts');optsDiv.innerHTML='';
+  document.getElementById('kwFb').className='feedback-box';document.getElementById('kwFb').textContent='';
+  document.getElementById('kwReset').style.display='none';
+  d.opts.forEach((o,i)=>{const btn=document.createElement('button');btn.className='opt-btn';btn.textContent=['A','B','C','D'][i]+'. '+o;btn.addEventListener('click',()=>checkOpt(i,d.ans,optsDiv));optsDiv.appendChild(btn);});
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(bg=>{bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open');});});
+</script>
+</body>
+</html>

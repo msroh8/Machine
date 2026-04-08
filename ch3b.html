@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBS60201 — Lecture 3: Network Vulnerability Scanning (Part 1)</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--surface3:#1e2d4a;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--accent4:#f59e0b;--danger:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:rgba(255,255,255,0.08);--border2:rgba(0,212,255,0.3);
+  --mono:'JetBrains Mono',monospace;--sans:'IBM Plex Sans Arabic',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.75;min-height:100vh;overflow-x:hidden;font-size:17px}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1140px;margin:0 auto;padding:0 24px}
+
+/* HEADER */
+header{padding:52px 0 30px;text-align:center}
+.course-tag{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--accent);border:1px solid var(--border2);padding:6px 18px;border-radius:2px;margin-bottom:18px;text-transform:uppercase}
+header h1{font-size:clamp(24px,4vw,44px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:10px}
+header h1 span{color:var(--accent)}
+.subtitle{color:var(--text2);font-size:15px;max-width:660px;margin:0 auto 22px}
+.header-meta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+.meta-pill{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:5px 13px;font-size:13px;color:var(--text2)}
+.meta-pill span{color:var(--accent3);font-weight:600}
+
+/* TABS */
+.tabs-outer{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:24px 0 0;overflow:hidden}
+.tabs-scroll{display:flex;overflow-x:auto;padding:13px 13px 0;gap:6px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.tabs-scroll::-webkit-scrollbar{height:4px}
+.tabs-scroll::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+.tab-btn{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;font-size:12.5px;font-family:var(--sans);white-space:nowrap;transition:all .2s;flex-shrink:0;border-bottom:none}
+.tab-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.04)}
+.tab-btn.active{background:var(--surface2);border-color:var(--border2);color:var(--accent);font-weight:600}
+.tab-slide-num{font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--surface3);padding:2px 6px;border-radius:2px}
+.tab-btn.active .tab-slide-num{color:var(--accent);background:rgba(0,212,255,0.12)}
+.exclaim-btn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,158,11,0.15);color:var(--accent4);font-size:11px;font-weight:700;cursor:pointer;border:1px solid rgba(245,158,11,0.3);transition:all .15s;flex-shrink:0;line-height:1}
+.exclaim-btn:hover{background:rgba(245,158,11,0.28);transform:scale(1.18)}
+
+/* SECTIONS */
+.section{display:none;padding:30px 24px 36px;animation:fadeIn .25s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* SEC HEADER */
+.sec-header{display:flex;align-items:flex-start;gap:15px;margin-bottom:26px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.sec-num{font-family:var(--mono);font-size:11px;color:var(--accent);background:rgba(0,212,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:3px 10px;white-space:nowrap;margin-top:4px;flex-shrink:0}
+.sec-title{font-size:clamp(19px,2.6vw,26px);font-weight:700;color:#fff;line-height:1.3}
+
+/* CONTENT */
+.bullet-list{list-style:none;padding:0;margin:10px 0}
+.bullet-list li{padding:10px 0 10px 20px;border-bottom:1px solid var(--border);font-size:16px;color:var(--text2);line-height:1.7;position:relative}
+.bullet-list li:last-child{border-bottom:none}
+.bullet-list li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700;font-size:18px;line-height:1.5}
+.bullet-list li strong{color:var(--text);font-weight:600}
+.sub-list{list-style:none;padding:6px 0 0 18px}
+.sub-list li{padding:4px 0 4px 14px;font-size:15px;color:var(--text3);position:relative;border-bottom:none}
+.sub-list li::before{content:'–';position:absolute;left:0;color:var(--accent3)}
+
+.highlight{background:linear-gradient(135deg,rgba(0,212,255,0.07),rgba(124,58,237,0.07));border:1px solid var(--border2);border-radius:10px;padding:18px 22px;margin:16px 0}
+.highlight-label{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:7px}
+.highlight p{font-size:16px;color:var(--text);line-height:1.75}
+.highlight-warn{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.28);border-radius:10px;padding:16px 20px;margin:14px 0}
+.highlight-warn .highlight-label{color:var(--danger)}
+.highlight-warn p{font-size:16px;color:var(--text);line-height:1.75}
+
+.card-grid{display:grid;gap:14px;margin-top:16px}
+.card-grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+.card-grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.card-grid.cols-4{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-title{font-size:15px;font-weight:600;color:#fff;margin-bottom:7px}
+.card-body{font-size:14px;color:var(--text2);line-height:1.65}
+.card.al{border-left:3px solid var(--accent)}
+.card.ag{border-left:3px solid var(--accent3)}
+.card.ap{border-left:3px solid var(--accent2)}
+.card.aa{border-left:3px solid var(--accent4)}
+.card.ar{border-left:3px solid var(--danger)}
+
+/* OSI LAYERS */
+.osi-grid{display:grid;gap:8px;margin:16px 0}
+.osi-layer{display:flex;align-items:stretch;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.osi-num{width:42px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;flex-shrink:0}
+.osi-name{width:130px;padding:10px 14px;font-size:14px;font-weight:600;flex-shrink:0;display:flex;align-items:center}
+.osi-detail{padding:10px 14px;font-size:13px;color:var(--text2);flex:1;line-height:1.55;display:flex;align-items:center}
+.osi-proto{padding:10px 12px;font-size:12px;color:var(--text3);font-family:var(--mono);flex-shrink:0;display:flex;align-items:center;border-left:1px solid var(--border);min-width:160px}
+.l7{background:rgba(0,212,255,0.06)}.l7 .osi-num{background:rgba(0,212,255,0.15);color:var(--accent)}
+.l6{background:rgba(124,58,237,0.06)}.l6 .osi-num{background:rgba(124,58,237,0.15);color:#a78bfa}
+.l5{background:rgba(16,185,129,0.06)}.l5 .osi-num{background:rgba(16,185,129,0.15);color:var(--accent3)}
+.l4{background:rgba(245,158,11,0.06)}.l4 .osi-num{background:rgba(245,158,11,0.15);color:var(--accent4)}
+.l3{background:rgba(239,68,68,0.06)}.l3 .osi-num{background:rgba(239,68,68,0.15);color:#f87171}
+.l2{background:rgba(99,102,241,0.06)}.l2 .osi-num{background:rgba(99,102,241,0.15);color:#818cf8}
+.l1{background:rgba(20,184,166,0.06)}.l1 .osi-num{background:rgba(20,184,166,0.15);color:#2dd4bf}
+
+/* TCPIP TABLE */
+.tcpip-table{width:100%;border-collapse:collapse;margin-top:16px;font-size:15px}
+.tcpip-table th{background:var(--surface2);padding:12px 16px;text-align:left;font-weight:600;color:var(--text2);font-size:12px;letter-spacing:1px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.tcpip-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.6}
+.tcpip-table tr:last-child td{border-bottom:none}
+.tcpip-table tr:hover td{background:rgba(255,255,255,0.02)}
+.layer-badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:12px;font-family:var(--mono);font-weight:600;border:1px solid}
+.lb-app{background:rgba(0,212,255,0.1);color:var(--accent);border-color:var(--border2)}
+.lb-tr{background:rgba(245,158,11,0.1);color:var(--accent4);border-color:rgba(245,158,11,0.3)}
+.lb-net{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.3)}
+.lb-h2n{background:rgba(16,185,129,0.1);color:var(--accent3);border-color:rgba(16,185,129,0.3)}
+
+/* FRAME VISUAL */
+.frame-vis{display:flex;margin:18px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.fv-cell{flex:1;padding:12px 10px;text-align:center;border-right:1px solid var(--border);cursor:pointer;transition:background .15s}
+.fv-cell:last-child{border-right:none}
+.fv-cell:hover{background:rgba(0,212,255,0.08)}
+.fv-label{font-size:12px;font-family:var(--mono);color:var(--accent);margin-bottom:4px}
+.fv-size{font-size:11px;color:var(--text3)}
+.fv-cell.selected{background:rgba(0,212,255,0.1);border-color:var(--accent)}
+
+/* PROTO GRID */
+.proto-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:14px 0}
+.proto-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px 18px}
+.proto-name{font-family:var(--mono);font-size:13px;font-weight:700;margin-bottom:6px}
+.proto-desc{font-size:14px;color:var(--text2);line-height:1.6}
+.proto-ex{font-size:13px;color:var(--text3);margin-top:5px}
+
+/* KEYWORD */
+.kw{display:inline;background:rgba(0,212,255,0.11);color:var(--accent);border-radius:3px;padding:1px 7px;cursor:pointer;font-weight:600;font-size:0.93em;border:1px solid rgba(0,212,255,0.22);transition:background .15s;white-space:nowrap}
+.kw:hover{background:rgba(0,212,255,0.22)}
+.kw-g{background:rgba(16,185,129,0.1);color:var(--accent3);border-color:rgba(16,185,129,0.22)}
+.kw-g:hover{background:rgba(16,185,129,0.22)}
+.kw-a{background:rgba(245,158,11,0.1);color:var(--accent4);border-color:rgba(245,158,11,0.22)}
+.kw-a:hover{background:rgba(245,158,11,0.22)}
+.kw-r{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.22)}
+.kw-r:hover{background:rgba(239,68,68,0.22)}
+.kw-p{background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.22)}
+.kw-p:hover{background:rgba(124,58,237,0.22)}
+
+/* ===================== KEY POINTS TABLE ===================== */
+.keypoints{margin-top:32px;border-top:2px solid rgba(0,212,255,0.2);padding-top:20px}
+.kp-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.kp-icon{width:28px;height:28px;border-radius:50%;background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.kp-title-en{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--accent4);text-transform:uppercase}
+.kp-title-ar{font-size:13px;color:var(--text2);direction:rtl;margin-right:auto}
+.kp-table{width:100%;border-collapse:collapse;font-size:15px}
+.kp-table thead tr{background:var(--surface2)}
+.kp-table th{padding:10px 16px;font-weight:600;font-size:12px;letter-spacing:0.5px;border-bottom:1px solid var(--border)}
+.kp-table th.th-en{text-align:left;color:var(--accent);font-family:var(--mono);width:50%}
+.kp-table th.th-ar{text-align:right;color:var(--accent3);font-family:var(--sans);direction:rtl;width:50%}
+.kp-table td{padding:11px 16px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.65}
+.kp-table tr:last-child td{border-bottom:none}
+.kp-table tr:hover td{background:rgba(255,255,255,0.015)}
+.kp-table td.td-en{color:var(--text2);font-size:14px}
+.kp-table td.td-ar{text-align:right;direction:rtl;color:var(--text2);font-size:14px;line-height:1.7}
+.kp-table td.td-en strong,.kp-table td.td-ar strong{font-weight:600;color:var(--text)}
+.kp-row-num{font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--surface3);padding:1px 6px;border-radius:2px;margin-right:6px}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:22px 0}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;align-items:center;justify-content:center;padding:18px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 0 50px rgba(0,212,255,0.07)}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.modal-kw-title{font-size:17px;font-weight:700;color:#fff}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-close:hover{border-color:var(--danger);color:var(--danger)}
+.modal-body{padding:18px 22px}
+.lbl-ar{color:var(--accent3);direction:rtl;text-align:right;display:block;font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+.lbl-en{color:var(--accent);font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:block}
+.modal-ar{font-size:15px;line-height:1.8;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:8px;padding:14px 18px;margin-bottom:18px;border:1px solid var(--border)}
+.modal-q-label{font-size:11px;font-family:var(--mono);color:var(--accent4);letter-spacing:2px;margin-bottom:10px;text-transform:uppercase}
+.modal-q{font-size:15px;font-weight:600;color:#fff;margin-bottom:14px;line-height:1.6}
+.opt-btn{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:11px 15px;margin-bottom:8px;cursor:pointer;font-size:14px;color:var(--text2);transition:all .15s;line-height:1.5}
+.opt-btn:hover:not(.disabled){border-color:var(--accent);color:var(--text);background:rgba(0,212,255,0.04)}
+.opt-btn.correct{background:rgba(16,185,129,0.1);border-color:var(--accent3);color:var(--accent3)}
+.opt-btn.wrong{background:rgba(239,68,68,0.08);border-color:var(--danger);color:#f87171}
+.opt-btn.disabled{cursor:default}
+.feedback-box{font-size:14px;margin-top:10px;padding:11px 15px;border-radius:7px;display:none;line-height:1.5}
+.feedback-box.show-fb{display:block}
+.fb-ok{background:rgba(16,185,129,0.1);color:var(--accent3);border:1px solid rgba(16,185,129,0.2)}
+.fb-no{background:rgba(239,68,68,0.07);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.reset-q-btn{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 15px;border-radius:5px;cursor:pointer;font-size:13px;font-family:var(--sans);transition:all .2s;display:none}
+.reset-q-btn:hover{border-color:var(--accent);color:var(--accent)}
+.exec-en{font-size:15px;color:var(--text2);line-height:1.8;margin-bottom:16px;padding:15px 18px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)}
+.exec-ar{font-size:15px;line-height:1.85;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:8px;padding:15px 18px;border:1px solid var(--border)}
+
+.scroll-top{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);font-size:16px;z-index:100;transition:all .2s}
+.scroll-top:hover{background:rgba(0,212,255,0.1)}
+footer{text-align:center;padding:36px 0 24px;color:var(--text3);font-size:13px;border-top:1px solid var(--border);margin-top:48px}
+footer span{color:var(--text2)}
+
+@media(max-width:700px){
+  .osi-proto{display:none}
+  .osi-name{width:100px}
+  .frame-vis{flex-wrap:wrap}
+  .fv-cell{min-width:33%}
+  .kp-table{font-size:13px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="course-tag">CYBS60201 · Lecture 3 · Chapter 2</div>
+  <h1>Network Vulnerability Scanning <span>(Part 1)</span></h1>
+  <p class="subtitle">Click keywords for Arabic explanations + MCQ. Use <strong style="color:var(--accent4)">!</strong> for bilingual summaries. Each slide ends with a bilingual key-points table.</p>
+  <div class="header-meta">
+    <div class="meta-pill">Lecture: <span>3</span></div>
+    <div class="meta-pill">Slides: <span>1 – 19</span></div>
+    <div class="meta-pill">Focus: <span>OSI · TCP/IP · Ethernet</span></div>
+    <div class="meta-pill">📋 <span>= Key Points (EN / AR)</span></div>
+  </div>
+</header>
+
+<div class="tabs-outer">
+  <div class="tabs-scroll" id="tabsNav"></div>
+  <div id="tabsBody"></div>
+</div>
+</div>
+
+<!-- KEYWORD MODAL -->
+<div class="modal-bg" id="kwModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-kw-title" id="kwTitle"></div>
+      <button class="modal-close" onclick="closeModal('kwModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <span class="lbl-ar">الشرح بالعربي</span>
+      <div class="modal-ar" id="kwAr"></div>
+      <div class="modal-q-label">MCQ QUESTION</div>
+      <div class="modal-q" id="kwQ"></div>
+      <div id="kwOpts"></div>
+      <div class="feedback-box" id="kwFb"></div>
+      <button class="reset-q-btn" id="kwReset" onclick="resetKwQ()">↺ Try again</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXEC MODAL -->
+<div class="modal-bg" id="execModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-kw-title" id="execTitle"></div>
+      <button class="modal-close" onclick="closeModal('execModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <span class="lbl-en">Executive Summary — English</span>
+      <div class="exec-en" id="execEn"></div>
+      <span class="lbl-ar">الملخص التنفيذي — بالعربي</span>
+      <div class="exec-ar" id="execAr"></div>
+    </div>
+  </div>
+</div>
+
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<footer><div class="wrap">CYBS60201 · Advanced Programming in Cybersecurity · <span>Al-Baha University</span> · Semester II 1446H</div></footer>
+
+<script>
+/* ============================================================
+   HELPER: build the keypoints table HTML
+   kps = [{en:"...", ar:"..."}]
+============================================================ */
+function kpTable(kps){
+  let rows = kps.map((k,i)=>`
+    <tr>
+      <td class="td-en"><span class="kp-row-num">${String(i+1).padStart(2,'0')}</span>${k.en}</td>
+      <td class="td-ar">${k.ar}</td>
+    </tr>`).join('');
+  return `
+  <div class="keypoints">
+    <div class="kp-header">
+      <div class="kp-icon">📋</div>
+      <span class="kp-title-en">Key Points to Know</span>
+      <span class="kp-title-ar">نقاط يجدر بك معرفتها</span>
+    </div>
+    <table class="kp-table">
+      <thead><tr>
+        <th class="th-en">Key Point (English)</th>
+        <th class="th-ar">النقطة الأساسية (عربي)</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+/* ============================================================
+   SLIDES DATA
+============================================================ */
+const slides = [
+
+/* SLIDE 1 */
+{num:"01", label:"Defining Network Vulnerability Scanning",
+execEn:"Network Vulnerability Scanning is a technique to identify security weaknesses in computer networks. Importantly, it is used by both defenders (administrators) and attackers — making it a dual-use technique. Its primary goal is finding open ports and the services running on them, which reveals the attack surface of a network.",
+execAr:"فحص ثغرات الشبكة تقنية لتحديد نقاط الضعف الأمنية في الشبكات. الأهم من ذلك، يستخدمها كل من المدافعين والمهاجمين — مما يجعلها تقنية ذات استخدام مزدوج. هدفها الأساسي هو اكتشاف المنافذ المفتوحة والخدمات التي تعمل عليها، مما يكشف سطح الهجوم.",
+html:`
+<ul class="bullet-list">
+  <li>A technique used to identify <span class="kw" data-k="SecurityWeaknesses">security weaknesses</span> in a computer network.</li>
+  <li>It is a <span class="kw kw-a" data-k="SurveillanceTechnique">surveillance technique</span> used by <strong>both administrators and attackers</strong>.</li>
+  <li><strong>Goal:</strong> To find <span class="kw" data-k="OpenPorts">open ports</span> and the <span class="kw kw-g" data-k="ServicesOnPorts">services</span> running on those ports.</li>
+</ul>
+` + kpTable([
+  {en:"<strong>Network Vulnerability Scanning</strong> identifies open ports and services to reveal security weaknesses.", ar:"<strong>فحص ثغرات الشبكة</strong> يُحدد المنافذ المفتوحة والخدمات للكشف عن نقاط الضعف الأمنية."},
+  {en:"It is a <strong>dual-use</strong> technique — used by both security administrators and attackers.", ar:"إنها تقنية <strong>ذات استخدام مزدوج</strong> — يستخدمها المديرون الأمنيون والمهاجمون على حد سواء."},
+  {en:"The primary goal is discovering <strong>open ports</strong> and what services are listening on them.", ar:"الهدف الرئيسي هو اكتشاف <strong>المنافذ المفتوحة</strong> وما هي الخدمات التي تستمع عليها."}
+])},
+
+/* SLIDE 2 */
+{num:"02", label:"Prerequisite: Networking Mastery",
+execEn:"Effective scanning requires solid foundational knowledge of networking. A scanner must understand IP Addresses and Subnetting to target the right hosts, Network Ports and Protocols to interpret what services are running, and Broadcast vs. Unicast to choose the right scanning method. Identifying live hosts through scanning scope determines the boundaries of the entire assessment.",
+execAr:"الفحص الفعّال يتطلب معرفة أساسية متينة بالشبكات. يجب أن يفهم فاحص الثغرات عناوين IP وتقسيم الشبكات الفرعية لاستهداف المضيفين الصحيحين، ومنافذ الشبكة والبروتوكولات لتفسير الخدمات، والبث العام مقابل البث الفردي لاختيار طريقة الفحص المناسبة. تحديد المضيفين النشطين يُحدد حدود التقييم.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Prerequisite</div>
+  <p>To scan effectively, one must understand the following networking fundamentals:</p>
+</div>
+<div class="card-grid cols-2" style="margin-top:16px">
+  <div class="card al"><div class="card-title"><span class="kw" data-k="IPAddressingSubnet">IP Addresses &amp; Subnetting</span></div><div class="card-body">Defines which hosts to target and what ranges to scan.</div></div>
+  <div class="card ag"><div class="card-title"><span class="kw kw-g" data-k="NetworkPortsProtocols">Network Ports &amp; Protocols</span></div><div class="card-body">Reveals which services are running on target systems.</div></div>
+  <div class="card aa"><div class="card-title"><span class="kw kw-a" data-k="BroadcastUnicast">Broadcast vs. Unicast</span></div><div class="card-body">Determines the scanning method and its reach.</div></div>
+  <div class="card ap"><div class="card-title"><span class="kw kw-p" data-k="ScanningScope">Scanning Scope</span></div><div class="card-body">Identifying live hosts determines the <strong style="color:var(--text)">boundaries of the assessment</strong>.</div></div>
+</div>
+` + kpTable([
+  {en:"Effective scanning requires mastery of <strong>IP Addressing, Subnetting, Ports, Protocols, Broadcast, and Unicast</strong>.", ar:"الفحص الفعّال يتطلب إتقان <strong>عناوين IP والشبكات الفرعية والمنافذ والبروتوكولات والبث العام والفردي</strong>."},
+  {en:"<strong>Scanning scope</strong> — identifying live hosts — sets the boundaries of the entire security assessment.", ar:"<strong>نطاق الفحص</strong> — تحديد المضيفين النشطين — يُحدد حدود التقييم الأمني بأكمله."},
+  {en:"Without networking mastery, scan results cannot be correctly interpreted or acted upon.", ar:"بدون إتقان الشبكات، لا يمكن تفسير نتائج الفحص أو التصرف بناءً عليها بشكل صحيح."}
+])},
+
+/* SLIDE 3 */
+{num:"03", label:"Determining Scope & Host Availability",
+execEn:"Networks are not static — organizations frequently change through DHCP reassignments, new devices, and system replacements. Old vulnerabilities regularly reappear when new systems join the network with misconfigured or unpatched software. This dynamic nature means that scans must be repeatable and consistent over time to capture these changes and maintain an accurate security picture.",
+execAr:"الشبكات ليست ثابتة — تتغير المؤسسات باستمرار من خلال إعادة تعيينات DHCP والأجهزة الجديدة واستبدال الأنظمة. الثغرات القديمة تظهر من جديد بانتظام عندما تنضم أنظمة جديدة بإعدادات خاطئة أو غير مُحدَّثة. هذا الطابع الديناميكي يعني أن الفحوصات يجب أن تكون قابلة للتكرار ومتسقة لالتقاط هذه التغييرات.",
+html:`
+<ul class="bullet-list">
+  <li>Organizations change frequently (<span class="kw" data-k="DHCPReassign">DHCP reassignments</span>).</li>
+  <li>Old vulnerabilities often <strong>reappear</strong> when new systems are added.</li>
+  <li><strong>Requirement:</strong> Scans must be <span class="kw kw-g" data-k="RepeatableScans">repeatable and consistent</span> to capture these changes.</li>
+</ul>
+` + kpTable([
+  {en:"Networks are <strong>dynamic</strong> — DHCP reassignments and new systems constantly change the attack surface.", ar:"الشبكات <strong>ديناميكية</strong> — إعادة تعيين DHCP والأنظمة الجديدة تُغيّر باستمرار سطح الهجوم."},
+  {en:"Old vulnerabilities <strong>reappear</strong> on newly added systems that are misconfigured or unpatched.", ar:"الثغرات القديمة <strong>تعود للظهور</strong> في الأنظمة الجديدة ذات الإعدادات الخاطئة أو غير المُحدَّثة."},
+  {en:"Scans must be <strong>repeatable and consistent</strong> to track changes and maintain an accurate security picture.", ar:"يجب أن تكون الفحوصات <strong>قابلة للتكرار ومتسقة</strong> لتتبع التغييرات والحفاظ على صورة أمنية دقيقة."}
+])},
+
+/* SLIDE 4 */
+{num:"04", label:"The Need for Standardization",
+execEn:"For different devices to communicate, they must follow agreed-upon rules — this is standardization. Two primary models define these rules. The OSI Model is a 7-layer hypothetical reference model used for understanding and teaching. The TCP/IP Model is a 4-layer practical model actually used in Internet communication. Both models allow heterogeneous devices from different manufacturers to interoperate.",
+execAr:"كي تتواصل الأجهزة المختلفة، يجب أن تتبع قواعد متفق عليها — هذا هو التوحيد القياسي. نموذجان رئيسيان يُحددان هذه القواعد. نموذج OSI مرجع نظري من 7 طبقات للفهم والتدريس. نموذج TCP/IP نموذج عملي من 4 طبقات يُستخدم فعلياً في اتصالات الإنترنت. كلا النموذجين يُتيحان تشغيلاً بينياً للأجهزة غير المتجانسة.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Why Standardization?</div>
+  <p><span class="kw" data-k="Standardization">Standardization</span> provides communication among <span class="kw kw-a" data-k="HeterogeneousDevices">heterogeneous devices</span>.</p>
+</div>
+<div class="card-grid cols-2" style="margin-top:16px">
+  <div class="card al">
+    <div class="card-title">① <span class="kw" data-k="OSIModel">OSI Model</span></div>
+    <div class="card-body">A <strong style="color:var(--text)">7-layer hypothetical</strong> reference model for understanding how networks function.</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">② <span class="kw kw-g" data-k="TCPIPModel">TCP/IP Model</span></div>
+    <div class="card-body">A <strong style="color:var(--text)">4-layer practical</strong> model actually used for Internet communication.</div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>Standardization</strong> allows heterogeneous devices from different manufacturers to communicate.", ar:"<strong>التوحيد القياسي</strong> يُتيح للأجهزة غير المتجانسة من مصنّعين مختلفين التواصل."},
+  {en:"The <strong>OSI model</strong> is a 7-layer theoretical reference; the <strong>TCP/IP model</strong> is a 4-layer practical model.", ar:"نموذج <strong>OSI</strong> مرجع نظري من 7 طبقات؛ نموذج <strong>TCP/IP</strong> نموذج عملي من 4 طبقات."},
+  {en:"OSI is used for <strong>teaching and understanding</strong>; TCP/IP is actually used in real Internet communication.", ar:"يُستخدم OSI للتعليم والفهم؛ بينما يُستخدم TCP/IP فعلياً في اتصالات الإنترنت الحقيقية."}
+])},
+
+/* SLIDE 5 */
+{num:"05", label:"Understanding the OSI Model",
+execEn:"The OSI Model (Open System Interconnection) was created by the International Organization for Standardization (ISO). It is a conceptual framework that standardizes how devices communicate over a network into seven distinct layers. Each layer has a specific function and communicates with the layers directly above and below it. Data flows down through layers on the sending side and up through layers on the receiving side.",
+execAr:"نموذج OSI (الاتصال المفتوح بين الأنظمة) أُنشئ من قِبل المنظمة الدولية للمعايير (ISO). إطار مفاهيمي يُوحّد كيفية تواصل الأجهزة عبر شبكة في سبع طبقات مستقلة. لكل طبقة وظيفة محددة وتتواصل مع الطبقتين فوقها وتحتها مباشرةً. تتدفق البيانات للأسفل عبر الطبقات عند الإرسال وللأعلى عند الاستقبال.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Definition</div>
+  <p><span class="kw" data-k="OSIDefinition">OSI (Open System Interconnection)</span>: A framework created by the <span class="kw kw-a" data-k="ISO">International Organization for Standardization (ISO)</span> to standardize how devices communicate over a network.</p>
+</div>
+<p style="font-size:16px;color:var(--text2);margin:16px 0 12px">Each layer has a <strong style="color:var(--text)">specific function</strong> and provides services to the layer above it:</p>
+<div class="osi-grid">
+  <div class="osi-layer l7"><div class="osi-num">7</div><div class="osi-name" style="color:var(--accent)">Application</div><div class="osi-detail">User-facing services: email, file transfer, web browsing</div><div class="osi-proto">HTTP, FTP, IRC, SSH, DNS</div></div>
+  <div class="osi-layer l6"><div class="osi-num">6</div><div class="osi-name" style="color:#a78bfa">Presentation</div><div class="osi-detail">Formats data: encryption, compression</div><div class="osi-proto">SSL, SSH, IMAP, FTP, MPEG, JPEG</div></div>
+  <div class="osi-layer l5"><div class="osi-num">5</div><div class="osi-name" style="color:var(--accent3)">Session</div><div class="osi-detail">Manages communication sessions</div><div class="osi-proto">APIs, Sockets, WinSock</div></div>
+  <div class="osi-layer l4"><div class="osi-num">4</div><div class="osi-name" style="color:var(--accent4)">Transport</div><div class="osi-detail">End-to-end delivery (reliable/unreliable)</div><div class="osi-proto">TCP, UDP</div></div>
+  <div class="osi-layer l3"><div class="osi-num">3</div><div class="osi-name" style="color:#f87171">Network</div><div class="osi-detail">Routes data across multiple networks</div><div class="osi-proto">IP, ICMP, IPSec, IGMP</div></div>
+  <div class="osi-layer l2"><div class="osi-num">2</div><div class="osi-name" style="color:#818cf8">Data Link</div><div class="osi-detail">Error-free transfer, frames</div><div class="osi-proto">Ethernet, PPP, Switch, Bridge</div></div>
+  <div class="osi-layer l1"><div class="osi-num">1</div><div class="osi-name" style="color:#2dd4bf">Physical</div><div class="osi-detail">Raw bits over physical media</div><div class="osi-proto">Cables, Fiber, Hubs, Repeaters</div></div>
+</div>
+` + kpTable([
+  {en:"OSI stands for <strong>Open System Interconnection</strong>, created by ISO to standardize network communication.", ar:"OSI اختصار لـ <strong>Open System Interconnection</strong>، أُنشئ من قِبل ISO لتوحيد اتصالات الشبكات."},
+  {en:"The model has <strong>7 layers</strong> — each has a specific function and serves the layer above it.", ar:"يحتوي النموذج على <strong>7 طبقات</strong> — لكل منها وظيفة محددة وتخدم الطبقة التي فوقها."},
+  {en:"Data is <strong>encapsulated going down</strong> the layers (sending) and <strong>de-encapsulated going up</strong> (receiving).", ar:"يتم <strong>تغليف البيانات للأسفل</strong> عند الإرسال و<strong>فك التغليف للأعلى</strong> عند الاستقبال."},
+  {en:"<strong>Physical (1)</strong> → Data Link (2) → Network (3) → Transport (4) → Session (5) → Presentation (6) → <strong>Application (7)</strong>", ar:"<strong>الطبقة المادية (1)</strong> → ربط البيانات (2) → الشبكة (3) → النقل (4) → الجلسة (5) → العرض (6) → <strong>التطبيق (7)</strong>"}
+])},
+
+/* SLIDE 6 */
+{num:"06", label:"How the OSI Model Works",
+execEn:"When Device A sends data, it starts at the Application Layer (Layer 7) and works down to the Physical Layer (Layer 1), with each layer adding its own header or functionality — this is encapsulation. Data travels through intermediate nodes (like routers). At Device B, the process reverses — layers process data from Physical back up to Application, stripping headers at each layer. This ensures compatibility between different devices and networks.",
+execAr:"عندما يُرسل الجهاز A البيانات، تبدأ من طبقة التطبيق (7) وتنزل حتى الطبقة المادية (1)، حيث تُضيف كل طبقة رأسها أو وظيفتها — هذا هو التغليف. تنتقل البيانات عبر العقد الوسيطة (كالراوترات). في الجهاز B، تعكس العملية — تعالج الطبقات البيانات من المادية صاعدةً للتطبيق، نازعةً الرؤوس في كل طبقة. هذا يضمن التوافق بين أجهزة وشبكات مختلفة.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Data Flow</div>
+  <p><strong style="color:var(--accent)">Device A</strong> sends data through all seven layers, starting at the <span class="kw" data-k="ApplicationLayer">Application Layer</span>. Each layer adds its specific functionality (<span class="kw kw-a" data-k="Encapsulation">encapsulation</span>).</p>
+</div>
+<div class="card-grid cols-2" style="margin-top:16px">
+  <div class="card al">
+    <div class="card-title">📤 Sending (Device A)</div>
+    <div class="card-body">Application (7) → Presentation (6) → Session (5) → Transport (4) → Network (3) → Data Link (2) → Physical (1)<br><br>Each layer <strong style="color:var(--text)">adds a header</strong> (encapsulation).</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">📥 Receiving (Device B)</div>
+    <div class="card-body">Physical (1) → Data Link (2) → Network (3) → Transport (4) → Session (5) → Presentation (6) → Application (7)<br><br>Each layer <strong style="color:var(--text)">removes its header</strong> (de-encapsulation).</div>
+  </div>
+</div>
+<ul class="bullet-list" style="margin-top:16px">
+  <li>Data travels through <span class="kw" data-k="IntermediateNodes">intermediate nodes</span> to reach Device B.</li>
+  <li>This model ensures <strong>compatibility</strong> between different devices and networks.</li>
+</ul>
+` + kpTable([
+  {en:"Data travels <strong>down</strong> the OSI stack on the sender side (adding headers) and <strong>up</strong> on the receiver side (removing headers).", ar:"تنتقل البيانات <strong>للأسفل</strong> عبر OSI في جانب المُرسِل (إضافة رؤوس) و<strong>للأعلى</strong> في جانب المُستقبِل (إزالة رؤوس)."},
+  {en:"<strong>Encapsulation</strong>: Each layer wraps data with its own header before passing it down.", ar:"<strong>التغليف</strong>: كل طبقة تُغلّف البيانات بأصفرها الخاص قبل تمريرها للأسفل."},
+  {en:"<strong>Intermediate nodes</strong> (routers/switches) only process relevant layers, not all seven.", ar:"<strong>العقد الوسيطة</strong> (الراوترات/السويتشات) تعالج الطبقات ذات الصلة فقط، وليس الطبقات السبع كلها."}
+])},
+
+/* SLIDE 7 */
+{num:"07", label:"OSI Layers — Physical & Data Link",
+execEn:"The Physical Layer (Layer 1) handles the transmission of raw binary data (0s and 1s) over physical media — cables, fiber optics, wireless signals, hubs, and repeaters. It deals purely with hardware signals. The Data Link Layer (Layer 2) takes raw bits and organizes them into frames, adding error detection to ensure data integrity between devices on the same network segment. Examples include Ethernet, PPP, switches, and bridges.",
+execAr:"الطبقة المادية (1) تتعامل مع نقل البيانات الثنائية الخام (0 و1) عبر الوسائط المادية — الكابلات والألياف البصرية والإشارات اللاسلكية والمحاور والمكررات. تتعامل حصراً مع إشارات الأجهزة. طبقة ربط البيانات (2) تأخذ البتات الخام وتنظمها في إطارات، مُضيفةً اكتشاف الأخطاء لضمان سلامة البيانات بين الأجهزة في نفس قطعة الشبكة.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title">Layer 1 — <span class="kw" data-k="PhysicalLayer">Physical</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> Transmits raw <span class="kw kw-r" data-k="RawBits">bits (0s and 1s)</span> over the physical medium.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Examples:</strong> Cables, fiber optics, wireless, hubs, repeaters.</p>
+    </div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">Layer 2 — <span class="kw kw-g" data-k="DataLinkLayer">Data Link</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> Formats data into <span class="kw kw-g" data-k="Frames">frames</span> and handles <span class="kw kw-a" data-k="ErrorDetection">error detection</span> for the physical layer.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Examples:</strong> Ethernet, PPP, switches, bridges.</p>
+    </div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>Physical Layer (1)</strong> transmits raw binary bits over cables, fiber, or wireless — deals with hardware signals only.", ar:"<strong>الطبقة المادية (1)</strong> تنقل البتات الثنائية الخام عبر الكابلات أو الألياف أو الشبكات اللاسلكية — تتعامل مع إشارات الأجهزة فقط."},
+  {en:"<strong>Data Link Layer (2)</strong> organizes bits into <em>frames</em> and provides error detection between devices on the same network.", ar:"<strong>طبقة ربط البيانات (2)</strong> تُنظّم البتات في <em>إطارات</em> وتُوفر اكتشاف الأخطاء بين الأجهزة في نفس الشبكة."},
+  {en:"Key examples — Physical: <strong>cables, hubs, repeaters</strong>; Data Link: <strong>Ethernet, PPP, switches, bridges</strong>.", ar:"أمثلة رئيسية — المادية: <strong>كابلات، محاور، مكررات</strong>؛ ربط البيانات: <strong>Ethernet، PPP، سويتشات، جسور</strong>."}
+])},
+
+/* SLIDE 8 */
+{num:"08", label:"OSI Layers — Network & Transport",
+execEn:"The Network Layer (Layer 3) is responsible for routing data between different networks using IP addresses. It decides the best path for data packets to travel. The Transport Layer (Layer 4) manages end-to-end communication between applications. It uses TCP for reliable delivery (with error checking and acknowledgments) and UDP for faster but unreliable delivery. Together, these two layers form the backbone of Internet communication.",
+execAr:"طبقة الشبكة (3) مسؤولة عن توجيه البيانات بين الشبكات المختلفة باستخدام عناوين IP. تُحدد أفضل مسار لحزم البيانات. طبقة النقل (4) تُدير الاتصال من طرف لطرف بين التطبيقات. تستخدم TCP للتسليم الموثوق (مع فحص الأخطاء والتأكيدات) وUDP للتسليم الأسرع لكن غير الموثوق. معاً تُشكّلان العمود الفقري لاتصالات الإنترنت.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card ar">
+    <div class="card-title">Layer 3 — <span class="kw kw-r" data-k="NetworkLayer">Network</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> <span class="kw kw-r" data-k="Routing">Routes data</span> between devices across multiple networks.</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Examples:</strong> <span class="kw" data-k="IP">IP</span>, <span class="kw kw-a" data-k="ICMP">ICMP</span>, IPSec, IGMP.</p>
+    </div>
+  </div>
+  <div class="card aa">
+    <div class="card-title">Layer 4 — <span class="kw kw-a" data-k="TransportLayer">Transport</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> <span class="kw kw-g" data-k="EndToEndComm">End-to-end</span> delivery using <span class="kw" data-k="TCP">TCP</span> (reliable) or <span class="kw kw-r" data-k="UDP">UDP</span> (unreliable).</p>
+      <p style="margin-top:8px"><strong style="color:var(--text)">Examples:</strong> TCP, UDP.</p>
+    </div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>Network Layer (3)</strong> routes data between different networks using IP addresses — decides the packet's path.", ar:"<strong>طبقة الشبكة (3)</strong> تُوجّه البيانات بين الشبكات المختلفة باستخدام عناوين IP — تُحدد مسار الحزمة."},
+  {en:"<strong>Transport Layer (4)</strong> manages end-to-end communication: TCP (reliable, with acknowledgments) vs. UDP (fast, no guarantees).", ar:"<strong>طبقة النقل (4)</strong> تُدير الاتصال من طرف لطرف: TCP (موثوق، مع تأكيدات) مقابل UDP (سريع، بدون ضمانات)."},
+  {en:"Key protocols — Network: <strong>IP, ICMP, IPSec, IGMP</strong>; Transport: <strong>TCP, UDP</strong>.", ar:"البروتوكولات الرئيسية — الشبكة: <strong>IP، ICMP، IPSec، IGMP</strong>؛ النقل: <strong>TCP، UDP</strong>."}
+])},
+
+/* SLIDE 9 */
+{num:"09", label:"OSI Layers — Session, Presentation & Application",
+execEn:"The Session Layer (Layer 5) manages communication sessions — opening, maintaining, and closing connections between applications. The Presentation Layer (Layer 6) acts as a translator: it formats data so applications can understand it, and handles encryption and compression. The Application Layer (Layer 7) is what users interact with directly — it provides services like web browsing (HTTP), email (SMTP/IMAP), file transfer (FTP), and secure shell access (SSH).",
+execAr:"طبقة الجلسة (5) تُدير جلسات الاتصال — فتح وصيانة وإغلاق الاتصالات بين التطبيقات. طبقة العرض (6) تعمل كمُترجم: تُنسّق البيانات لكي تفهمها التطبيقات وتتعامل مع التشفير والضغط. طبقة التطبيق (7) ما يتفاعل معه المستخدمون مباشرةً — توفر خدمات كتصفح الويب وBريد الإلكتروني ونقل الملفات والوصول الآمن عن بُعد.",
+html:`
+<div class="card-grid cols-3">
+  <div class="card ag">
+    <div class="card-title">Layer 5 — <span class="kw kw-g" data-k="SessionLayer">Session</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> Manages and controls <span class="kw" data-k="CommunicationSessions">communication sessions</span>.</p>
+      <p style="margin-top:6px"><strong style="color:var(--text)">Examples:</strong> APIs, Sockets, WinSock.</p>
+    </div>
+  </div>
+  <div class="card ap">
+    <div class="card-title">Layer 6 — <span class="kw kw-p" data-k="PresentationLayer">Presentation</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> Converts data into a readable format; handles <span class="kw kw-r" data-k="Encryption">encryption</span> and compression.</p>
+      <p style="margin-top:6px"><strong style="color:var(--text)">Examples:</strong> SSL, SSH, IMAP, FTP, MPEG, JPEG.</p>
+    </div>
+  </div>
+  <div class="card al">
+    <div class="card-title">Layer 7 — <span class="kw" data-k="AppLayerOSI">Application</span></div>
+    <div class="card-body">
+      <p><strong style="color:var(--text)">Function:</strong> Enables user interaction with <span class="kw kw-g" data-k="NetworkServices">network services</span>.</p>
+      <p style="margin-top:6px"><strong style="color:var(--text)">Examples:</strong> HTTP, FTP, IRC, SSH, DNS.</p>
+    </div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>Session Layer (5)</strong> opens, manages, and closes connections between applications (APIs, Sockets, WinSock).", ar:"<strong>طبقة الجلسة (5)</strong> تفتح وتُدير وتُغلق الاتصالات بين التطبيقات (APIs، Sockets، WinSock)."},
+  {en:"<strong>Presentation Layer (6)</strong> translates, encrypts, and compresses data — ensures applications can read it (SSL, JPEG, MPEG).", ar:"<strong>طبقة العرض (6)</strong> تُترجم وتُشفّر وتُضغط البيانات — تضمن قدرة التطبيقات على قراءتها (SSL، JPEG، MPEG)."},
+  {en:"<strong>Application Layer (7)</strong> is the user-facing layer — HTTP for web, FTP for files, SSH for remote access, DNS for name resolution.", ar:"<strong>طبقة التطبيق (7)</strong> هي الطبقة التي يتفاعل معها المستخدم — HTTP للويب، FTP للملفات، SSH للوصول عن بُعد، DNS لتحليل الأسماء."}
+])},
+
+/* SLIDE 10 */
+{num:"10", label:"Networking Protocols — ICMP, IPSec, IGMP, WinSock",
+execEn:"Four key protocols work at the network and session layers. ICMP enables network diagnostics through tools like Ping and Traceroute. IPSec provides a security framework for encrypted, authenticated communications and is the foundation of VPNs. IGMP manages multicast group memberships, allowing efficient one-to-many data distribution. WinSock is Microsoft's implementation of the standard socket API, allowing Windows applications to use TCP/IP protocols.",
+execAr:"أربعة بروتوكولات رئيسية تعمل في طبقات الشبكة والجلسة. ICMP يُتيح تشخيصات الشبكة عبر أدوات كـ Ping وTraceroute. IPSec يُوفر إطار أمان للاتصالات المشفّرة والمُصادق عليها وهو أساس الشبكات الافتراضية الخاصة. IGMP يُدير عضوية مجموعات البث المتعدد. WinSock هو تطبيق مايكروسوفت لواجهة Socket القياسية التي تُتيح لتطبيقات ويندوز استخدام بروتوكولات TCP/IP.",
+html:`
+<div class="proto-grid">
+  <div class="proto-card">
+    <div class="proto-name" style="color:var(--accent)"><span class="kw" data-k="ICMPProto">ICMP</span></div>
+    <div class="proto-desc">Internet Control Message Protocol — used for <strong style="color:var(--text)">diagnostic and error-reporting</strong> in network communication.</div>
+    <div class="proto-ex">Example: <strong>Ping</strong> and <strong>Traceroute</strong> utilities.</div>
+  </div>
+  <div class="proto-card">
+    <div class="proto-name" style="color:var(--accent3)"><span class="kw kw-g" data-k="IPSecProto">IPSec</span></div>
+    <div class="proto-desc">Internet Protocol Security — a framework for securing network communications using <strong style="color:var(--text)">encryption and authentication</strong>.</div>
+    <div class="proto-ex">Often used in <strong>VPNs</strong>.</div>
+  </div>
+  <div class="proto-card">
+    <div class="proto-name" style="color:var(--accent4)"><span class="kw kw-a" data-k="IGMPProto">IGMP</span></div>
+    <div class="proto-desc">Internet Group Management Protocol — manages <strong style="color:var(--text)">multicast group memberships</strong> for efficient data distribution.</div>
+    <div class="proto-ex">Used in one-to-many data streaming.</div>
+  </div>
+  <div class="proto-card">
+    <div class="proto-name" style="color:#a78bfa"><span class="kw kw-p" data-k="WinSockProto">WinSock</span></div>
+    <div class="proto-desc">A <strong style="color:var(--text)">Microsoft API</strong> for network communication, allowing Windows applications to use TCP/IP protocols.</div>
+    <div class="proto-ex">Windows-specific socket interface.</div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>ICMP</strong> is used for network diagnostics — Ping tests host reachability; Traceroute maps the packet path.", ar:"<strong>ICMP</strong> يُستخدم لتشخيصات الشبكة — Ping يختبر قابلية الوصول للمضيف؛ Traceroute يرسم مسار الحزمة."},
+  {en:"<strong>IPSec</strong> secures communications with encryption and authentication — the foundation of VPN technology.", ar:"<strong>IPSec</strong> يُؤمّن الاتصالات بالتشفير والمصادقة — الأساس التقني لتقنية الشبكات الافتراضية الخاصة."},
+  {en:"<strong>IGMP</strong> manages multicast groups for efficient one-to-many distribution (e.g., streaming).", ar:"<strong>IGMP</strong> يُدير مجموعات البث المتعدد للتوزيع الفعّال من مُرسِل واحد لمتعددين."},
+  {en:"<strong>WinSock</strong> is Microsoft's TCP/IP socket API — allows Windows applications to use network protocols.", ar:"<strong>WinSock</strong> واجهة Socket الخاصة بمايكروسوفت — تُتيح لتطبيقات ويندوز استخدام بروتوكولات الشبكة."}
+])},
+
+/* SLIDE 11 */
+{num:"11", label:"Security & Data Transfer Protocols",
+execEn:"Four protocols are critical for secure and practical data transfer. SSL provides encrypted communication over networks and is the foundation of HTTPS secure web browsing. SSH enables secure remote login and command execution over an encrypted channel. IMAP allows email clients to retrieve messages from a mail server while keeping them stored server-side. FTP is the classic protocol for transferring files between a client and a server.",
+execAr:"أربعة بروتوكولات حيوية للنقل الآمن والعملي للبيانات. SSL يُوفر اتصالاً مشفّراً وهو أساس تصفح الويب الآمن HTTPS. SSH يُتيح تسجيل الدخول عن بُعد بشكل آمن وتنفيذ الأوامر عبر قناة مشفّرة. IMAP يُتيح لعملاء البريد الإلكتروني استرداد الرسائل من الخادم مع إبقائها مخزّنة عليه. FTP هو البروتوكول الكلاسيكي لنقل الملفات.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title"><span class="kw" data-k="SSL">SSL</span> — Secure Sockets Layer</div>
+    <div class="card-body">Provides <strong style="color:var(--text)">secure communication</strong> over a network by encrypting data. Common in <span class="kw kw-g" data-k="HTTPS">HTTPS</span>.</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title"><span class="kw kw-g" data-k="SSHProto">SSH</span> — Secure Shell</div>
+    <div class="card-body">A secure protocol for <strong style="color:var(--text)">remote login</strong> and command execution over an encrypted channel.</div>
+  </div>
+  <div class="card aa">
+    <div class="card-title"><span class="kw kw-a" data-k="IMAPProto">IMAP</span> — Internet Message Access Protocol</div>
+    <div class="card-body">Used for <strong style="color:var(--text)">retrieving emails</strong> from a mail server (keeps messages on the server).</div>
+  </div>
+  <div class="card ap">
+    <div class="card-title"><span class="kw kw-p" data-k="FTPProto">FTP</span> — File Transfer Protocol</div>
+    <div class="card-body">Transfers files between a <strong style="color:var(--text)">client and a server</strong>.</div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>SSL</strong> (Secure Sockets Layer) encrypts network communication — the foundation of HTTPS web security.", ar:"<strong>SSL</strong> يُشفّر اتصالات الشبكة — الأساس لأمان مواقع HTTPS."},
+  {en:"<strong>SSH</strong> (Secure Shell) enables encrypted remote login and command execution — replaces insecure Telnet.", ar:"<strong>SSH</strong> يُتيح تسجيل الدخول عن بُعد المشفّر وتنفيذ الأوامر — يُحل محل Telnet غير الآمن."},
+  {en:"<strong>IMAP</strong> retrieves emails from the server while keeping them stored there (vs. POP3 which downloads and deletes).", ar:"<strong>IMAP</strong> يسترد رسائل البريد من الخادم مع الإبقاء عليها (بعكس POP3 الذي يُنزّلها ويحذفها)."},
+  {en:"<strong>FTP</strong> transfers files between client and server — note it is unencrypted by default (use SFTP/FTPS for security).", ar:"<strong>FTP</strong> ينقل الملفات بين العميل والخادم — ملاحظة: غير مشفّر افتراضياً (استخدم SFTP/FTPS للأمان)."}
+])},
+
+/* SLIDE 12 */
+{num:"12", label:"Application Layer Protocols",
+execEn:"The Application Layer protocols are what users interact with daily. HTTP transfers web pages across the Internet (the foundation of web browsing). FTP handles file uploads and downloads. IRC enables real-time text-based chat between users. SSH provides secure encrypted access to remote systems for administration. DNS translates human-readable domain names into machine-readable IP addresses — without it, we would need to memorize IP addresses for every website.",
+execAr:"بروتوكولات طبقة التطبيق هي ما يتفاعل معه المستخدمون يومياً. HTTP ينقل صفحات الويب (أساس التصفح). FTP يتعامل مع رفع الملفات وتنزيلها. IRC يُتيح المحادثة النصية الفورية. SSH يُوفر وصولاً مشفّراً للأنظمة البعيدة للإدارة. DNS يُترجم أسماء النطاقات المقروءة للبشر إلى عناوين IP مقروءة للآلات — بدونه كنا بحاجة لحفظ عناوين IP لكل موقع.",
+html:`
+<div class="proto-grid">
+  <div class="proto-card">
+    <div class="proto-name" style="color:var(--accent)"><span class="kw" data-k="HTTP">HTTP</span></div>
+    <div class="proto-desc">Hypertext Transfer Protocol — <strong style="color:var(--text)">transfers web pages</strong> over the internet.</div>
+  </div>
+  <div class="proto-card">
+    <div class="proto-name" style="color:var(--accent4)"><span class="kw kw-a" data-k="FTPApp">FTP</span></div>
+    <div class="proto-desc">File Transfer Protocol — allows <strong style="color:var(--text)">file uploads and downloads</strong> between client and server.</div>
+  </div>
+  <div class="proto-card">
+    <div class="proto-name" style="color:#a78bfa"><span class="kw kw-p" data-k="IRC">IRC</span></div>
+    <div class="proto-desc">Internet Relay Chat — a protocol for <strong style="color:var(--text)">real-time text-based</strong> communication.</div>
+  </div>
+  <div class="proto-card">
+    <div class="proto-name" style="color:var(--accent3)"><span class="kw kw-g" data-k="SSHApp">SSH</span></div>
+    <div class="proto-desc">Secure Shell — provides <strong style="color:var(--text)">secure access to remote systems</strong>.</div>
+  </div>
+  <div class="proto-card" style="grid-column:span 2">
+    <div class="proto-name" style="color:#f87171"><span class="kw kw-r" data-k="DNS">DNS</span></div>
+    <div class="proto-desc">Domain Name System — <strong style="color:var(--text)">translates domain names</strong> (e.g., google.com) into IP addresses.</div>
+  </div>
+</div>
+` + kpTable([
+  {en:"<strong>HTTP</strong> transfers web pages; <strong>FTP</strong> transfers files; <strong>IRC</strong> enables real-time chat.", ar:"<strong>HTTP</strong> ينقل صفحات الويب؛ <strong>FTP</strong> ينقل الملفات؛ <strong>IRC</strong> يُتيح المحادثة الفورية."},
+  {en:"<strong>SSH</strong> provides encrypted remote system access — critical for secure server administration.", ar:"<strong>SSH</strong> يُوفر وصولاً مشفّراً للأنظمة عن بُعد — حيوي لإدارة الخوادم الآمنة."},
+  {en:"<strong>DNS</strong> translates domain names to IP addresses — it is the 'phone book' of the Internet.", ar:"<strong>DNS</strong> يُترجم أسماء النطاقات إلى عناوين IP — يُعدّ 'دليل الهاتف' للإنترنت."},
+  {en:"All five protocols operate at <strong>Application Layer (7)</strong> of the OSI model.", ar:"جميع البروتوكولات الخمسة تعمل عند <strong>طبقة التطبيق (7)</strong> من نموذج OSI."}
+])},
+
+/* SLIDE 13 */
+{num:"13", label:"The TCP/IP Model",
+execEn:"The TCP/IP Model is the practical networking model that powers the actual Internet. Unlike OSI's 7 layers, TCP/IP uses only 4 layers. It consolidates OSI's Physical and Data Link layers into a single Host-to-Network Layer. The four layers are: Application (handling high-level protocols), Transport (TCP/UDP), Internet (IP routing), and Host-to-Network (physical transmission). It was designed specifically for Internet communication and is simpler than OSI.",
+execAr:"نموذج TCP/IP هو النموذج العملي الذي يُشغّل الإنترنت الفعلي. بعكس OSI ذي 7 طبقات، يستخدم TCP/IP 4 طبقات فقط. يدمج الطبقتين المادية وربط البيانات من OSI في طبقة واحدة تُسمى طبقة المضيف-للشبكة. الطبقات الأربع: التطبيق (البروتوكولات عالية المستوى) والنقل (TCP/UDP) والإنترنت (توجيه IP) والمضيف-للشبكة (الإرسال المادي). صُمّم خصيصاً لاتصالات الإنترنت وهو أبسط من OSI.",
+html:`
+<div class="highlight">
+  <div class="highlight-label">Definition</div>
+  <p>A <strong style="color:#fff">practical networking model</strong> used for communication over the Internet. Combines the Physical and Data Link layers of the OSI model into a single layer called <span class="kw" data-k="HostToNetwork">Host-to-Network Layer</span>.</p>
+</div>
+<div class="card-grid cols-2" style="margin-top:16px">
+  <div class="card al"><div class="card-title"><span class="layer-badge lb-app">① Application</span></div><div class="card-body">HTTP, DNS, SNMP, SMTP — high-level protocols. Data unit: <strong style="color:var(--text)">Data</strong>.</div></div>
+  <div class="card aa"><div class="card-title"><span class="layer-badge lb-tr">② Transport</span></div><div class="card-body">TCP, UDP — end-to-end communication. Data unit: <strong style="color:var(--text)">Segment</strong>.</div></div>
+  <div class="card ar"><div class="card-title"><span class="layer-badge lb-net">③ Internet</span></div><div class="card-body">IP, ARP, ICMP, IGMP — routing &amp; forwarding. Data unit: <strong style="color:var(--text)">Packet</strong>.</div></div>
+  <div class="card ag"><div class="card-title"><span class="layer-badge lb-h2n">④ Host-to-Network</span></div><div class="card-body">Ethernet, ATM — physical transmission. Data unit: <strong style="color:var(--text)">Frame</strong>.</div></div>
+</div>
+` + kpTable([
+  {en:"The <strong>TCP/IP model</strong> has 4 layers (vs. OSI's 7) — it is the model actually used in Internet communication.", ar:"نموذج <strong>TCP/IP</strong> يحتوي على 4 طبقات (مقابل 7 في OSI) — وهو النموذج المستخدم فعلياً في اتصالات الإنترنت."},
+  {en:"TCP/IP merges OSI's Physical + Data Link into one <strong>Host-to-Network</strong> layer.", ar:"TCP/IP يدمج الطبقة المادية وربط البيانات من OSI في طبقة <strong>المضيف-للشبكة</strong> واحدة."},
+  {en:"Data units: Application=<strong>Data</strong>, Transport=<strong>Segment</strong>, Internet=<strong>Packet</strong>, Host-to-Network=<strong>Frame</strong>.", ar:"وحدات البيانات: التطبيق=<strong>بيانات</strong>، النقل=<strong>مقطع</strong>، الإنترنت=<strong>حزمة</strong>، المضيف-للشبكة=<strong>إطار</strong>."},
+  {en:"TCP/IP is <strong>Practical</strong> (Internet-designed) and <strong>Simplified</strong> compared to OSI.", ar:"TCP/IP <strong>عملي</strong> (مُصمَّم للإنترنت) و<strong>مُبسَّط</strong> مقارنةً بـ OSI."}
+])},
+
+/* SLIDE 14 */
+{num:"14", label:"TCP/IP Layers in Detail",
+execEn:"Each TCP/IP layer has distinct responsibilities and protocols. The Application Layer handles all high-level protocol interactions — equivalent to OSI's top three layers. The Transport Layer manages reliable (TCP) and unreliable (UDP) communication using segments. The Internet Layer handles all routing decisions using IP, ICMP, ARP, and IGMP as packets. The Host-to-Network Layer handles hardware-level transmission using frames — combining OSI's Physical and Data Link layers.",
+execAr:"لكل طبقة TCP/IP مسؤوليات وبروتوكولات مستقلة. طبقة التطبيق تتعامل مع جميع تفاعلات البروتوكولات عالية المستوى — مكافئة للطبقات العليا الثلاث في OSI. طبقة النقل تُدير الاتصال الموثوق (TCP) وغير الموثوق (UDP) باستخدام المقاطع. طبقة الإنترنت تتعامل مع جميع قرارات التوجيه باستخدام IP وICMP وARP وIGMP كحزم. طبقة المضيف-للشبكة تتعامل مع الإرسال على مستوى الأجهزة باستخدام الإطارات.",
+html:`
+<table class="tcpip-table">
+  <thead><tr><th>TCP/IP Layer</th><th>Protocols</th><th>OSI Equivalent</th><th>Data Unit</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="layer-badge lb-app">Application</span></td>
+      <td><span class="kw" data-k="AppProtos">HTTP, DNS, SNMP, SMTP</span></td>
+      <td style="color:var(--text2)">Layers 5, 6, 7</td>
+      <td style="font-family:var(--mono);color:var(--accent)">Data</td>
+    </tr>
+    <tr>
+      <td><span class="layer-badge lb-tr">Transport</span></td>
+      <td><span class="kw kw-a" data-k="TCP">TCP</span>, <span class="kw kw-r" data-k="UDP">UDP</span></td>
+      <td style="color:var(--text2)">Layer 4</td>
+      <td style="font-family:var(--mono);color:var(--accent4)">Segment</td>
+    </tr>
+    <tr>
+      <td><span class="layer-badge lb-net">Internet</span></td>
+      <td><span class="kw" data-k="IP">IP</span>, ARP, <span class="kw kw-a" data-k="ICMP">ICMP</span>, IGMP</td>
+      <td style="color:var(--text2)">Layer 3</td>
+      <td style="font-family:var(--mono);color:#f87171">Packet</td>
+    </tr>
+    <tr>
+      <td><span class="layer-badge lb-h2n">Host-to-Network</span></td>
+      <td><span class="kw kw-g" data-k="Ethernet">Ethernet</span>, ATM</td>
+      <td style="color:var(--text2)">Layers 1, 2</td>
+      <td style="font-family:var(--mono);color:var(--accent3)">Frame</td>
+    </tr>
+  </tbody>
+</table>
+` + kpTable([
+  {en:"<strong>Application Layer</strong> ≡ OSI Layers 5+6+7 — protocols: HTTP, DNS, SNMP, SMTP.", ar:"<strong>طبقة التطبيق</strong> ≡ الطبقات 5+6+7 في OSI — البروتوكولات: HTTP، DNS، SNMP، SMTP."},
+  {en:"<strong>Transport</strong> uses TCP (reliable segments) or UDP (unreliable, fast segments).", ar:"<strong>النقل</strong> يستخدم TCP (مقاطع موثوقة) أو UDP (مقاطع سريعة وغير موثوقة)."},
+  {en:"<strong>Internet Layer</strong> routes packets using IP — supports ICMP (diagnostics) and ARP (MAC resolution).", ar:"<strong>طبقة الإنترنت</strong> تُوجّه الحزم باستخدام IP — تدعم ICMP (التشخيصات) وARP (تحليل عناوين MAC)."},
+  {en:"<strong>Host-to-Network</strong> handles physical transmission — Ethernet dominates modern LANs.", ar:"<strong>المضيف-للشبكة</strong> تتعامل مع الإرسال المادي — Ethernet يهيمن على شبكات LAN الحديثة."}
+])},
+
+/* SLIDE 15 */
+{num:"15", label:"Ethernet Frames & IP Responsibility",
+execEn:"Ethernet Frames are the Data Link layer protocol data unit — they carry data across physical networks. Defined in the IEEE 802.3 standard, Ethernet dominates LANs (over 80% usage) due to its speed, low cost, and ease of installation. The Internet Protocol (IP) is responsible for host identification and packet routing. However, IP uses Best-Effort Delivery — it does not guarantee that packets arrive, only that it tries its best.",
+execAr:"إطارات Ethernet هي وحدة بيانات البروتوكول في طبقة ربط البيانات — تحمل البيانات عبر الشبكات المادية. مُعرَّفة في معيار IEEE 802.3، تهيمن Ethernet على شبكات LAN (أكثر من 80% استخداماً) بسبب سرعتها وانخفاض تكلفتها وسهولة تثبيتها. بروتوكول الإنترنت (IP) مسؤول عن تعريف المضيف وتوجيه الحزم. لكن IP يستخدم التسليم بأقصى جهد — لا يضمن وصول الحزم، فقط يحاول قدر الإمكان.",
+html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title"><span class="kw" data-k="EthernetFrame">Ethernet Frame</span></div>
+    <div class="card-body">
+      <p>A data link layer PDU using Ethernet's physical transport.</p>
+      <p style="margin-top:8px">Defined in <span class="kw kw-a" data-k="IEEE8023">IEEE 802.3</span> standard.</p>
+      <p style="margin-top:8px">Used in <strong style="color:var(--text)">over 80% of LANs</strong> — speed, low cost, easy installation.</p>
+      <p style="margin-top:10px;font-family:var(--mono);font-size:13px;color:var(--accent)">Preamble → MACs → Type → Data → CRC</p>
+    </div>
+  </div>
+  <div class="card ag">
+    <div class="card-title"><span class="kw kw-g" data-k="InternetProtocol">Internet Protocol (IP)</span></div>
+    <div class="card-body">
+      <p>Responsible for <strong style="color:var(--text)">host identification</strong> and <span class="kw kw-r" data-k="PacketRouting">routing</span>.</p>
+      <p style="margin-top:10px"><span class="kw kw-r" data-k="BestEffort">Best-Effort Delivery:</span> IP does <strong>not guarantee</strong> packet arrival — only tries its best.</p>
+    </div>
+  </div>
+</div>
+` + kpTable([
+  {en:"An <strong>Ethernet Frame</strong> is the Data Link layer PDU — defined by IEEE 802.3, used in 80%+ of LANs.", ar:"<strong>إطار Ethernet</strong> هو وحدة بيانات طبقة ربط البيانات — مُعرَّفة بمعيار IEEE 802.3، تُستخدم في أكثر من 80% من شبكات LAN."},
+  {en:"Ethernet frame structure: <strong>Preamble → MACs → Type → Data → CRC</strong>.", ar:"هيكل إطار Ethernet: <strong>البادئة ← عناوين MAC ← النوع ← البيانات ← CRC</strong>."},
+  {en:"<strong>IP</strong> identifies hosts and routes packets — it is a <strong>Best-Effort</strong> protocol (no delivery guarantee).", ar:"<strong>IP</strong> يُعرّف المضيفين ويُوجّه الحزم — إنه بروتوكول <strong>بأقصى جهد</strong> (بدون ضمان التسليم)."},
+  {en:"Protocols that guarantee delivery (e.g., TCP) operate at <strong>Layer 4 (Transport)</strong>, not at IP's level.", ar:"البروتوكولات التي تضمن التسليم (مثل TCP) تعمل في <strong>الطبقة 4 (النقل)</strong>، وليس على مستوى IP."}
+])},
+
+/* SLIDE 16 */
+{num:"16", label:"Structure of an Ethernet Frame",
+execEn:"An Ethernet Frame has six fields. The Preamble and SFD (8 bytes) synchronize communication and mark the frame's start. The Destination MAC Address (6 bytes) specifies the receiving device's hardware address. The Source MAC Address (6 bytes) specifies the sender's hardware address. Type/Length (2 bytes) indicates the encapsulated protocol (IPv4 or IPv6). Data/Payload (46–1500 bytes) is the actual transmitted content. The CRC (4 bytes) detects transmission errors by verifying data integrity.",
+execAr:"إطار Ethernet يحتوي على ستة حقول. البادئة وSFD (8 بايت) تُزامن الاتصال وتُحدد بداية الإطار. عنوان MAC الوجهة (6 بايت) يُحدد عنوان الأجهزة للجهاز المستقبِل. عنوان MAC المصدر (6 بايت) يُحدد عنوان المُرسِل. النوع/الطول (2 بايت) يُشير للبروتوكول المُغلَّف. البيانات (46-1500 بايت) هي المحتوى الفعلي. CRC (4 بايت) يكشف أخطاء الإرسال عبر التحقق من سلامة البيانات.",
+html:`
+<div class="frame-vis" id="frameVis">
+  <div class="fv-cell" onclick="showField('preamble')"><div class="fv-label">Preamble &amp; SFD</div><div class="fv-size">8 bytes</div></div>
+  <div class="fv-cell" onclick="showField('dstmac')"><div class="fv-label">Dst MAC</div><div class="fv-size">6 bytes</div></div>
+  <div class="fv-cell" onclick="showField('srcmac')"><div class="fv-label">Src MAC</div><div class="fv-size">6 bytes</div></div>
+  <div class="fv-cell" onclick="showField('type')"><div class="fv-label">Type/Length</div><div class="fv-size">2 bytes</div></div>
+  <div class="fv-cell" onclick="showField('data')"><div class="fv-label">Data</div><div class="fv-size">46–1500 bytes</div></div>
+  <div class="fv-cell" onclick="showField('crc')"><div class="fv-label">CRC</div><div class="fv-size">4 bytes</div></div>
+</div>
+<div id="frameDetail" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:14px 18px;font-size:15px;color:var(--text2);line-height:1.65;margin-top:8px;display:none"></div>
+<ul class="bullet-list" style="margin-top:14px">
+  <li><strong><span class="kw" data-k="Preamble">Preamble and SFD</span> (8 bytes):</strong> Alerts the receiving system; <span class="kw kw-a" data-k="SFD">SFD</span> marks start of destination MAC.</li>
+  <li><strong><span class="kw kw-g" data-k="DestMAC">Destination MAC Address</span> (6 bytes):</strong> Hardware address of the receiving system.</li>
+  <li><strong>Source MAC Address (6 bytes):</strong> Hardware address of the sending system.</li>
+  <li><strong>Type/Length (2 bytes):</strong> Indicates protocol type (e.g., <span class="kw" data-k="IPv4">IPv4</span> or <span class="kw kw-a" data-k="IPv6">IPv6</span>).</li>
+  <li><strong>Data/Payload (46–1500 bytes):</strong> Contains the actual transmitted data.</li>
+  <li><strong><span class="kw kw-r" data-k="CRC">CRC</span> (4 bytes):</strong> Cyclic Redundancy Check — detects transmission errors.</li>
+</ul>
+` + kpTable([
+  {en:"<strong>Preamble + SFD</strong> (8 bytes) — synchronizes the receiver and marks the frame start.", ar:"<strong>البادئة + SFD</strong> (8 بايت) — تُزامن المستقبِل وتُحدد بداية الإطار."},
+  {en:"<strong>Destination & Source MAC</strong> (6 bytes each) — hardware addresses identifying sending and receiving devices.", ar:"<strong>عنوان MAC الوجهة والمصدر</strong> (6 بايت لكل منهما) — عناوين الأجهزة التي تُعرّف الأجهزة المُرسِلة والمستقبِلة."},
+  {en:"<strong>Type/Length</strong> (2 bytes) — indicates whether the payload is IPv4, IPv6, or another protocol.", ar:"<strong>النوع/الطول</strong> (2 بايت) — يُشير لما إذا كان الحمولة IPv4 أو IPv6 أو بروتوكول آخر."},
+  {en:"<strong>CRC</strong> (4 bytes) — Cyclic Redundancy Check detects bit errors during physical transmission.", ar:"<strong>CRC</strong> (4 بايت) — فحص التكرار الدوري يكشف أخطاء البتات أثناء الإرسال المادي."},
+  {en:"The <strong>Data/Payload</strong> field is 46–1500 bytes — too small triggers padding, too large requires fragmentation.", ar:"حقل <strong>البيانات</strong> يتراوح 46-1500 بايت — البيانات الأصغر تُستكمل، والأكبر تُجزَّأ."}
+])}
+
+]; /* end slides */
+
+/* ============================================================
+   FRAME DETAILS
+============================================================ */
+const frameDetails = {
+  preamble: "<strong style='color:var(--accent)'>Preamble & SFD (8 bytes)</strong> — The Preamble (7 bytes) is a series of alternating 1s and 0s that alerts the receiving system a frame is starting and synchronizes clock timing. The SFD (1 byte) marks the exact boundary where the destination MAC address begins.",
+  dstmac: "<strong style='color:var(--accent3)'>Destination MAC Address (6 bytes)</strong> — A hardware-level address that uniquely identifies the receiving network interface card (NIC). The switch uses this address to decide which port to forward the frame to.",
+  srcmac: "<strong style='color:var(--accent4)'>Source MAC Address (6 bytes)</strong> — The hardware address of the sending NIC. The receiving device uses this to know who sent the frame and can reply.",
+  type: "<strong style='color:#a78bfa'>Type / Length (2 bytes)</strong> — Identifies the network layer protocol used in the payload. Common values: 0x0800 = IPv4, 0x86DD = IPv6, 0x0806 = ARP.",
+  data: "<strong style='color:var(--accent)'>Data / Payload (46–1500 bytes)</strong> — The actual content being transmitted (e.g., an IP packet). Minimum 46 bytes (padding added if smaller). Maximum 1500 bytes = MTU (Maximum Transmission Unit).",
+  crc: "<strong style='color:#f87171'>CRC — Cyclic Redundancy Check (4 bytes)</strong> — A mathematical checksum computed over the frame content. The receiver recalculates the CRC and compares it. If they don't match, the frame was corrupted during transmission and is discarded."
+};
+
+function showField(id){
+  const d = document.getElementById('frameDetail');
+  d.style.display='block';
+  d.innerHTML = frameDetails[id];
+  document.querySelectorAll('.fv-cell').forEach(c=>c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+/* ============================================================
+   KEYWORD DATA
+============================================================ */
+const kwData = {
+SecurityWeaknesses:{ar:"نقاط الضعف الأمنية: ثغرات في إعدادات الشبكة أو بروتوكولاتها أو خدماتها يمكن استغلالها للوصول غير المُصرَّح به.",q:"Network Vulnerability Scanning is primarily used to find:",opts:["System passwords","Security weaknesses such as open ports and running services","User login activity","Physical access points"],ans:1},
+SurveillanceTechnique:{ar:"تقنية المراقبة: فحص الشبكة يُستخدم من قِبل الطرفين — المديرون لتأمين شبكاتهم، والمهاجمون لإيجاد ثغرات للاستغلال.",q:"Network Vulnerability Scanning is described as a 'dual-use' technique because:",opts:["It uses two different tools","Both administrators AND attackers use it for their respective purposes","It scans both wired and wireless networks","It runs two scans simultaneously"],ans:1},
+OpenPorts:{ar:"المنافذ المفتوحة: منافذ الشبكة التي تستمع عليها خدمات نشطة — تُمثّل نقاط دخول محتملة للمهاجمين.",q:"Open ports in network scanning are important because:",opts:["They indicate network speed","They represent active services and potential entry points for attackers","They show which users are logged in","They indicate available storage space"],ans:1},
+ServicesOnPorts:{ar:"الخدمات على المنافذ: تطبيقات أو بروتوكولات تستمع على منافذ محددة — مثل HTTP على المنفذ 80 وSSH على 22 وFTP على 21.",q:"Identifying services running on open ports helps security professionals:",opts:["Improve network speed","Understand what applications are exposed and assess their vulnerability risk","Monitor user activity","Configure firewalls automatically"],ans:1},
+IPAddressingSubnet:{ar:"عناوين IP والشبكات الفرعية: عناوين IP تُعرّف الأجهزة على الشبكة؛ التقسيم للشبكات الفرعية يُحدد النطاقات المنطقية المستهدفة بالفحص.",q:"Understanding IP Addresses and Subnetting is a prerequisite for scanning because:",opts:["It speeds up scanning tools","It allows the scanner to correctly target the right hosts within specific network ranges","It encrypts the scan results","It reduces network traffic during scans"],ans:1},
+NetworkPortsProtocols:{ar:"منافذ الشبكة والبروتوكولات: المنافذ هي نقاط نهاية الاتصال (0-65535)؛ البروتوكولات هي قواعد الاتصال — معرفتهما ضرورية لتفسير نتائج الفحص.",q:"Why must a scanner understand Network Ports and Protocols?",opts:["To design better network hardware","To correctly interpret what services are running on discovered open ports","To encrypt network communications","To access remote systems"],ans:1},
+BroadcastUnicast:{ar:"البث العام مقابل البث الفردي: البث العام يُرسل لجميع الأجهزة في الشبكة؛ البث الفردي يُرسل لجهاز واحد محدد — الفحص يستخدم كليهما بطرق مختلفة.",q:"Understanding Broadcast vs. Unicast in scanning is important because:",opts:["It determines the encryption method used","It determines the scanning method and its reach across the network","It controls scan permissions","It measures network bandwidth"],ans:1},
+ScanningScope:{ar:"نطاق الفحص: تحديد النطاق الزمني والمكاني والتقني للفحص — تحديد المضيفين النشطين يُحدد حدود التقييم الأمني بأكمله.",q:"Why does 'identifying live hosts' determine the 'boundaries of the assessment'?",opts:["Because dead hosts cannot be scanned","Because only live hosts have open ports — they form the actual attack surface to be assessed","Because live hosts are harder to scan","Because dead hosts have more vulnerabilities"],ans:1},
+DHCPReassign:{ar:"إعادة تعيين DHCP: DHCP يُوزّع عناوين IP ديناميكياً — الأجهزة قد تحصل على عناوين مختلفة في كل مرة، مما يُغيّر خريطة الشبكة باستمرار.",q:"DHCP reassignments make vulnerability scanning challenging because:",opts:["DHCP blocks scanning tools","Network IP addresses change dynamically, meaning the scan target map constantly changes","DHCP requires special permissions to scan","DHCP only works with IPv6"],ans:1},
+RepeatableScans:{ar:"الفحوصات القابلة للتكرار: فحوصات منهجية دورية تُطبَّق بنفس المنهجية — ضرورية لالتقاط التغييرات وتتبع ظهور الثغرات الجديدة.",q:"Repeatable and consistent scans are required because:",opts:["Single scans are always comprehensive","Organizations change constantly — new systems and DHCP reassignments mean new vulnerabilities can appear at any time","Scanning tools can only run once","Consistent scans are legally required"],ans:1},
+Standardization:{ar:"التوحيد القياسي: مجموعة قواعد وبروتوكولات مُتفق عليها تُتيح لأجهزة مختلفة المصنّعين التواصل مع بعضها البعض.",q:"Standardization in networking is necessary because:",opts:["It makes networks faster","It allows devices from different manufacturers to communicate by following agreed-upon rules","It encrypts all network traffic","It reduces the number of protocols needed"],ans:1},
+HeterogeneousDevices:{ar:"الأجهزة غير المتجانسة: أجهزة من مصنّعين ومنصات وأنظمة تشغيل مختلفة — التوحيد القياسي يُتيح لها جميعاً التواصل عبر نفس الشبكة.",q:"'Heterogeneous devices' in networking refers to:",opts:["Devices with different colors or sizes","Devices from different manufacturers, platforms, and operating systems that need to communicate","Devices with different storage capacities","Devices from the same manufacturer with different firmware"],ans:1},
+OSIModel:{ar:"نموذج OSI: الاتصال المفتوح بين الأنظمة — إطار نظري من 7 طبقات أنشأته ISO لتوحيد كيفية تواصل الأجهزة عبر الشبكات.",q:"The OSI model is described as 'hypothetical' because:",opts:["It was never implemented in hardware","It is a reference/teaching framework — the TCP/IP model is actually used in practice","It only works on specific hardware","It was developed before the internet existed"],ans:1},
+TCPIPModel:{ar:"نموذج TCP/IP: النموذج الشبكي العملي المستخدم فعلياً في اتصالات الإنترنت — يتكون من 4 طبقات ويعمل كأساس الإنترنت الحديث.",q:"The TCP/IP model is described as 'practical' because:",opts:["It is easier to understand than OSI","It is the model actually used for real Internet communication, not just a theoretical reference","It has fewer layers","It was designed by TCP/IP committee"],ans:1},
+OSIDefinition:{ar:"تعريف OSI: Open System Interconnection — إطار مفاهيمي من 7 طبقات يُوحّد كيفية تواصل الأجهزة. أُنشئ من قِبل ISO، الجهة المسؤولة عن المعايير الدولية.",q:"OSI stands for:",opts:["Open Source Interface","Open System Interconnection","Operational Security Infrastructure","Online System Integration"],ans:1},
+ISO:{ar:"ISO (المنظمة الدولية للمعايير): الجهة المنشئة لنموذج OSI — تُصدر معايير دولية في مجالات متنوعة من التصنيع إلى تقنية المعلومات.",q:"Which organization created the OSI model?",opts:["IEEE","IETF","ISO (International Organization for Standardization)","ANSI"],ans:2},
+ApplicationLayer:{ar:"طبقة التطبيق (7): أعلى طبقة في OSI — نقطة بداية إرسال البيانات من جانب المُرسِل. توفر خدمات شبكية للمستخدمين مباشرةً.",q:"When Device A sends data in the OSI model, which layer does data start from?",opts:["Physical Layer (1)","Network Layer (3)","Transport Layer (4)","Application Layer (7)"],ans:3},
+Encapsulation:{ar:"التغليف: إضافة كل طبقة في OSI لمعلوماتها الخاصة (رأس أو ذيل) حول البيانات أثناء تدفقها للأسفل عبر الطبقات عند الإرسال.",q:"'Encapsulation' in the OSI model refers to:",opts:["Encrypting all data before transmission","Each layer adding its own header/trailer as data moves down the stack","Removing headers at the receiving end","Compressing data for faster transmission"],ans:1},
+IntermediateNodes:{ar:"العقد الوسيطة: أجهزة شبكية كالراوترات والسويتشات التي تُعالج وتُمرر الحزم بين المُرسِل والمستقبِل — تعالج الطبقات ذات الصلة فقط.",q:"Intermediate nodes (routers/switches) in the OSI model process data at:",opts:["All seven layers","Only layers 1-3 (Physical, Data Link, Network) for routing","Only the Application Layer","Only the Transport Layer"],ans:1},
+PhysicalLayer:{ar:"الطبقة المادية (1): أدنى طبقة في OSI — تتعامل مع الإرسال المادي للبتات (0 و1) عبر الوسائط المادية كالكابلات والألياف البصرية.",q:"The Physical Layer (Layer 1) of the OSI model is responsible for:",opts:["Routing data between networks","Transmitting raw binary bits over physical media like cables and fiber","Error detection between network devices","Managing application sessions"],ans:1},
+RawBits:{ar:"البتات الخام: البيانات في أدنى شكل لها — تسلسل من 0 و1 التي تُمثَّل كإشارات كهربائية أو ضوئية أو لاسلكية على الوسائط المادية.",q:"The term 'raw bits' at the Physical Layer refers to:",opts:["Unencrypted application data","Binary 0s and 1s transmitted as electrical, optical, or wireless signals","IP packets before routing","MAC frames before transmission"],ans:1},
+DataLinkLayer:{ar:"طبقة ربط البيانات (2): المسؤولة عن نقل البيانات بدون أخطاء بين الأجهزة في نفس الشبكة — تُنظّم البتات في إطارات وتُضيف اكتشاف الأخطاء.",q:"What is the primary function of the Data Link Layer (Layer 2)?",opts:["Routing data between different networks","Error-free data transfer between devices on the same network using frames","Managing application sessions","Providing encryption services"],ans:1},
+Frames:{ar:"الإطارات: وحدة البيانات في طبقة ربط البيانات — تحتوي على بيانات المضيف وعناوين MAC المصدر والوجهة ومعلومات الكشف عن الأخطاء.",q:"The data unit at the Data Link Layer (Layer 2) is called a:",opts:["Packet","Segment","Frame","Bit stream"],ans:2},
+ErrorDetection:{ar:"اكتشاف الأخطاء: آلية في طبقة ربط البيانات (مثل CRC) تتحقق من أن البيانات لم تتلف أثناء الإرسال عبر الوسائط المادية.",q:"Error detection at the Data Link Layer ensures:",opts:["Data is encrypted during transmission","Data integrity is verified — corrupted frames are detected and discarded","All lost packets are retransmitted","Network bandwidth is optimized"],ans:1},
+NetworkLayer:{ar:"طبقة الشبكة (3): مسؤولة عن توجيه الحزم عبر شبكات متعددة باستخدام عناوين IP — تُحدد المسار المثلى للبيانات.",q:"The Network Layer (Layer 3) is primarily responsible for:",opts:["Physical transmission of bits","Error detection between adjacent devices","Routing data between different networks using IP addresses","Managing user application sessions"],ans:2},
+Routing:{ar:"التوجيه: عملية تحديد أفضل مسار للحزمة عبر الشبكات المتعددة للوصول للهدف — تُنفّذها الراوترات في طبقة الشبكة.",q:"Routing in the Network Layer involves:",opts:["Encrypting data before transmission","Determining the best path for data packets to travel across multiple networks","Managing sessions between applications","Detecting transmission errors"],ans:1},
+IP:{ar:"بروتوكول الإنترنت (IP): بروتوكول طبقة الشبكة المسؤول عن تعريف المضيفين (عناوين IP) وتوجيه الحزم — يعمل بمبدأ أقصى جهد بدون ضمان التسليم.",q:"Which protocol at the Network Layer is responsible for host identification and routing?",opts:["TCP","UDP","IP (Internet Protocol)","HTTP"],ans:2},
+ICMP:{ar:"ICMP (بروتوكول رسائل التحكم في الإنترنت): يُستخدم للتشخيص والإبلاغ عن الأخطاء — Ping يستخدم ICMP Echo لاختبار قابلية الوصول.",q:"ICMP is primarily used for:",opts:["Transferring files between servers","Network diagnostics and error reporting (e.g., Ping and Traceroute)","Managing multicast groups","Securing network communications"],ans:1},
+TransportLayer:{ar:"طبقة النقل (4): تُدير الاتصال من طرف لطرف بين التطبيقات — توفر تسليماً موثوقاً (TCP) أو سريعاً لكن غير مضمون (UDP).",q:"The Transport Layer (Layer 4) manages:",opts:["Physical signal transmission","Routing between networks","End-to-end communication between applications using TCP or UDP","Network device management"],ans:2},
+EndToEndComm:{ar:"الاتصال من طرف لطرف: ضمان وصول البيانات بشكل صحيح من التطبيق المُرسِل للتطبيق المستقبِل بغض النظر عدد الشبكات الوسيطة.",q:"'End-to-end communication' at the Transport Layer means:",opts:["Communication between two physical devices only","Ensuring data is correctly delivered between the source application and destination application across any number of networks","Only communicating within the same network","Communication that doesn't cross routers"],ans:1},
+TCP:{ar:"TCP (بروتوكول التحكم في الإرسال): بروتوكول نقل موثوق — يُؤسّس اتصالاً ويُرسل تأكيدات ويُعيد إرسال الحزم المفقودة. يُستخدم حيث الدقة أهم من السرعة (HTTP، FTP، SSH).",q:"TCP (Transmission Control Protocol) is described as 'reliable' because:",opts:["It transmits data faster than UDP","It establishes connections, sends acknowledgments, and retransmits lost packets to guarantee delivery","It uses encryption by default","It doesn't require an internet connection"],ans:1},
+UDP:{ar:"UDP (بروتوكول مخطط البيانات): بروتوكول نقل سريع لكن غير موثوق — يُرسل البيانات دون اتصال مُسبق أو تأكيد. يُستخدم حيث السرعة أهم (البث المباشر، DNS، الألعاب).",q:"UDP (User Datagram Protocol) is described as 'unreliable' because:",opts:["It is slower than TCP","It sends data without establishing connections or waiting for acknowledgments — packets may be lost","It cannot handle large data","It only works on local networks"],ans:1},
+SessionLayer:{ar:"طبقة الجلسة (5): تُدير دورات الاتصال بين التطبيقات — فتح الجلسات وصيانتها وإغلاقها بشكل منظم.",q:"The Session Layer (Layer 5) is responsible for:",opts:["Routing data between networks","Transmitting raw bits","Managing and controlling communication sessions between applications","Providing user-facing network services"],ans:2},
+CommunicationSessions:{ar:"جلسات الاتصال: فترات التواصل المنظمة بين تطبيقين — طبقة الجلسة تضمن فتح الجلسات وصيانتها وإغلاقها بشكل صحيح.",q:"A 'communication session' managed by the Session Layer includes:",opts:["A single IP packet","The complete lifecycle of a connection — opening, maintaining, and closing communication between two applications","The encryption process","The physical transmission of data"],ans:1},
+PresentationLayer:{ar:"طبقة العرض (6): تعمل كمُترجم بين تنسيقات البيانات — تُنسّق البيانات وتُشفّرها وتُضغطها لضمان تمكّن التطبيقات من قراءتها.",q:"The Presentation Layer (Layer 6) acts as:",opts:["A session manager","A router between networks","A translator that formats, encrypts, and compresses data for applications","A physical interface for hardware"],ans:2},
+Encryption:{ar:"التشفير في طبقة العرض: تحويل البيانات لشكل غير مقروء لحمايتها أثناء الإرسال — بروتوكولات مثل SSL تعمل في هذه الطبقة.",q:"Encryption at the Presentation Layer (Layer 6) protects data by:",opts:["Speeding up data transmission","Converting data into an unreadable format to protect it during transmission","Detecting transmission errors","Managing network sessions"],ans:1},
+AppLayerOSI:{ar:"طبقة التطبيق في OSI (7): الطبقة التي يتفاعل معها المستخدم مباشرةً — توفر خدمات شبكية للتطبيقات كتصفح الويب وBريد الإلكتروني ونقل الملفات.",q:"The Application Layer (Layer 7) in the OSI model:",opts:["Transmits raw bits over cables","Provides user-facing network services like web browsing, email, and file transfer","Routes data between networks","Manages hardware addressing"],ans:1},
+NetworkServices:{ar:"خدمات الشبكة: التطبيقات والبروتوكولات التي يتفاعل معها المستخدمون — HTTP للويب، SMTP للبريد، FTP للملفات، DNS للأسماء.",q:"Which of the following is a network service provided at the Application Layer?",opts:["IP routing","Ethernet framing","HTTP web browsing","TCP error correction"],ans:2},
+ICMPProto:{ar:"ICMP: بروتوكول رسائل التحكم بالإنترنت — يعمل في طبقة الشبكة (3)، يُستخدم للتشخيص والإبلاغ عن الأخطاء. Ping يرسل Echo Request ويستقبل Echo Reply.",q:"The 'Ping' utility uses which protocol?",opts:["TCP","UDP","ICMP","HTTP"],ans:2},
+IPSecProto:{ar:"IPSec: إطار أمان بروتوكول الإنترنت — يُوفر التشفير والمصادقة لحماية حركة مرور IP. الأساس لبروتوكولات VPN مثل L2TP/IPSec وIKEv2.",q:"IPSec is commonly used as the foundation for:",opts:["Web browsing security","Email encryption","VPN (Virtual Private Network) communications","Database security"],ans:2},
+IGMPProto:{ar:"IGMP: بروتوكول إدارة مجموعات الإنترنت — يُتيح للأجهزة الانضمام لمجموعات البث المتعدد وإدارتها لاستقبال بيانات البث الفعّال.",q:"IGMP manages multicast group memberships to enable:",opts:["Point-to-point encrypted communication","Efficient one-to-many data distribution without sending individual copies to each receiver","Secure VPN tunneling","Error reporting in network communications"],ans:1},
+WinSockProto:{ar:"WinSock (Windows Socket API): تطبيق مايكروسوفت لمعيار Berkeley Sockets — يُتيح لتطبيقات ويندوز إنشاء اتصالات شبكية باستخدام TCP/IP.",q:"WinSock is best described as:",opts:["A network protocol like TCP or UDP","Microsoft's API allowing Windows applications to use TCP/IP network communications","A type of Ethernet frame","A Windows firewall feature"],ans:1},
+SSL:{ar:"SSL (طبقة المقابس الآمنة): بروتوكول تشفير الاتصالات الشبكية — سلف TLS الحديث. يوفر HTTPS تصفح ويب آمناً باستخدام SSL/TLS.",q:"SSL (Secure Sockets Layer) provides security primarily through:",opts:["User authentication only","Data encryption to protect communications from eavesdropping","Blocking unauthorized network access","Managing digital certificates"],ans:1},
+HTTPS:{ar:"HTTPS: HTTP الآمن — يُضيف طبقة SSL/TLS فوق HTTP لتشفير الاتصالات بين المتصفح والخادم، يُشار إليه بالقفل في شريط العنوان.",q:"HTTPS provides security over regular HTTP by:",opts:["Using a different port (80 vs 443)","Adding SSL/TLS encryption to encrypt all data between browser and server","Blocking all cookies","Requiring user authentication for every request"],ans:1},
+SSHProto:{ar:"SSH (القشرة الآمنة): بروتوكول أمان لتسجيل الدخول عن بُعد وتنفيذ الأوامر — يُشفّر الاتصال بالكامل ويُحل محل Telnet غير الآمن.",q:"SSH (Secure Shell) replaced which older insecure protocol for remote access?",opts:["FTP","SMTP","Telnet","HTTP"],ans:2},
+IMAPProto:{ar:"IMAP (بروتوكول الوصول للرسائل عبر الإنترنت): يُتيح للعملاء الوصول لرسائل البريد على الخادم دون تنزيلها — البريد يبقى متاحاً من أجهزة متعددة.",q:"IMAP differs from POP3 in that IMAP:",opts:["Downloads and deletes emails from the server","Allows access to emails on the server without downloading — messages remain on the server","Only works with Gmail","Only retrieves new emails"],ans:1},
+FTPProto:{ar:"FTP (بروتوكول نقل الملفات): بروتوكول كلاسيكي لنقل الملفات بين العميل والخادم — غير مشفّر افتراضياً، استخدم SFTP للنقل الآمن.",q:"FTP (File Transfer Protocol) is commonly replaced by SFTP for security because:",opts:["FTP is too slow for large files","FTP transmits data including credentials in plaintext — SFTP encrypts the transfer","FTP only works on Windows","FTP cannot transfer binary files"],ans:1},
+HTTP:{ar:"HTTP (بروتوكول نقل النص التشعبي): البروتوكول الأساسي لنقل صفحات الويب — يعمل على المنفذ 80 وهو نص عادي غير مشفّر (استخدم HTTPS للأمان).",q:"HTTP (Hypertext Transfer Protocol) primarily:",opts:["Encrypts web communication","Transfers web pages from servers to browsers over the internet","Manages email delivery","Provides secure remote access"],ans:1},
+FTPApp:{ar:"FTP في طبقة التطبيق: يعمل على المنفذين 20 (نقل البيانات) و21 (التحكم) — يُتيح رفع وتنزيل الملفات بين العميل والخادم.",q:"FTP uses which ports for data transfer and control?",opts:["80 and 443","20 and 21","22 and 23","25 and 110"],ans:1},
+IRC:{ar:"IRC (ترحيل الإنترنت للمحادثة): بروتوكول محادثة نصية فورية قديم يعمل على المنفذ 6667 — لا يزال يُستخدم في بعض مجتمعات الإنترنت والأوساط التقنية.",q:"IRC (Internet Relay Chat) provides:",opts:["Encrypted file transfer","Real-time text-based communication between users","Email synchronization","VPN tunneling"],ans:1},
+SSHApp:{ar:"SSH في طبقة التطبيق: يعمل على المنفذ 22 — يُوفر وصولاً مُصادقاً ومشفّراً للأنظمة عن بُعد، ويدعم أيضاً نقل الملفات عبر SCP/SFTP.",q:"SSH operates on which default port?",opts:["21","23","22","25"],ans:2},
+DNS:{ar:"DNS (نظام أسماء النطاقات): يُترجم أسماء النطاقات المقروءة (google.com) إلى عناوين IP الرقمية — لبنة حيوية في بنية الإنترنت تعمل عبر UDP/TCP على المنفذ 53.",q:"DNS translates domain names to IP addresses. This is similar to:",opts:["A security firewall","A phone book that converts names to phone numbers","A network router","An email server"],ans:1},
+HostToNetwork:{ar:"طبقة المضيف-للشبكة: الطبقة الأدنى في TCP/IP — تُدمج الطبقتين المادية وربط البيانات من OSI — تتعامل مع الإرسال المادي الفعلي عبر Ethernet أو ATM.",q:"The Host-to-Network Layer in TCP/IP combines which two OSI layers?",opts:["Application and Presentation","Transport and Network","Physical and Data Link","Session and Transport"],ans:2},
+AppProtos:{ar:"بروتوكولات طبقة التطبيق في TCP/IP: HTTP (الويب)، DNS (حل الأسماء)، SNMP (إدارة الشبكة)، SMTP (إرسال البريد) — مكافئة للطبقات 5+6+7 من OSI.",q:"Which layer in TCP/IP is equivalent to OSI layers 5, 6, and 7 combined?",opts:["Transport Layer","Internet Layer","Host-to-Network Layer","Application Layer"],ans:3},
+Ethernet:{ar:"Ethernet: تقنية الشبكة المحلية السائدة (IEEE 802.3) — تُعرّف كيفية إرسال البيانات عبر الكابلات أو الألياف. تهيمن على أكثر من 80% من شبكات LAN.",q:"Ethernet is defined by which standard?",opts:["IEEE 802.11","IEEE 802.3","RFC 791","ISO 7498"],ans:1},
+EthernetFrame:{ar:"إطار Ethernet: وحدة بيانات طبقة ربط البيانات (الإطار) التي تُغلّف حزمة IP وتُضيف عناوين MAC وCRC للنقل المحلي.",q:"An Ethernet Frame is a:",opts:["Network Layer IP packet","Transport Layer segment","Data Link Layer PDU containing MAC addresses and a CRC","Physical Layer bit stream"],ans:2},
+IEEE8023:{ar:"معيار IEEE 802.3: المواصفة الدولية التي تُعرّف Ethernet — تُحدد بنية الإطار وأنواع الكابلات وسرعات الإرسال المدعومة.",q:"The IEEE 802.3 standard defines:",opts:["Wireless networking (Wi-Fi)","Bluetooth communication","Ethernet networking — frame structure, cable types, and transmission speeds","IP addressing"],ans:2},
+InternetProtocol:{ar:"بروتوكول الإنترنت (IP): بروتوكول الطبقة 3 المسؤول عن عنونة المضيفين وتوجيه الحزم — يُوفر تسليماً بأقصى جهد بدون ضمان.",q:"Internet Protocol (IP) is responsible for:",opts:["Guaranteed packet delivery","Host identification and routing packets — with best-effort (unreliable) delivery","Encrypting network traffic","Managing application sessions"],ans:1},
+PacketRouting:{ar:"توجيه الحزم: عملية إرسال حزمة IP من المصدر للوجهة عبر شبكات متعددة — الراوترات تتخذ القرار في كل خطوة بناءً على جدول التوجيه.",q:"Packet routing in IP involves:",opts:["Deciding which application should receive data","Encrypting data before transmission","Forwarding packets hop-by-hop across networks based on IP addresses and routing tables","Checking data integrity"],ans:2},
+BestEffort:{ar:"التسليم بأقصى جهد: IP يُحاول تسليم الحزم دون ضمان الوصول أو الترتيب أو التسليم مرة واحدة. TCP في الطبقة 4 يضيف الموثوقية اللازمة.",q:"IP's 'Best-Effort Delivery' means:",opts:["IP always guarantees packet delivery","IP guarantees packet ordering","IP attempts delivery but does not guarantee arrival, ordering, or duplication prevention","IP automatically retransmits lost packets"],ans:2},
+Preamble:{ar:"البادئة في إطار Ethernet: تسلسل 7 بايت من البتات المتعاقبة (10101010...) تُنبّه الجهاز المستقبِل لإطار قادم وتُزامن ساعة الاستقبال.",q:"The Preamble in an Ethernet Frame serves to:",opts:["Identify the destination MAC address","Alert the receiving system and synchronize clock timing for the incoming frame","Detect transmission errors","Indicate the protocol type inside the frame"],ans:1},
+SFD:{ar:"SFD (محدد بداية الإطار): البايت الأخير في حقل البادئة — يُشير لنهاية البادئة وبداية حقل عنوان MAC الوجهة.",q:"The SFD (Start of Frame Delimiter) marks:",opts:["The end of the data payload","The beginning of the CRC field","The start of the destination MAC address field","The beginning of the preamble"],ans:2},
+DestMAC:{ar:"عنوان MAC الوجهة: عنوان الأجهزة الفريد (6 بايت) للجهاز المستقبِل — السويتش يستخدمه لتحديد المنفذ الذي يُوجّه إليه الإطار.",q:"The Destination MAC Address in an Ethernet Frame specifies:",opts:["The IP address of the destination server","The hardware address of the receiving network interface","The source port number","The type of data in the payload"],ans:1},
+IPv4:{ar:"IPv4: الإصدار الرابع من بروتوكول الإنترنت — يستخدم عناوين 32-bit (مثل 192.168.1.1)، القيمة 0x0800 في حقل النوع تُشير لحمولة IPv4.",q:"In an Ethernet Frame, a Type field value of 0x0800 indicates:",opts:["IPv6 payload","ARP payload","IPv4 payload","VLAN tagged frame"],ans:2},
+IPv6:{ar:"IPv6: الإصدار السادس من بروتوكول الإنترنت — يستخدم عناوين 128-bit لمعالجة نضوب عناوين IPv4، القيمة 0x86DD في حقل النوع تُشير لحمولة IPv6.",q:"IPv6 was developed primarily to address:",opts:["Security weaknesses in IPv4","The exhaustion of IPv4 address space by providing 128-bit addresses","Faster routing than IPv4","Simpler network configuration"],ans:1},
+CRC:{ar:"CRC (فحص التكرار الدوري): 4 بايت في نهاية إطار Ethernet — يحسب قيمة تحقق رياضية تكتشف الأخطاء التي تحدث أثناء الإرسال المادي.",q:"The CRC (Cyclic Redundancy Check) field in an Ethernet Frame is used for:",opts:["Encrypting the payload data","Identifying the protocol type","Detecting transmission errors by verifying data integrity","Indicating the frame length"],ans:2}
+};
+
+/* ============================================================
+   RENDER
+============================================================ */
+const nav = document.getElementById('tabsNav');
+const body = document.getElementById('tabsBody');
+
+slides.forEach((s, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+  btn.innerHTML = `<span class="tab-slide-num">${s.num}</span>${s.label}<span class="exclaim-btn" title="Executive Summary" data-slide="${i}">!</span>`;
+  btn.addEventListener('click', e => {
+    if (e.target.classList.contains('exclaim-btn')) return;
+    switchTab(i);
+  });
+  nav.appendChild(btn);
+
+  const sec = document.createElement('div');
+  sec.className = 'section' + (i === 0 ? ' active' : '');
+  sec.id = 'sec-' + i;
+  sec.innerHTML = `
+    <div class="sec-header">
+      <div class="sec-num">Slide ${s.num}</div>
+      <div><div class="sec-title">${s.label}</div></div>
+    </div>
+    <div>${s.html}</div>`;
+  body.appendChild(sec);
+});
+
+function switchTab(idx) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+  document.querySelectorAll('.section').forEach((s, i) => s.classList.toggle('active', i === idx));
+}
+
+/* EXEC MODAL */
+document.addEventListener('click', e => {
+  const eb = e.target.closest('.exclaim-btn');
+  if (eb) {
+    e.stopPropagation();
+    const idx = parseInt(eb.dataset.slide);
+    const s = slides[idx];
+    document.getElementById('execTitle').textContent = 'Executive Summary — Slide ' + s.num + ': ' + s.label;
+    document.getElementById('execEn').textContent = s.execEn;
+    document.getElementById('execAr').textContent = s.execAr;
+    document.getElementById('execModal').classList.add('open');
+  }
+});
+
+/* KEYWORD MODAL */
+let currentKwKey = null;
+document.addEventListener('click', e => {
+  const kw = e.target.closest('.kw');
+  if (!kw) return;
+  const k = kw.dataset.k;
+  if (!k || !kwData[k]) return;
+  currentKwKey = k;
+  const d = kwData[k];
+  document.getElementById('kwTitle').textContent = k.replace(/([A-Z])/g, ' $1').trim();
+  document.getElementById('kwAr').textContent = d.ar;
+  document.getElementById('kwQ').textContent = d.q;
+  const optsDiv = document.getElementById('kwOpts');
+  optsDiv.innerHTML = '';
+  document.getElementById('kwFb').className = 'feedback-box';
+  document.getElementById('kwFb').textContent = '';
+  document.getElementById('kwReset').style.display = 'none';
+  d.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = ['A','B','C','D'][i] + '. ' + o;
+    btn.addEventListener('click', () => checkOpt(i, d.ans, optsDiv));
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('kwModal').classList.add('open');
+});
+
+function checkOpt(chosen, correct, container) {
+  const btns = container.querySelectorAll('.opt-btn');
+  btns.forEach(b => b.classList.add('disabled'));
+  btns[chosen].classList.add(chosen === correct ? 'correct' : 'wrong');
+  if (chosen !== correct) btns[correct].classList.add('correct');
+  const fb = document.getElementById('kwFb');
+  fb.className = 'feedback-box show-fb ' + (chosen === correct ? 'fb-ok' : 'fb-no');
+  fb.textContent = chosen === correct ? '✓ Correct!' : '✗ Incorrect — correct answer highlighted.';
+  document.getElementById('kwReset').style.display = 'inline-block';
+}
+
+function resetKwQ() {
+  if (!currentKwKey || !kwData[currentKwKey]) return;
+  const d = kwData[currentKwKey];
+  const optsDiv = document.getElementById('kwOpts');
+  optsDiv.innerHTML = '';
+  document.getElementById('kwFb').className = 'feedback-box';
+  document.getElementById('kwFb').textContent = '';
+  document.getElementById('kwReset').style.display = 'none';
+  d.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = ['A','B','C','D'][i] + '. ' + o;
+    btn.addEventListener('click', () => checkOpt(i, d.ans, optsDiv));
+    optsDiv.appendChild(btn);
+  });
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

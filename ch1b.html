@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CYBS60201 — Slides 7–24: Penetration Testing Foundations</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e1a;--surface:#111827;--surface2:#1a2236;--surface3:#1e2d4a;
+  --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;--accent4:#f59e0b;--danger:#ef4444;
+  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --border:rgba(255,255,255,0.08);--border2:rgba(0,212,255,0.3);
+  --mono:'JetBrains Mono',monospace;--sans:'IBM Plex Sans Arabic',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.7;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+.wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px}
+
+/* HEADER */
+header{padding:50px 0 30px;text-align:center}
+.course-tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--accent);border:1px solid var(--border2);padding:5px 16px;border-radius:2px;margin-bottom:18px;text-transform:uppercase}
+header h1{font-size:clamp(24px,4vw,44px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:10px}
+header h1 span{color:var(--accent)}
+.subtitle{color:var(--text2);font-size:14px;max-width:600px;margin:0 auto 24px}
+.header-meta{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.meta-pill{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:5px 12px;font-size:12px;color:var(--text2)}
+.meta-pill span{color:var(--accent3);font-weight:600}
+
+/* TABS NAV */
+.tabs-outer{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin:24px 0 0;overflow:hidden}
+.tabs-scroll{display:flex;overflow-x:auto;padding:12px 12px 0;gap:6px;scrollbar-width:thin;scrollbar-color:var(--surface3) transparent}
+.tabs-scroll::-webkit-scrollbar{height:4px}
+.tabs-scroll::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px}
+.tab-btn{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:7px 13px;border-radius:6px 6px 0 0;cursor:pointer;font-size:12px;font-family:var(--sans);white-space:nowrap;transition:all .2s;flex-shrink:0;border-bottom:none}
+.tab-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.04)}
+.tab-btn.active{background:var(--surface2);border-color:var(--border2);color:var(--accent);font-weight:600}
+.tab-slide-num{font-family:var(--mono);font-size:9px;color:var(--text3);background:var(--surface3);padding:2px 5px;border-radius:2px}
+.tab-btn.active .tab-slide-num{color:var(--accent);background:rgba(0,212,255,0.12)}
+.exclaim-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:rgba(245,158,11,0.15);color:var(--accent4);font-size:10px;font-weight:700;cursor:pointer;border:1px solid rgba(245,158,11,0.3);transition:all .15s;flex-shrink:0;line-height:1}
+.exclaim-btn:hover{background:rgba(245,158,11,0.25);transform:scale(1.15)}
+
+/* SECTIONS */
+.section{display:none;padding:28px 20px 32px;animation:fadeIn .25s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* SEC HEADER */
+.sec-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.sec-num{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(0,212,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:3px 9px;white-space:nowrap;margin-top:3px;flex-shrink:0}
+.sec-title{font-size:clamp(18px,2.5vw,24px);font-weight:700;color:#fff;line-height:1.3}
+.sec-desc{color:var(--text2);font-size:14px;margin-top:5px;line-height:1.6}
+
+/* CONTENT BODY */
+.slide-content{font-size:15px;color:var(--text);line-height:1.75}
+.slide-content p{margin-bottom:10px}
+.bullet-list{list-style:none;padding:0;margin:8px 0}
+.bullet-list li{padding:8px 0 8px 16px;border-bottom:1px solid var(--border);font-size:14px;color:var(--text2);line-height:1.6;position:relative}
+.bullet-list li:last-child{border-bottom:none}
+.bullet-list li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
+.bullet-list li strong{color:var(--text);font-weight:600}
+
+/* HIGHLIGHT BOX */
+.highlight{background:linear-gradient(135deg,rgba(0,212,255,0.06),rgba(124,58,237,0.06));border:1px solid var(--border2);border-radius:8px;padding:18px 22px;margin:16px 0}
+.highlight-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:7px}
+.highlight p{font-size:14px;color:var(--text);line-height:1.7}
+
+/* WARNING HIGHLIGHT */
+.highlight-warn{background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.25);border-radius:8px;padding:16px 20px;margin:12px 0}
+.highlight-warn .highlight-label{color:var(--danger)}
+
+/* CARDS */
+.card-grid{display:grid;gap:14px;margin-top:16px}
+.card-grid.cols-2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.card-grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:18px 20px;transition:border-color .2s,transform .2s}
+.card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.card-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:6px}
+.card-body{font-size:13px;color:var(--text2);line-height:1.6}
+.card.al{border-left:3px solid var(--accent)}
+.card.ag{border-left:3px solid var(--accent3)}
+.card.ap{border-left:3px solid var(--accent2)}
+.card.aa{border-left:3px solid var(--accent4)}
+.card.ar{border-left:3px solid var(--danger)}
+
+/* COMPARE TABLE */
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:14px}
+.cmp-table th{background:var(--surface2);padding:10px 14px;text-align:left;font-weight:600;color:var(--text2);font-size:11px;letter-spacing:1px;border-bottom:1px solid var(--border);font-family:var(--mono)}
+.cmp-table td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.5}
+.cmp-table tr:last-child td{border-bottom:none}
+.cmp-table tr:hover td{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-family:var(--mono);font-weight:600;border:1px solid}
+.badge-b{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.3)}
+.badge-w{background:rgba(16,185,129,0.1);color:var(--accent3);border-color:rgba(16,185,129,0.3)}
+.badge-g{background:rgba(0,212,255,0.08);color:var(--accent);border-color:var(--border2)}
+.badge-d{background:rgba(124,58,237,0.1);color:#a78bfa;border-color:rgba(124,58,237,0.3)}
+
+/* KEYWORD */
+.kw{display:inline;background:rgba(0,212,255,0.1);color:var(--accent);border-radius:3px;padding:1px 6px;cursor:pointer;font-weight:600;font-size:0.92em;border:1px solid rgba(0,212,255,0.2);transition:background .15s;white-space:nowrap}
+.kw:hover{background:rgba(0,212,255,0.2)}
+.kw-g{background:rgba(16,185,129,0.1);color:var(--accent3);border-color:rgba(16,185,129,0.2)}
+.kw-g:hover{background:rgba(16,185,129,0.2)}
+.kw-a{background:rgba(245,158,11,0.1);color:var(--accent4);border-color:rgba(245,158,11,0.2)}
+.kw-a:hover{background:rgba(245,158,11,0.2)}
+.kw-r{background:rgba(239,68,68,0.1);color:#f87171;border-color:rgba(239,68,68,0.2)}
+.kw-r:hover{background:rgba(239,68,68,0.2)}
+
+/* PHASE TIMELINE */
+.timeline{padding-left:20px;border-left:2px solid linear-gradient(var(--accent),var(--accent2));border-image:linear-gradient(to bottom,var(--accent),var(--accent2)) 1;margin:8px 0}
+.ph{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.ph:last-child{border-bottom:none}
+.ph-num{font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(0,212,255,0.1);border:1px solid var(--border2);border-radius:3px;padding:3px 8px;flex-shrink:0;margin-top:2px}
+.ph-title{font-size:14px;font-weight:600;color:#fff;margin-bottom:3px}
+.ph-desc{font-size:13px;color:var(--text2);line-height:1.55}
+
+/* SCOPE ITEMS */
+.scope-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.scope-item:last-child{border-bottom:none}
+.scope-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;margin-top:2px}
+.si-in{background:rgba(16,185,129,0.1)}
+.si-out{background:rgba(239,68,68,0.08)}
+.si-meta{background:rgba(0,212,255,0.08)}
+.scope-text strong{display:block;font-size:14px;color:#fff;margin-bottom:2px}
+.scope-text span{font-size:13px;color:var(--text2);line-height:1.5}
+
+/* VECTOR GRID */
+.vec-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:14px}
+.vec-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center}
+.vec-icon{font-size:26px;margin-bottom:8px}
+.vec-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:5px}
+.vec-desc{font-size:12px;color:var(--text2);line-height:1.5}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:22px 0}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:0;max-width:500px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 0 40px rgba(0,212,255,0.08)}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.modal-kw-title{font-size:16px;font-weight:700;color:#fff}
+.modal-close{background:transparent;border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-close:hover{border-color:var(--danger);color:var(--danger)}
+.modal-body{padding:18px 22px}
+.modal-ar{font-size:14px;line-height:1.75;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:6px;padding:14px 16px;margin-bottom:16px;border:1px solid var(--border)}
+.modal-ar-label{font-size:10px;font-family:var(--mono);color:var(--accent3);letter-spacing:2px;margin-bottom:6px;text-align:right;direction:rtl}
+.modal-q{font-size:14px;font-weight:600;color:#fff;margin-bottom:12px;line-height:1.5}
+.modal-q-label{font-size:10px;font-family:var(--mono);color:var(--accent4);letter-spacing:2px;margin-bottom:8px}
+.opt-btn{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:7px;cursor:pointer;font-size:13px;color:var(--text2);transition:all .15s;line-height:1.4}
+.opt-btn:hover:not(.disabled){border-color:var(--accent);color:var(--text);background:rgba(0,212,255,0.04)}
+.opt-btn.correct{background:rgba(16,185,129,0.1);border-color:var(--accent3);color:var(--accent3)}
+.opt-btn.wrong{background:rgba(239,68,68,0.08);border-color:var(--danger);color:#f87171}
+.opt-btn.disabled{cursor:default}
+.feedback-box{font-size:13px;margin-top:8px;padding:10px 14px;border-radius:6px;display:none;line-height:1.5}
+.feedback-box.show-fb{display:block}
+.fb-ok{background:rgba(16,185,129,0.1);color:var(--accent3);border:1px solid rgba(16,185,129,0.2)}
+.fb-no{background:rgba(239,68,68,0.07);color:#fca5a5;border:1px solid rgba(239,68,68,0.2)}
+.reset-q-btn{margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--sans);transition:all .2s}
+.reset-q-btn:hover{border-color:var(--accent);color:var(--accent)}
+.reset-q-btn{display:none}
+
+/* EXEC MODAL */
+.exec-en{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:14px;padding:14px 16px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+.exec-ar{font-size:14px;line-height:1.75;color:var(--text2);direction:rtl;text-align:right;background:var(--surface2);border-radius:6px;padding:14px 16px;border:1px solid var(--border)}
+.lang-label{font-size:10px;font-family:var(--mono);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase}
+.lbl-en{color:var(--accent)}
+.lbl-ar{color:var(--accent3);text-align:right;direction:rtl;display:block}
+
+/* SCROLL TOP */
+.scroll-top{position:fixed;bottom:22px;right:22px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--accent);font-size:15px;z-index:100;transition:all .2s}
+.scroll-top:hover{background:rgba(0,212,255,0.1)}
+
+footer{text-align:center;padding:36px 0 24px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:48px}
+footer span{color:var(--text2)}
+
+@media(max-width:600px){
+  .tab-btn{font-size:11px;padding:6px 10px}
+  .sec-title{font-size:18px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="course-tag">CYBS60201 · Slides 7 – 24 · Chapter 1</div>
+  <h1>Penetration Testing <span>Foundations</span></h1>
+  <p class="subtitle">Click keywords to explore definitions in Arabic + quiz questions. Use ! for executive summaries.</p>
+  <div class="header-meta">
+    <div class="meta-pill">Slides: <span>7 – 24</span></div>
+    <div class="meta-pill">Framework: <span>PTES</span></div>
+    <div class="meta-pill">Keywords: <span>click to explore</span></div>
+    <div class="meta-pill">! <span>= executive summary</span></div>
+  </div>
+</header>
+
+<div class="tabs-outer">
+  <div class="tabs-scroll" id="tabsNav"></div>
+  <div id="tabsBody"></div>
+</div>
+
+</div>
+
+<!-- MODAL: Keyword -->
+<div class="modal-bg" id="kwModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-kw-title" id="kwTitle"></div>
+      <button class="modal-close" onclick="closeModal('kwModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-ar-label">الشرح بالعربي</div>
+      <div class="modal-ar" id="kwAr"></div>
+      <div class="modal-q-label">MCQ QUESTION</div>
+      <div class="modal-q" id="kwQ"></div>
+      <div id="kwOpts"></div>
+      <div class="feedback-box" id="kwFb"></div>
+      <button class="reset-q-btn" id="kwReset" onclick="resetKwQ()">↺ Try again</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Executive Summary -->
+<div class="modal-bg" id="execModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-kw-title" id="execTitle"></div>
+      <button class="modal-close" onclick="closeModal('execModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="lang-label lbl-en">Executive Summary — English</div>
+      <div class="exec-en" id="execEn"></div>
+      <div class="lang-label lbl-ar">الملخص التنفيذي — بالعربي</div>
+      <div class="exec-ar" id="execAr"></div>
+    </div>
+  </div>
+</div>
+
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<footer><div class="wrap">CYBS60201 · Advanced Programming in Cybersecurity · <span>Al-Baha University</span> · Second Semester 1446H</div></footer>
+
+<script>
+/* ================================================================
+   DATA: slides 7–24
+================================================================ */
+const slides=[
+
+/* ---- SLIDE 7: Defining Professional Penetration Testing ---- */
+{
+  num:"07", label:"Defining Professional Penetration Testing",
+  execEn:"Penetration testing is a formally authorized, systematic attack simulation designed to evaluate an organization's security posture. Unlike vulnerability scanning which merely lists bugs, pen testing actively exploits weaknesses to validate real-world risk and measure policy effectiveness.",
+  execAr:"اختبار الاختراق هو محاكاة هجومية مُصرَّح بها رسمياً تهدف لتقييم البنية الأمنية للمؤسسة. على عكس فحص الثغرات الذي يكتفي بقائمة الأخطاء، يستغل اختبار الاختراق الثغرات فعلياً لإثبات المخاطر الحقيقية وقياس فعالية السياسات الأمنية.",
+  html:`
+<div class="highlight">
+  <div class="highlight-label">Core Definition</div>
+  <p>An <span class="kw" data-k="AuthorizedSimulation">authorized</span>, systematic simulation of an attack to evaluate the <span class="kw" data-k="SecurityInfrastructure">security infrastructure</span> of an organization.</p>
+</div>
+<ul class="bullet-list" style="margin-top:14px">
+  <li><strong>Identifying and exploiting weaknesses</strong> to <span class="kw" data-k="ValidateRisk">validate risk</span>.</li>
+  <li><strong>Validating</strong> <span class="kw" data-k="SecurityPolicyEfficacy">security policy efficacy</span>.</li>
+  <li><strong>Proactively spotting threats</strong> to <span class="kw" data-k="Confidentiality">confidentiality</span> and data.</li>
+</ul>`
+},
+
+/* ---- SLIDE 8: Vulnerability Scanning vs PenTesting ---- */
+{
+  num:"08", label:"Vulnerability Scanning vs. PenTesting",
+  execEn:"Vulnerability scanning and penetration testing serve different but complementary roles. Scanning produces a broad inventory of potential flaws while penetration testing goes further — proving actual exploitability and real-world impact through active exploitation.",
+  execAr:"فحص الثغرات واختبار الاختراق دوران مختلفان ومتكاملان. الفحص يُنتج قائمة واسعة بالثغرات المحتملة، بينما يتجاوز اختبار الاختراق ذلك — ليُثبت فعلياً قابلية الاستغلال والأثر الحقيقي من خلال الاستغلال النشط.",
+  html:`
+<table class="cmp-table">
+  <thead><tr><th>Approach</th><th>Description</th><th>Output</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="kw kw-a" data-k="VulnScanning">Vulnerability Scanning</span></td>
+      <td>Broad identification of potential flaws across systems</td>
+      <td>A list of bugs / potential issues</td>
+    </tr>
+    <tr>
+      <td><span class="kw kw-g" data-k="PenTesting">Penetration Testing</span></td>
+      <td>Goal-oriented verification via <span class="kw" data-k="ActiveExploitation">active exploitation</span></td>
+      <td>Proof of exploitability and real impact</td>
+    </tr>
+  </tbody>
+</table>
+<div class="highlight" style="margin-top:16px">
+  <div class="highlight-label">Key Distinction</div>
+  <p>Vulnerability scanning tells you <strong style="color:#fff">what might be broken</strong>. Penetration testing tells you <strong style="color:var(--accent)">what is actually exploitable and how bad it is</strong>.</p>
+</div>`
+},
+
+/* ---- SLIDE 9: Significance — Assurance & Confidentiality ---- */
+{
+  num:"09", label:"Significance: Assurance & Confidentiality",
+  execEn:"Penetration testing provides two foundational security benefits: organizational assurance through detailed security posture assessment, and confidentiality protection by identifying threats before they cause damage to sensitive data.",
+  execAr:"يُقدّم اختبار الاختراق فائدتين أمنيتين جوهريتين: ضمان أمن المؤسسة من خلال تقييم مفصّل للوضع الأمني، وحماية السرية عبر رصد التهديدات قبل أن تتسبب في أضرار للبيانات الحساسة.",
+  html:`
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title">🏢 Security of the Organization</div>
+    <div class="card-body">Provides <span class="kw" data-k="SecurityAssurance">assurance</span> through a detailed assessment of the <span class="kw" data-k="SecurityPosture">security posture</span>.</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">🔒 Protecting Confidentiality</div>
+    <div class="card-body">Spots <span class="kw" data-k="PotentialThreats">potential threats</span> before damage occurs, safeguarding the organization's <span class="kw kw-g" data-k="SensitiveData">sensitive data</span>.</div>
+  </div>
+</div>`
+},
+
+/* ---- SLIDE 10: Significance — Policies & Efficiency ---- */
+{
+  num:"10", label:"Significance: Policies & Efficiency",
+  execEn:"Beyond confidentiality, penetration testing validates that security policies are actually functioning, tests the performance of critical network devices such as firewalls and routers, and ensures infrastructure safety during network changes or hardware/software updates.",
+  execAr:"بعيداً عن السرية، يُتحقق اختبار الاختراق من أن السياسات الأمنية تعمل فعلاً، ويختبر أداء الأجهزة الحيوية كالجدران النارية والراوترات، ويضمن سلامة البنية التحتية أثناء تغييرات الشبكة أو تحديث الأجهزة.",
+  html:`
+<ul class="bullet-list">
+  <li>
+    <strong>Security Policy Implementation:</strong> Ensures that defined <span class="kw" data-k="SecurityPolicy">security policies</span> are actually implemented and functional.
+  </li>
+  <li>
+    <strong>Managing Network Efficiency:</strong> Examines the security and performance of critical devices like <span class="kw" data-k="Firewalls">firewalls</span> and <span class="kw kw-a" data-k="Routers">routers</span>.
+  </li>
+  <li>
+    <strong>Infrastructure Safety:</strong> Ensures safety against <span class="kw" data-k="Vulnerabilities">vulnerabilities</span> when implementing <span class="kw kw-g" data-k="NetworkDesignChanges">network design changes</span> or hardware/software updates.
+  </li>
+</ul>`
+},
+
+/* ---- SLIDE 11: Cybersecurity as a Strategic Priority ---- */
+{
+  num:"11", label:"Cybersecurity as a Strategic Priority",
+  execEn:"Cybersecurity has become a top strategic priority for both public and private organizations. Cybercriminals exploit organizations as 'soft targets' using multiple attack vectors. The root cause of successful breaches is the lack of efficient policies and increasing system complexity.",
+  execAr:"أصبح الأمن السيبراني أولوية استراتيجية عليا للمؤسسات الحكومية والخاصة. يستغل المجرمون الإلكترونيون المؤسسات كـ'أهداف سهلة' عبر متجهات هجوم متعددة. السبب الجذري للاختراقات الناجحة هو غياب السياسات الكافية وتزايد تعقيد الأنظمة.",
+  html:`
+<ul class="bullet-list">
+  <li>Both <span class="kw" data-k="GovPrivateOrgs">government and private organizations</span> have adopted cybersecurity as a <strong>strategic priority</strong>.</li>
+  <li>Cybercriminals target these organizations as <span class="kw kw-r" data-k="SoftTargets">"soft targets"</span> using various <span class="kw" data-k="AttackVectors">attacking vectors</span>.</li>
+  <li>
+    <strong>The Root Problem:</strong> <span class="kw kw-r" data-k="RootProblem">Lack of efficient policies</span>, standards, and system complexity leads to successful exploitation and <span class="kw kw-r" data-k="DataTheft">data theft</span>.
+  </li>
+</ul>
+<div class="highlight" style="margin-top:16px">
+  <div class="highlight-label">Implication</div>
+  <p>The threat landscape is not just a technical problem — it is an organizational and policy problem that requires systematic, methodical responses.</p>
+</div>`
+},
+
+/* ---- SLIDE 12: Strategy of Penetration Testing ---- */
+{
+  num:"12", label:"The Strategy of Penetration Testing",
+  execEn:"Penetration testing is the primary strategic tool for mitigating cyberattack risk. Its effectiveness hinges on using a consistent, efficient assessment methodology that enables evaluators to test environments in a repeatable, standardized manner.",
+  execAr:"اختبار الاختراق هو الأداة الاستراتيجية الرئيسية للتخفيف من مخاطر الهجمات الإلكترونية. يعتمد نجاحه على استخدام منهجية تقييم متسقة وفعّالة تُمكّن المُقيِّمين من اختبار البيئات بطريقة قابلة للتكرار وموحدة.",
+  html:`
+<ul class="bullet-list">
+  <li>Penetration testing is a primary strategy used to <span class="kw kw-g" data-k="MitigateRisks">mitigate the risks</span> of cyberattacks.</li>
+  <li><strong>The Success Factor:</strong> Success depends upon an <span class="kw" data-k="AssessmentMethodology">efficient and consistent assessment methodology</span>.</li>
+  <li><span class="kw" data-k="Methodologies">Methodologies</span> allow assessors to evaluate an environment <strong>consistently</strong>.</li>
+</ul>`
+},
+
+/* ---- SLIDE 13: Industry-Standard Methodologies ---- */
+{
+  num:"13", label:"Industry-Standard Methodologies",
+  execEn:"Four key industry-standard methodologies ensure consistent and comprehensive penetration testing. PTES is the core framework for this course, offering the most complete coverage from initial engagement through final reporting.",
+  execAr:"أربع منهجيات معيارية رئيسية تضمن اتساق وشمولية اختبار الاختراق. PTES هو الإطار الأساسي لهذا المساق، إذ يُقدم التغطية الأكثر اكتمالاً من التعاقد الأولي حتى التقرير النهائي.",
+  html:`
+<p style="font-size:14px;color:var(--text2);margin-bottom:16px">A variety of methodologies allow for <span class="kw" data-k="ConsistentEvaluation">consistent evaluation</span>:</p>
+<div class="card-grid cols-2">
+  <div class="card al">
+    <div class="card-title"><span class="kw" data-k="OSSTMM">OSSTMM</span></div>
+    <div class="card-body">Open-Source Security Testing Methodology Manual</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title"><span class="kw kw-g" data-k="OWASP">OWASP</span></div>
+    <div class="card-body">Open Web Application Security Project</div>
+  </div>
+  <div class="card aa">
+    <div class="card-title"><span class="kw kw-a" data-k="NIST">NIST</span></div>
+    <div class="card-body">National Institute of Standards and Technology</div>
+  </div>
+  <div class="card ap" style="border:1px solid var(--border2)">
+    <div class="card-title"><span class="kw" data-k="PTES" style="font-size:1em">PTES</span> <span style="font-size:11px;color:var(--accent2);margin-right:6px">★ Core Framework</span></div>
+    <div class="card-body">Penetration Testing Execution Standard</div>
+  </div>
+</div>`
+},
+
+/* ---- SLIDE 14: What is PTES? ---- */
+{
+  num:"14", label:"What is PTES?",
+  execEn:"PTES (Penetration Testing Execution Standard) is the most comprehensive methodology for penetration testing, covering every phase from pre-engagement to reporting. It includes technical guidelines for diverse environments and recommends industry-standard tools, making it ideal for both new and experienced assessors.",
+  execAr:"PTES هو المنهجية الأكثر شمولاً لاختبار الاختراق، تغطي كل مرحلة من ما قبل التعاقد حتى التقرير النهائي. تتضمن إرشادات تقنية لبيئات متنوعة وتوصيات بأدوات قياسية، مما يجعلها مثالية للمقيّمين الجدد والمحترفين.",
+  html:`
+<ul class="bullet-list">
+  <li><strong>Definition:</strong> <span class="kw" data-k="PTES">PTES</span> (Penetration Testing Execution Standard) is a <span class="kw" data-k="ComprehensiveMethodology">comprehensive assessment methodology</span> for penetration testing.</li>
+  <li><strong>Coverage:</strong> It covers <strong>every aspect</strong> related to a penetration test.</li>
+  <li><strong>Technical Guidelines:</strong> Within PTES, there are a number of <span class="kw kw-a" data-k="TechnicalGuidelines">technical guidelines</span> related to different environments an assessor may encounter.</li>
+  <li><strong>The Advantage:</strong> For new assessors, PTES provides suggestions for addressing and evaluating environments using <span class="kw kw-g" data-k="IndustryStandardTools">industry standard tools</span>.</li>
+</ul>`
+},
+
+/* ---- SLIDE 15: The Seven Phases of PTES ---- */
+{
+  num:"15", label:"The Seven Phases of PTES",
+  execEn:"PTES is structured into seven sequential phases that cover every dimension of a penetration test: from initial communication and intelligence gathering through threat modeling, technical exploitation, and final reporting. The combination of technical skill with business context is what makes PTES powerful.",
+  execAr:"يتكون PTES من سبع مراحل متسلسلة تغطي كل أبعاد اختبار الاختراق: من التواصل الأولي وجمع المعلومات الاستخباراتية، مروراً بنمذجة التهديدات والاستغلال التقني، وصولاً للتقرير النهائي. الجمع بين المهارة التقنية وفهم السياق التجاري هو ما يجعل PTES فعّالاً.",
+  html:`
+<div class="highlight">
+  <div class="highlight-label">Scope of PTES</div>
+  <p>The standard consists of <span class="kw" data-k="SevenPhases">seven phases</span> covering everything from <strong style="color:#fff">initial communication</strong> to <strong style="color:var(--accent)">final delivery</strong>.</p>
+</div>
+<div class="timeline" style="margin-top:18px">
+  <div class="ph"><div class="ph-num">01</div><div><div class="ph-title">Initial Phase</div><div class="ph-desc"><span class="kw" data-k="PreEngagement">Communication</span> and the reasoning behind a pentest.</div></div></div>
+  <div class="ph"><div class="ph-num">02–03</div><div><div class="ph-title">Behind the Scenes</div><div class="ph-desc"><span class="kw" data-k="IntelligenceGathering">Intelligence gathering</span> and <span class="kw kw-a" data-k="ThreatModeling">threat modelling</span>.</div></div></div>
+  <div class="ph"><div class="ph-num">04–06</div><div><div class="ph-title">Technical Execution</div><div class="ph-desc"><span class="kw kw-r" data-k="VulnResearch">Vulnerability research</span>, <span class="kw kw-r" data-k="Exploitation">exploitation</span>, and <span class="kw kw-a" data-k="PostExploitation">post-exploitation</span>.</div></div></div>
+  <div class="ph"><div class="ph-num">07</div><div><div class="ph-title">Reporting</div><div class="ph-desc">Captures the entire technical and strategic findings of the test.</div></div></div>
+</div>`
+},
+
+/* ---- SLIDE 16: Integrating Expertise with Business ---- */
+{
+  num:"16", label:"Integrating Expertise with Business",
+  execEn:"PTES ensures that penetration testing goes beyond purely technical work. The methodology demands that testers combine deep technical security expertise with genuine business understanding of the client's environment. The process culminates in a Reporting phase that captures both technical findings and strategic business impact.",
+  execAr:"يضمن PTES أن اختبار الاختراق يتجاوز العمل التقني البحت. تُلزم المنهجية المختبِرين بالجمع بين الخبرة التقنية الأمنية العميقة والفهم الحقيقي للسياق التجاري للعميل. تنتهي العملية بمرحلة التقرير التي تُوثّق النتائج التقنية والأثر الاستراتيجي على الأعمال.",
+  html:`
+<ul class="bullet-list">
+  <li>The methodology ensures a <strong>better understanding</strong> of the tested organization.</li>
+  <li>
+    <strong>Critical Combination:</strong> The <span class="kw" data-k="TechnicalExpertise">technical security expertise</span> of the testers is combined with a deep <span class="kw kw-g" data-k="BusinessUnderstanding">business understanding</span> of the engagement.
+  </li>
+  <li>
+    <strong>The Conclusion:</strong> The process culminates in <span class="kw" data-k="Reporting">Reporting</span>, which captures the entire <strong>technical and strategic findings</strong> of the test.
+  </li>
+</ul>`
+},
+
+/* ---- SLIDE 17: PTES Technical Lifecycle ---- */
+{
+  num:"17", label:"The PTES Technical Lifecycle",
+  execEn:"The seven PTES phases form an end-to-end lifecycle: Pre-engagement Interactions set the legal and technical scope; Intelligence Gathering and Threat Modeling prepare the attack strategy; Vulnerability Analysis, Exploitation, and Post-Exploitation execute and measure the breach; and Reporting documents everything for remediation.",
+  execAr:"تُشكّل المراحل السبع لـ PTES دورة حياة متكاملة: تُحدد مرحلة ما قبل التعاقد النطاق القانوني والتقني؛ وتُعدّ مراحل جمع المعلومات ونمذجة التهديدات استراتيجية الهجوم؛ وتُنفّذ مراحل تحليل الثغرات والاستغلال وما بعده الاختراق وتقيسه؛ ويوثّق التقرير كل شيء للعلاج.",
+  html:`
+<div class="timeline">
+  <div class="ph"><div class="ph-num">01</div><div><div class="ph-title"><span class="kw" data-k="PreEngagementPhase">Pre-engagement Interactions</span></div><div class="ph-desc">Defines scope, permissions, and legal boundaries.</div></div></div>
+  <div class="ph"><div class="ph-num">02</div><div><div class="ph-title"><span class="kw" data-k="IntelGathering">Intelligence Gathering</span></div><div class="ph-desc">Collecting information about the target environment.</div></div></div>
+  <div class="ph"><div class="ph-num">03</div><div><div class="ph-title"><span class="kw kw-a" data-k="ThreatModelingPhase">Threat Modeling</span></div><div class="ph-desc">Analyzing gathered data to identify likely attack paths.</div></div></div>
+  <div class="ph"><div class="ph-num">04</div><div><div class="ph-title"><span class="kw" data-k="VulnAnalysis">Vulnerability Analysis</span></div><div class="ph-desc">Identifying and researching exploitable weaknesses.</div></div></div>
+  <div class="ph"><div class="ph-num">05</div><div><div class="ph-title"><span class="kw kw-r" data-k="ExploitationPhase">Exploitation</span></div><div class="ph-desc">Actively exploiting vulnerabilities to gain unauthorized access.</div></div></div>
+  <div class="ph"><div class="ph-num">06</div><div><div class="ph-title"><span class="kw kw-a" data-k="PostExploitPhase">Post-Exploitation</span></div><div class="ph-desc">Assessing the extent of access: lateral movement, data exfiltration.</div></div></div>
+  <div class="ph"><div class="ph-num">07</div><div><div class="ph-title"><span class="kw kw-g" data-k="ReportingPhase">Reporting</span></div><div class="ph-desc">Documenting all findings, evidence, and remediation recommendations.</div></div></div>
+</div>`
+},
+
+/* ---- SLIDE 18: Phase 1 — Pre-engagement Interactions ---- */
+{
+  num:"18", label:"Phase 1: Pre-engagement Interactions",
+  execEn:"Pre-engagement is the most critical PTES phase. Any mistake here cascades through the entire assessment. It establishes legal authorization, defines scope boundaries, manages expectations, and lays the foundation for a legally and professionally sound engagement.",
+  execAr:"مرحلة ما قبل التعاقد هي الأحرج في PTES. أي خطأ فيها ينعكس على كامل الاختبار. تُرسي هذه المرحلة التفويض القانوني وتحدد حدود النطاق وتدير التوقعات وتضع أساساً قانونياً ومهنياً سليماً للتعاقد.",
+  html:`
+<div class="highlight-warn">
+  <div class="highlight-label">⚠ Critical Foundation</div>
+  <p>This is the first and <strong style="color:#f87171">very important</strong> phase of PTES. Any mistake while implementing this phase can have a <span class="kw kw-r" data-k="SignificantImpact">significant impact</span> on the rest of the assessment.</p>
+</div>
+<p style="font-size:14px;color:var(--text2);margin:14px 0 8px"><strong style="color:var(--text)">Main Aim:</strong> To explain the tools and techniques available which help in a successful <span class="kw" data-k="PreEngagementStep">pre-engagement step</span>.</p>
+<p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">Core Components of Phase 1:</p>
+<ul class="bullet-list">
+  <li>Request for an <span class="kw" data-k="Assessment">assessment</span></li>
+  <li><span class="kw kw-a" data-k="Bidding">Bidding</span></li>
+  <li>Signing of <span class="kw" data-k="EngagementLetter">Engagement Letter (EL)</span></li>
+  <li><span class="kw kw-g" data-k="ScopingMeeting">Scoping Meeting</span></li>
+  <li>Handling of <span class="kw kw-r" data-k="ScopeCreep">scope creep</span></li>
+  <li><span class="kw kw-a" data-k="Questionnaires">Questionnaires</span></li>
+</ul>`
+},
+
+/* ---- SLIDE 19: Defining Technical Scope ---- */
+{
+  num:"19", label:"Defining Technical Scope",
+  execEn:"Defining technical scope is a critical pre-engagement activity. In-scope assets (validated IPs, URLs, SSIDs) are the legitimate testing targets. Out-of-scope assets must never be touched. Questionnaires help gather initial metadata to ensure the scope is accurately and comprehensively defined.",
+  execAr:"تعريف النطاق التقني نشاط ما قبل تعاقد حيوي. الأصول داخل النطاق (IPs، URLs، SSIDs المُتحقق منها) هي الأهداف المشروعة للاختبار. الأصول خارج النطاق لا يجوز لمسها أبداً. تُساعد الاستبيانات في جمع البيانات الوصفية الأولية لضمان تعريف النطاق بدقة وشمولية.",
+  html:`
+<div class="scope-item">
+  <div class="scope-icon si-in">✅</div>
+  <div class="scope-text">
+    <strong>In-Scope</strong>
+    <span>Validated list of <span class="kw" data-k="IPAddresses">IP addresses</span>, <span class="kw kw-a" data-k="URLs">URLs</span>, and <span class="kw kw-g" data-k="SSIDs">SSIDs</span>. These are the authorized targets.</span>
+  </div>
+</div>
+<div class="scope-item">
+  <div class="scope-icon si-out">🚫</div>
+  <div class="scope-text">
+    <strong>Out-of-Scope</strong>
+    <span><span class="kw kw-r" data-k="SensitiveAssets">Sensitive assets</span> that must not be touched — any interaction outside scope creates legal liability.</span>
+  </div>
+</div>
+<div class="scope-item">
+  <div class="scope-icon si-meta">📋</div>
+  <div class="scope-text">
+    <strong>Metadata</strong>
+    <span>Use of <span class="kw" data-k="Questionnaires2">questionnaires</span> to gather initial technical data before the engagement begins.</span>
+  </div>
+</div>`
+},
+
+/* ---- SLIDE 20: Black Box Testing ---- */
+{
+  num:"20", label:"Strategy: Black Box Testing",
+  execEn:"Black box testing provides zero prior knowledge to the tester, simulating an external attacker who has no insider information. This approach offers the highest realism in terms of representing a real-world attack but requires extensive reconnaissance time before any exploitation can begin.",
+  execAr:"اختبار الصندوق الأسود لا يُقدّم للمختبِر أي معرفة مسبقة، ويُحاكي مهاجماً خارجياً لا يملك معلومات داخلية. يُقدّم هذا النهج أعلى مستوى من الواقعية في تمثيل الهجوم الحقيقي، لكنه يستلزم وقتاً مكثّفاً للاستطلاع قبل أي استغلال.",
+  html:`
+<div class="card-grid cols-3">
+  <div class="card al">
+    <div class="card-title">Knowledge</div>
+    <div class="card-body"><span class="kw kw-r" data-k="ZeroKnowledge">Zero knowledge</span> provided to the tester — no prior information about the target.</div>
+  </div>
+  <div class="card aa">
+    <div class="card-title">Simulation</div>
+    <div class="card-body"><span class="kw kw-a" data-k="ExternalAttacker">External attacker</span> perspective — models a real-world outside threat.</div>
+  </div>
+  <div class="card ag">
+    <div class="card-title">Characteristics</div>
+    <div class="card-body">High <span class="kw kw-g" data-k="Realism">realism</span>, but requires extensive time for <span class="kw" data-k="Reconnaissance">reconnaissance</span>.</div>
+  </div>
+</div>`
+},
+
+/* ---- SLIDE 21: White Box Testing ---- */
+{
+  num:"21", label:"Strategy: White Box Testing",
+  execEn:"White box testing provides full disclosure of the target system to the tester — including source code, IP maps, and architecture diagrams. This simulates a malicious insider or trusted administrator scenario, achieving maximum technical efficiency and depth by eliminating the need for discovery.",
+  execAr:"اختبار الصندوق الأبيض يُقدّم إفصاحاً كاملاً عن النظام للمختبِر — يشمل كود المصدر وخرائط IP ومخططات البنية. يُحاكي هذا النموذج سيناريو المطلع الخبيث أو المدير الموثوق، محققاً أقصى كفاءة وعمق تقني بإلغاء الحاجة للاستكشاف.",
+  html:`
+<div class="card-grid cols-3">
+  <div class="card ag">
+    <div class="card-title">Knowledge</div>
+    <div class="card-body">Full <span class="kw kw-g" data-k="FullDisclosure">disclosure</span>: Source code, <span class="kw" data-k="IPMaps">IP maps</span>, architecture diagrams — nothing hidden.</div>
+  </div>
+  <div class="card ap">
+    <div class="card-title">Simulation</div>
+    <div class="card-body">Models a <span class="kw kw-r" data-k="MaliciousInsider">malicious insider</span> or administrator with full system access.</div>
+  </div>
+  <div class="card al">
+    <div class="card-title">Characteristics</div>
+    <div class="card-body">Maximum <span class="kw kw-g" data-k="TechnicalDepth">efficiency and technical depth</span> — tests the deepest layers of security.</div>
+  </div>
+</div>`
+},
+
+/* ---- SLIDE 22: Grey Box & Double-Blind ---- */
+{
+  num:"22", label:"Strategy: Grey Box & Double-Blind",
+  execEn:"Grey box testing — the most common professional model — provides partial disclosure such as standard user credentials, balancing realism with efficiency. Double-blind testing ensures the defensive team is not notified, measuring the organization's actual detection speed and incident response capabilities.",
+  execAr:"اختبار الصندوق الرمادي — أكثر النماذج شيوعاً في الممارسة المهنية — يُقدّم إفصاحاً جزئياً كبيانات مستخدم عادي، موازناً بين الواقعية والكفاءة. اختبار الأعمى المزدوج يضمن عدم إبلاغ فريق الدفاع، قياساً لسرعة الكشف الفعلية وقدرات الاستجابة.",
+  html:`
+<table class="cmp-table">
+  <thead><tr><th>Strategy</th><th>Knowledge Given</th><th>Key Characteristic</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="badge badge-g"><span class="kw" data-k="GreyBox">Grey Box</span></span></td>
+      <td>Partial disclosure — standard user credentials</td>
+      <td><strong style="color:var(--accent3)">Most common</strong> professional model — best balance</td>
+    </tr>
+    <tr>
+      <td><span class="badge badge-d"><span class="kw" data-k="DoubleBlind">Double-Blind</span></span></td>
+      <td>Defender is <strong>not notified</strong></td>
+      <td>Tests <span class="kw kw-a" data-k="DetectionResponse">detection and response</span> speed of the security team</td>
+    </tr>
+  </tbody>
+</table>`
+},
+
+/* ---- SLIDE 23: Diverse Assessment Vectors ---- */
+{
+  num:"23", label:"Diverse Assessment Vectors",
+  execEn:"Penetration testing extends beyond network and application attacks to encompass three additional critical vectors: wireless network assessments targeting signal leakage and encryption weaknesses; social engineering exploiting human psychology through phishing; and physical security testing of facility and server room access controls.",
+  execAr:"يتجاوز اختبار الاختراق هجمات الشبكة والتطبيقات ليشمل ثلاثة متجهات إضافية حيوية: تقييمات الشبكات اللاسلكية استهدافاً لتسرب الإشارة وضعف التشفير؛ الهندسة الاجتماعية لاستغلال علم النفس البشري عبر التصيد؛ واختبار الأمن المادي لضوابط الوصول للمرافق وغرف الخوادم.",
+  html:`
+<div class="vec-grid">
+  <div class="vec-card">
+    <div class="vec-icon">📡</div>
+    <div class="vec-title"><span class="kw" data-k="WirelessAssessments">Wireless Assessments</span></div>
+    <div class="vec-desc">Evaluating <span class="kw kw-a" data-k="SignalLeakage">signal leakage</span> and encryption weaknesses in wireless networks.</div>
+  </div>
+  <div class="vec-card">
+    <div class="vec-icon">🎣</div>
+    <div class="vec-title"><span class="kw kw-r" data-k="SocialEngineering">Social Engineering</span></div>
+    <div class="vec-desc">Exploiting <span class="kw kw-r" data-k="Phishing">phishing</span> and human-centric flaws — the weakest link in security.</div>
+  </div>
+  <div class="vec-card">
+    <div class="vec-icon">🏢</div>
+    <div class="vec-title"><span class="kw kw-g" data-k="PhysicalSecurity">Physical Security</span></div>
+    <div class="vec-desc">Testing <span class="kw kw-g" data-k="FacilityAccess">facility and server room</span> access controls and barriers.</div>
+  </div>
+</div>`
+}
+
+]; /* end slides array */
+
+/* ================================================================
+   KEYWORD DICTIONARY
+================================================================ */
+const kwData={
+  AuthorizedSimulation:{ar:"محاكاة مُصرَّح بها: الاختبار يتم بموافقة رسمية وكتابية من المؤسسة المستهدفة — وهو ما يُميّزه قانونياً عن الهجوم الإجرامي.",q:"What legally distinguishes penetration testing from criminal hacking?",opts:["The tools used","Formal written authorization from the target organization","The skill level of the tester","Testing only specific systems"],ans:1},
+  SecurityInfrastructure:{ar:"البنية التحتية الأمنية: مجموع الأنظمة والسياسات والضوابط التقنية والبشرية التي تحمي أصول المؤسسة.",q:"What does 'security infrastructure' in the context of pen testing refer to?",opts:["Only the firewall and antivirus","The physical building security only","The complete set of systems, policies, and controls protecting organizational assets","Network cables and hardware only"],ans:2},
+  ValidateRisk:{ar:"التحقق من المخاطر: إثبات أن الثغرة ليست نظرية فحسب، بل قابلة للاستغلال فعلياً وذات تأثير حقيقي قابل للقياس.",q:"Risk validation in penetration testing means:",opts:["Creating a list of theoretical vulnerabilities","Proving vulnerabilities are actually exploitable and measuring their real impact","Installing security patches","Running automated scanners"],ans:1},
+  SecurityPolicyEfficacy:{ar:"فعالية السياسات الأمنية: قياس مدى التزام المؤسسة بسياساتها المُعلنة وفاعلية تطبيقها على أرض الواقع.",q:"Testing 'security policy efficacy' verifies that:",opts:["Security policies are written clearly","Defined security policies are actually implemented and working as intended","Employees understand the policies","Policies comply with regulations"],ans:1},
+  Confidentiality:{ar:"السرية: مبدأ أمني أساسي يضمن وصول البيانات الحساسة فقط للأشخاص المُصرَّح لهم.",q:"Which CIA triad principle is directly addressed by 'protecting confidentiality'?",opts:["Integrity","Availability","Confidentiality","Non-repudiation"],ans:2},
+  VulnScanning:{ar:"فحص الثغرات: عملية آلية لتحديد الثغرات المحتملة في الأنظمة — تُنتج قائمة بالمشاكل دون إثبات قابلية استغلالها.",q:"Vulnerability scanning primarily produces:",opts:["Proof of successful exploitation","A broad list of potential flaws without proving exploitability","A detailed attack report","Source code analysis results"],ans:1},
+  PenTesting:{ar:"اختبار الاختراق: محاكاة هجومية مُصرَّح بها تهدف لإثبات الاستغلال الفعلي وتقييم التأثير الحقيقي على المؤسسة.",q:"What distinguishes penetration testing from vulnerability scanning?",opts:["Pen testing is always automated","Pen testing proves exploitability through active exploitation, not just listing bugs","Pen testing only tests web applications","Pen testing is faster than scanning"],ans:1},
+  ActiveExploitation:{ar:"الاستغلال النشط: تنفيذ فعلي للهجوم على الثغرة لإثبات أنها قابلة للاستغلال وقياس أثرها — وهو ما يُميّز اختبار الاختراق عن مجرد الفحص.",q:"Active exploitation in pen testing is used to:",opts:["Generate a list of vulnerabilities","Prove that a vulnerability is actually exploitable and measure its impact","Patch identified vulnerabilities","Monitor network traffic"],ans:1},
+  SecurityAssurance:{ar:"ضمان الأمن: تقديم دليل موثّق للإدارة والمساهمين بأن الوضع الأمني للمؤسسة تم تقييمه ويعمل بفعالية.",q:"Security assurance through pen testing provides:",opts:["A certificate of zero vulnerabilities","Documented evidence that the security posture has been thoroughly assessed","Automatic patching of all vulnerabilities","Insurance against cyberattacks"],ans:1},
+  SecurityPosture:{ar:"الوضع الأمني: التقييم الشامل لمستوى أمن المؤسسة في لحظة زمنية محددة — يشمل التقنيات والسياسات والوعي البشري.",q:"An organization's 'security posture' refers to:",opts:["The number of firewalls installed","The comprehensive level of security readiness across technology, policies, and people","The latest software patches applied","Employee security training hours"],ans:1},
+  PotentialThreats:{ar:"التهديدات المحتملة: المخاطر والسيناريوهات الهجومية التي قد تستغل الثغرات الموجودة في البنية الأمنية.",q:"Identifying potential threats before damage occurs is an example of:",opts:["Reactive security","Proactive security","Corrective security","Detective security"],ans:1},
+  SensitiveData:{ar:"البيانات الحساسة: المعلومات التي قد يُسبب كشفها أضراراً للمؤسسة أو الأفراد — تشمل البيانات الشخصية والمالية والسرية التجارية.",q:"What category does customer financial records fall under?",opts:["Public data","General data","Sensitive data","Archived data"],ans:2},
+  SecurityPolicy:{ar:"السياسة الأمنية: وثيقة رسمية تُحدد القواعد والإجراءات والمسؤوليات لحماية أصول المؤسسة ومعالجة الحوادث الأمنية.",q:"A security policy primarily serves to:",opts:["Replace technical security controls","Define rules, procedures, and responsibilities for protecting organizational assets","Only train employees on security awareness","Automatically detect intrusions"],ans:1},
+  Firewalls:{ar:"الجدران النارية: أجهزة أو برمجيات تراقب وتتحكم في حركة الشبكة الواردة والصادرة وفق قواعد أمنية محددة.",q:"Firewalls primarily function to:",opts:["Encrypt all network traffic","Monitor and control incoming/outgoing network traffic based on security rules","Store network logs","Provide VPN access"],ans:1},
+  Routers:{ar:"الراوترات: أجهزة شبكية تُوجّه حزم البيانات بين الشبكات المختلفة — تُعدّ نقاطاً حيوية في البنية التحتية للشبكة.",q:"Routers in a network context are responsible for:",opts:["Providing wireless access","Directing data packets between different networks","Encrypting data at rest","Managing user authentication"],ans:1},
+  Vulnerabilities:{ar:"الثغرات: نقاط ضعف في الأنظمة أو الشبكات أو التطبيقات يمكن استغلالها لانتهاك الأمن أو الوصول غير المُصرَّح به.",q:"A vulnerability is best defined as:",opts:["A successful attack on a system","A weakness that could be exploited to violate security","A security policy violation","An encrypted communication channel"],ans:1},
+  NetworkDesignChanges:{ar:"تغييرات تصميم الشبكة: أي تعديلات هيكلية على البنية التحتية للشبكة — توسعة، إعادة هيكلة، إضافة أجهزة جديدة — قد تُدخل ثغرات جديدة.",q:"Why should penetration testing be conducted after network design changes?",opts:["To document the changes made","To ensure changes haven't introduced new vulnerabilities","To train staff on the new configuration","To comply with backup policies"],ans:1},
+  GovPrivateOrgs:{ar:"المؤسسات الحكومية والخاصة: كلا القطاعين يتضمنان أهدافاً ذات قيمة عالية للمهاجمين — البيانات، البنية التحتية الحيوية، الأسرار التجارية.",q:"Why do cybercriminals target both government and private organizations?",opts:["They are easier to hack than individuals","They contain high-value assets such as sensitive data and critical infrastructure","Government organizations have no security","Private organizations have the weakest defenses"],ans:1},
+  SoftTargets:{ar:"الأهداف السهلة: المؤسسات التي تمتلك ثغرات أمنية استغلالية بسبب غياب السياسات أو التكوينات الضعيفة أو الوعي الأمني المتدني.",q:"The term 'soft targets' in cybersecurity refers to:",opts:["Small organizations only","Organizations with exploitable weaknesses due to poor policies or configurations","Government agencies","Organizations using outdated hardware"],ans:1},
+  AttackVectors:{ar:"متجهات الهجوم: المسارات أو الوسائل التي يستخدمها المهاجمون للوصول إلى الأنظمة — تشمل الشبكة، الويب، البريد الإلكتروني، البشر.",q:"Attack vectors in cybersecurity are:",opts:["The tools used to defend a network","The paths or methods attackers use to gain unauthorized access","The vulnerabilities found in software","Security audit reports"],ans:1},
+  RootProblem:{ar:"المشكلة الجذرية: غياب السياسات الأمنية الكافية وتزايد تعقيد الأنظمة — وليس مجرد ضعف تقني — هو السبب الجذري لمعظم الاختراقات الناجحة.",q:"According to the lecture, the root problem enabling successful cyberattacks is:",opts:["Advanced hacking tools available online","Lack of efficient policies, standards, and increasing system complexity","Insufficient antivirus software","Outdated operating systems only"],ans:1},
+  DataTheft:{ar:"سرقة البيانات: الوصول غير المُصرَّح به إلى البيانات الحساسة ونقلها أو كشفها — أحد الأهداف الرئيسية للهجمات الإلكترونية.",q:"Data theft in a cybersecurity context refers to:",opts:["Accidentally deleting important files","Unauthorized access to and exfiltration of sensitive data","Corrupting system files","Slowing down network performance"],ans:1},
+  MitigateRisks:{ar:"التخفيف من المخاطر: اتخاذ تدابير فعلية لتقليل احتمالية نجاح الهجمات أو تقليل حدة أثرها على المؤسسة.",q:"Risk mitigation through penetration testing is achieved by:",opts:["Eliminating all vulnerabilities permanently","Identifying exploitable weaknesses so they can be remediated before attackers exploit them","Purchasing cyber insurance","Hiring more security staff"],ans:1},
+  AssessmentMethodology:{ar:"منهجية التقييم: الإطار المنهجي المنظّم الذي يُحدد كيفية تنفيذ الاختبار الأمني بشكل متسق وقابل للتكرار.",q:"Why is a consistent assessment methodology critical in penetration testing?",opts:["It makes testing faster","It ensures tests are performed consistently and repeatably across different environments","It reduces the cost of testing","It eliminates the need for skilled testers"],ans:1},
+  Methodologies:{ar:"المنهجيات: الأطر والمعايير الموثّقة التي تُوجّه كيفية تنفيذ اختبار الاختراق — تشمل PTES وOWASP وNIST وOSSTMM.",q:"Industry-standard methodologies for pen testing are important because they:",opts:["Replace the need for skilled testers","Ensure consistent, repeatable, and comprehensive security assessments","Automate the entire testing process","Guarantee zero vulnerabilities are found"],ans:1},
+  ConsistentEvaluation:{ar:"التقييم المتسق: قدرة أي مُقيِّم على تنفيذ الاختبار بنفس المستوى من الشمولية والجودة في كل مرة وعبر بيئات مختلفة.",q:"Consistent evaluation in security assessments ensures that:",opts:["Every test finds the same vulnerabilities","Different assessors can test different environments and produce comparable, standardized results","Testing is always done in the same environment","Results are always identical"],ans:1},
+  OSSTMM:{ar:"OSSTMM (دليل منهجية اختبار الأمن مفتوح المصدر): يُوفر طريقة علمية قابلة للقياس لاختبار أمن المعلومات في مختلف البيئات.",q:"OSSTMM stands for:",opts:["Open Source Software Testing and Monitoring Manual","Open-Source Security Testing Methodology Manual","Operational Security Standards and Testing Methods","Online System Security Testing Mechanism"],ans:1},
+  OWASP:{ar:"OWASP (مشروع أمن تطبيقات الويب مفتوح المصدر): مجتمع مفتوح يُركّز على أمن تطبيقات الويب ويُصدر قوائم أبرز الثغرات كـ OWASP Top 10.",q:"OWASP primarily focuses on:",opts:["Network infrastructure security","Physical security standards","Web application security best practices and vulnerability awareness","Mobile device management"],ans:2},
+  NIST:{ar:"NIST (المعهد الوطني للمعايير والتقنية): مؤسسة حكومية أمريكية تُصدر أطر ومعايير أمنية شاملة مُعتمدة على نطاق واسع عالمياً كـ NIST Cybersecurity Framework.",q:"NIST in the context of cybersecurity standards refers to:",opts:["Network Intrusion Security Testing","National Internet Security Toolkit","National Institute of Standards and Technology","New Infrastructure Security Technology"],ans:2},
+  PTES:{ar:"PTES (معيار تنفيذ اختبار الاختراق): الإطار الأشمل لاختبار الاختراق — يغطي 7 مراحل من ما قبل التعاقد حتى التقرير النهائي، مع إرشادات تقنية لبيئات متنوعة.",q:"What makes PTES the most comprehensive penetration testing framework?",opts:["It only covers technical exploitation","It covers every phase from pre-engagement to reporting with technical guidelines for diverse environments","It is the oldest methodology","It is only used by government agencies"],ans:1},
+  ComprehensiveMethodology:{ar:"المنهجية الشاملة: إطار يُغطي جميع جوانب العملية دون استثناء — من التخطيط والتحضير، مروراً بالتنفيذ التقني، وصولاً للتوثيق والتقرير.",q:"A comprehensive methodology in pen testing covers:",opts:["Only the technical exploitation phase","Every phase from planning and legal authorization through technical execution to final reporting","Only network and application testing","Only the reporting phase"],ans:1},
+  TechnicalGuidelines:{ar:"الإرشادات التقنية: تعليمات ووصفات محددة ضمن إطار PTES تُحدد الأدوات والأساليب الموصى بها لاختبار أنواع مختلفة من البيئات التقنية.",q:"Technical guidelines within PTES are designed to help assessors:",opts:["Skip complex testing environments","Choose appropriate tools and techniques for different technical environments they encounter","Replace all manual testing with automation","Only test specific vulnerability types"],ans:1},
+  IndustryStandardTools:{ar:"الأدوات القياسية للقطاع: أدوات اختبار الأمن المُعتمدة والمُوثوقة في الصناعة مثل Nmap وMetasploit وBurp Suite وWireshark.",q:"Industry standard tools recommended by PTES include which of the following?",opts:["Microsoft Word and Excel","Nmap, Metasploit, Burp Suite, and Wireshark","General programming languages only","Social media platforms"],ans:1},
+  SevenPhases:{ar:"المراحل السبع لـ PTES: Pre-engagement ← Intelligence Gathering ← Threat Modeling ← Vulnerability Analysis ← Exploitation ← Post-Exploitation ← Reporting",q:"In what order do the PTES phases occur?",opts:["Exploitation → Scanning → Reporting → Pre-engagement","Pre-engagement → Intelligence → Threat Modeling → Vuln Analysis → Exploitation → Post-Exploitation → Reporting","Reporting → Pre-engagement → Exploitation","Intelligence → Exploitation → Pre-engagement → Reporting"],ans:1},
+  PreEngagement:{ar:"مرحلة ما قبل التعاقد: المرحلة الأولى والأحرج في PTES — تُرسي الأساس القانوني وتحدد النطاق وتضبط التوقعات لكامل العملية.",q:"Why is the Pre-engagement phase considered the most critical in PTES?",opts:["It involves the most complex technical work","Mistakes in this phase cascade through and negatively impact the entire assessment","It generates the most findings","It is the longest phase"],ans:1},
+  IntelligenceGathering:{ar:"جمع المعلومات الاستخباراتية: المرحلة الثانية في PTES — جمع أكبر قدر من المعلومات عن الهدف من مصادر متعددة قبل الهجوم.",q:"Intelligence gathering in PTES is primarily about:",opts:["Exploiting discovered vulnerabilities","Collecting as much information as possible about the target from multiple sources","Writing the final report","Defining the scope of testing"],ans:1},
+  ThreatModeling:{ar:"نمذجة التهديدات: تحليل المعلومات المُجمَّعة لتحديد أكثر سيناريوهات الهجوم احتمالاً وأشدّها تأثيراً على المؤسسة.",q:"Threat modeling in PTES involves:",opts:["Installing security tools","Analyzing gathered intelligence to identify the most likely and impactful attack scenarios","Writing penetration test reports","Scanning for open ports"],ans:1},
+  VulnResearch:{ar:"بحث الثغرات: الدراسة التقنية المعمّقة للثغرات المُكتشفة لفهم آلية عملها وتطوير أساليب استغلالها.",q:"Vulnerability research in the PTES technical execution phase involves:",opts:["Reporting vulnerabilities to management","In-depth technical study of discovered vulnerabilities to understand how to exploit them","Patching discovered vulnerabilities","Monitoring network traffic for anomalies"],ans:1},
+  Exploitation:{ar:"الاستغلال: المرحلة الخامسة في PTES — تنفيذ فعلي للهجوم على الثغرات لإثبات الوصول غير المُصرَّح به وقياس نطاق الاختراق.",q:"The Exploitation phase in PTES is when the tester:",opts:["Documents findings in a report","Actively exploits vulnerabilities to gain unauthorized access and prove breachability","Gathers information about the target","Defines the scope of the test"],ans:1},
+  PostExploitation:{ar:"ما بعد الاستغلال: المرحلة السادسة في PTES — تقييم التأثير الحقيقي للاختراق: الحركة الجانبية، تصعيد الصلاحيات، استخراج البيانات، الاستمرارية.",q:"Post-exploitation in PTES assesses:",opts:["How to patch vulnerabilities found","The real-world impact of a breach: lateral movement, privilege escalation, and data exfiltration potential","The initial attack surface of the target","The tools used during exploitation"],ans:1},
+  TechnicalExpertise:{ar:"الخبرة التقنية: العمق المعرفي والمهاري في أدوات وتقنيات اختبار الأمن الهجومي — لازمة لتنفيذ الاختبار بجودة عالية.",q:"Technical security expertise in pen testing refers to:",opts:["Knowledge of business management only","Deep knowledge and skill in offensive security tools and techniques","The ability to write business reports","Network hardware configuration skills only"],ans:1},
+  BusinessUnderstanding:{ar:"فهم السياق التجاري: استيعاب طبيعة أعمال المؤسسة وأولوياتها والأصول الأكثر قيمة لديها — لتحديد التأثير الحقيقي للثغرات.",q:"Business understanding is important in PTES because it:",opts:["Replaces the need for technical skills","Helps determine the real business impact of vulnerabilities, not just their technical severity","Only matters for executive reports","Is only needed during pre-engagement"],ans:1},
+  Reporting:{ar:"التقرير النهائي: المرحلة السابعة والأخيرة في PTES — يُوثّق النتائج التقنية والأثر التجاري والتوصيات العلاجية بأسلوب يُخاطب الجمهورين التقني والتنفيذي.",q:"The Reporting phase in PTES should capture:",opts:["Only the list of tools used during testing","Both technical findings and strategic business impact with remediation recommendations","Only vulnerabilities with CVSS score above 7","Only successful exploits"],ans:1},
+  PreEngagementPhase:{ar:"مرحلة Pre-engagement: تشمل طلب التقييم، تقديم العروض، توقيع خطاب التعاقد، اجتماع تحديد النطاق، معالجة زحف النطاق، والاستبيانات.",q:"Which of the following is NOT a component of the Pre-engagement phase?",opts:["Signing the Engagement Letter","Scoping Meeting","Active exploitation of vulnerabilities","Handling scope creep"],ans:2},
+  IntelGathering:{ar:"جمع المعلومات: المرحلة الثانية في PTES — استخدام أدوات OSINT وتقنيات أخرى لبناء صورة شاملة عن الهدف قبل الهجوم.",q:"Intelligence gathering typically involves:",opts:["Immediately exploiting found vulnerabilities","Using OSINT and other techniques to build a comprehensive profile of the target","Writing the final pen test report","Patching systems after testing"],ans:1},
+  ThreatModelingPhase:{ar:"مرحلة نمذجة التهديدات: تحويل المعلومات المُجمَّعة إلى سيناريوهات هجومية مُرتّبة بحسب الاحتمالية والتأثير.",q:"Threat modeling in PTES converts gathered intelligence into:",opts:["A list of tools to use","Prioritized attack scenarios based on likelihood and potential impact","Technical vulnerability reports","Budget estimates for remediation"],ans:1},
+  VulnAnalysis:{ar:"تحليل الثغرات: المرحلة الرابعة في PTES — فحص الأنظمة والتطبيقات بأدوات آلية ويدوية لاكتشاف نقاط الضعف القابلة للاستغلال.",q:"Vulnerability Analysis in PTES comes:",opts:["Before intelligence gathering","After threat modeling and before exploitation","After exploitation","As the final phase"],ans:1},
+  ExploitationPhase:{ar:"مرحلة الاستغلال: المرحلة الخامسة في PTES — تنفيذ الهجوم الفعلي لاستغلال الثغرات المُكتشفة والحصول على وصول غير مُصرَّح.",q:"The Exploitation phase in PTES directly follows:",opts:["Pre-engagement Interactions","Intelligence Gathering","Vulnerability Analysis","Post-Exploitation"],ans:2},
+  PostExploitPhase:{ar:"مرحلة ما بعد الاستغلال: تقييم مدى الضرر الحقيقي الممكن — كم يمكن الوصول؟ ما البيانات التي يمكن استخراجها؟ هل يمكن الانتشار في الشبكة؟",q:"Post-exploitation in PTES is used to determine:",opts:["How to prevent future attacks","The true extent of damage possible from a breach: data accessible, lateral movement, persistence","The initial attack vector used","The tools that were most effective"],ans:1},
+  ReportingPhase:{ar:"مرحلة التقرير: التوثيق الشامل لكل نتائج الاختبار — الثغرات وأدلتها وتأثيرها وتوصيات العلاج — مُقدَّم بلغة تُخاطب الجمهور التقني والتنفيذي.",q:"An effective PTES report should be written to address:",opts:["Only the technical security team","Only executive management","Both technical staff and executive management with appropriate detail for each","Only compliance auditors"],ans:2},
+  SignificantImpact:{ar:"التأثير الكبير: أي خطأ في مرحلة ما قبل التعاقد — كتعريف نطاق خاطئ أو اتفاق قانوني ناقص — قد يُفسد كامل عملية الاختبار أو يُعرّضها للمساءلة القانونية.",q:"A mistake in the pre-engagement phase can:",opts:["Only slightly affect the final report","Have a significant cascading impact on the entire assessment quality and legality","Only affect the budget of the test","Only impact the choice of tools used"],ans:1},
+  PreEngagementStep:{ar:"خطوة ما قبل التعاقد: مجموع الأنشطة التحضيرية التي تسبق التنفيذ التقني — وضع الأسس القانونية والتنظيمية والتقنية للاختبار.",q:"The pre-engagement step in PTES is successful when:",opts:["All vulnerabilities have been found","Legal authorization is obtained, scope is defined, and all parties have clear expectations","The first system has been exploited","The final report is delivered"],ans:1},
+  Assessment:{ar:"التقييم الأمني: عملية منهجية لفحص وتحليل الوضع الأمني للمؤسسة — قد يكون تقييم ثغرات أو اختبار اختراق أو مراجعة أمنية.",q:"In the context of PTES pre-engagement, 'request for an assessment' typically comes from:",opts:["The penetration testing team","The organization that wants to evaluate its own security","A third-party auditor only","Government regulators only"],ans:1},
+  Bidding:{ar:"تقديم العروض: المرحلة التي يُقدّم فيها مزوّدو خدمات اختبار الاختراق عروضهم التقنية والمالية للمؤسسة الطالبة للخدمة.",q:"The bidding component of PTES pre-engagement involves:",opts:["Starting the technical exploitation immediately","Penetration testing providers submitting technical and financial proposals to the requesting organization","Defining which systems are in-scope","Signing the engagement letter"],ans:1},
+  EngagementLetter:{ar:"خطاب التعاقد (EL): الوثيقة القانونية المُلزِمة التي تُحدد نطاق الاختبار وحدوده وصلاحياته وتُحمي الطرفين قانونياً.",q:"The Engagement Letter (EL) in PTES primarily serves to:",opts:["Document the technical findings of the test","Legally define the scope, permissions, and boundaries of the penetration test to protect both parties","List all vulnerabilities discovered","Describe the tools that will be used"],ans:1},
+  ScopingMeeting:{ar:"اجتماع تحديد النطاق: لقاء رسمي بين فريق الاختبار والمؤسسة لتحديد الأهداف والقيود التقنية والأصول داخل وخارج النطاق.",q:"A scoping meeting in pre-engagement is conducted to:",opts:["Begin the actual penetration testing","Formally define testing objectives, technical constraints, in-scope and out-of-scope assets with all stakeholders","Review findings after testing","Select which tools to purchase"],ans:1},
+  ScopeCreep:{ar:"زحف النطاق: التوسع غير المُخطط في نطاق الاختبار أثناء التنفيذ — قد يُسبب مشاكل قانونية وتقنية ومالية ويجب معالجته رسمياً.",q:"'Scope creep' in penetration testing refers to:",opts:["Finding more vulnerabilities than expected","Unauthorized expansion of testing beyond the agreed boundaries, requiring formal management","The gradual improvement of testing accuracy","Increasing the depth of technical analysis"],ans:1},
+  Questionnaires:{ar:"الاستبيانات: أدوات جمع بيانات مُهيكلة تُستخدم في مرحلة ما قبل التعاقد لجمع معلومات تقنية أولية عن البيئة المستهدفة.",q:"Questionnaires in PTES pre-engagement are used to:",opts:["Test employee security knowledge","Gather initial technical metadata about the target environment before testing begins","Replace the scoping meeting","Document post-test findings"],ans:1},
+  Questionnaires2:{ar:"الاستبيانات: استمارات مُنظّمة يملأها الطرف المُقيَّم لتزويد فريق الاختبار بمعلومات تقنية مبدئية عن بنيتهم التحتية وتقنياتهم.",q:"What is the main purpose of questionnaires in the pre-engagement phase?",opts:["To evaluate the skills of the pen testing team","To gather initial technical data about the target's infrastructure and technologies","To document final test results","To create the engagement letter"],ans:1},
+  IPAddresses:{ar:"عناوين IP: المعرّفات الرقمية الفريدة للأجهزة على الشبكة — تحديدها ضمن نطاق الاختبار يضمن اختبار الأهداف الصحيحة فقط.",q:"Why must IP addresses be validated and listed in the in-scope section?",opts:["To speed up scanning","To ensure only authorized targets are tested and prevent accidental testing of other systems","To reduce the cost of testing","To improve network performance"],ans:1},
+  URLs:{ar:"عناوين URL: عناوين تطبيقات الويب والخدمات الإلكترونية المستهدفة بالاختبار — يجب تحديدها بدقة لتجنب اختبار خوادم غير مُصرَّح بها.",q:"Including specific URLs in the scope of a penetration test ensures:",opts:["Only the listed web applications are tested, preventing unauthorized testing of other web properties","Faster completion of the test","Higher quality of findings","Lower cost of the engagement"],ans:0},
+  SSIDs:{ar:"معرّفات الشبكات اللاسلكية (SSIDs): أسماء الشبكات اللاسلكية المستهدفة بالاختبار — ضرورية لتحديد نطاق تقييمات الأمن اللاسلكي.",q:"SSIDs are particularly relevant in which type of penetration testing scope?",opts:["Database security testing","Physical security testing","Wireless network assessments","Web application testing"],ans:2},
+  SensitiveAssets:{ar:"الأصول الحساسة خارج النطاق: الأنظمة والبيانات التي حددتها المؤسسة كأهداف لا يجوز لمسها — كأنظمة الإنتاج الحيوية أو بيانات العملاء.",q:"Out-of-scope sensitive assets in a pen test must be:",opts:["Tested with special permission","Never touched during the test — any interaction creates legal liability","Tested last after in-scope systems","Documented but still tested"],ans:1},
+  ZeroKnowledge:{ar:"المعرفة الصفرية: المختبِر لا يُزوَّد بأي معلومات عن البنية التحتية للهدف — يُحاكي الواقع الحقيقي لمهاجم خارجي يبدأ من الصفر.",q:"Zero knowledge in black box testing means the tester:",opts:["Has no technical skills","Receives no prior information about the target's infrastructure","Does not use any tools","Tests only one system"],ans:1},
+  ExternalAttacker:{ar:"المهاجم الخارجي: كيان ليس لديه وصول أو معرفة مسبقة بالأنظمة المستهدفة — يبدأ هجومه من الإنترنت العام أو خارج الشبكة.",q:"Simulating an external attacker in black box testing is valuable because:",opts:["It is faster than other approaches","It tests how the organization would fare against a real-world outside threat with no insider knowledge","It requires less skill from the tester","It eliminates the need for a scoping meeting"],ans:1},
+  Realism:{ar:"الواقعية في الاختبار: مدى تمثيل الاختبار لسيناريو هجوم حقيقي — الصندوق الأسود يُحقق أعلى مستوى من الواقعية.",q:"Which testing strategy achieves the highest level of realism?",opts:["White Box","Grey Box","Double-Blind","Black Box"],ans:3},
+  Reconnaissance:{ar:"الاستطلاع: مرحلة جمع المعلومات التي يُنفّذها المختبِر قبل الهجوم — في الصندوق الأسود تكون مكثّفة لأن لا معلومات مُعطاة مسبقاً.",q:"Reconnaissance in black box testing requires extensive time because:",opts:["The tester is not skilled","No prior information is provided so all intelligence must be gathered from scratch","The scope is too large","Automated tools cannot be used"],ans:1},
+  FullDisclosure:{ar:"الإفصاح الكامل: في اختبار الصندوق الأبيض، يُزوَّد المختبِر بكامل التفاصيل التقنية — كود المصدر، الخرائط، الوثائق — لتحقيق أقصى عمق.",q:"Full disclosure in white box testing includes providing the tester with:",opts:["Only the IP address range","Source code, IP maps, network diagrams, and architecture documentation","User credentials only","Just the domain name"],ans:1},
+  IPMaps:{ar:"خرائط IP: وثائق تُحدد عناوين IP لجميع الأجهزة والخوادم في الشبكة — في الصندوق الأبيض تُتيح للمختبِر الاستهداف المباشر.",q:"IP maps provided in white box testing help testers:",opts:["Understand network traffic patterns","Directly target specific systems without requiring reconnaissance","Identify user accounts","Analyze log files"],ans:1},
+  MaliciousInsider:{ar:"المطلع الخبيث: موظف أو مستخدم لديه وصول مشروع يستغله بشكل ضار — اختبار الصندوق الأبيض يُحاكي هذا السيناريو.",q:"White box testing simulates which threat scenario?",opts:["An external hacker with no knowledge","A malicious insider or trusted administrator with full system access","A casual opportunistic attacker","A script kiddie using automated tools"],ans:1},
+  TechnicalDepth:{ar:"العمق التقني: مستوى الشمولية والدقة في اختبار الأنظمة — اختبار الصندوق الأبيض يُحقق أعلى عمق تقني لأن المعلومات الكاملة متاحة.",q:"Maximum technical depth in penetration testing is achieved through:",opts:["Black box testing","Grey box testing","White box testing","Double-blind testing"],ans:2},
+  GreyBox:{ar:"الصندوق الرمادي: أكثر نماذج الاختبار شيوعاً في الممارسة المهنية — يُقدّم إفصاحاً جزئياً (كبيانات مستخدم عادي) موازناً بين الواقعية والكفاءة.",q:"Grey box testing is considered the most common professional model because:",opts:["It is the cheapest option","It provides the best balance between realism and testing efficiency","It requires the least skill","It is the fastest testing approach"],ans:1},
+  DoubleBlind:{ar:"الأعمى المزدوج: لا يُبلَّغ المختبِر ولا فريق الدفاع بالاختبار مسبقاً — الهدف قياس قدرة الكشف وسرعة الاستجابة للحوادث.",q:"The unique value of double-blind testing is that it measures:",opts:["The number of vulnerabilities in the system","The organization's actual detection capabilities and incident response speed","The skill level of the pen testing team","The strength of the firewall configuration"],ans:1},
+  DetectionResponse:{ar:"الكشف والاستجابة: قدرة الفريق الأمني على اكتشاف الهجمات الجارية في الوقت المناسب واتخاذ إجراءات الاحتواء والعلاج.",q:"Testing detection and response capabilities is best achieved through:",opts:["White box testing","Black box testing","Double-blind testing","Grey box testing"],ans:2},
+  WirelessAssessments:{ar:"تقييمات الشبكات اللاسلكية: اختبار أمن الشبكات Wi-Fi — تسرب الإشارة خارج الحدود المقصودة، وضعف بروتوكولات التشفير كـ WEP.",q:"Wireless assessments in penetration testing focus on:",opts:["Testing wired network speed","Evaluating signal leakage and encryption weaknesses in wireless networks","Assessing physical building security","Testing web application vulnerabilities"],ans:1},
+  SignalLeakage:{ar:"تسرب الإشارة: انتشار إشارة الشبكة اللاسلكية خارج الحدود المادية المقصودة، مما يُمكّن المهاجمين من الاتصال دون الوجود داخل المبنى.",q:"Signal leakage in wireless security refers to:",opts:["Network congestion due to too many users","Wireless signal extending beyond intended physical boundaries, allowing outside access","Interference between wireless channels","Weak encryption on wireless networks"],ans:1},
+  SocialEngineering:{ar:"الهندسة الاجتماعية: استغلال علم النفس البشري بدلاً من الثغرات التقنية — التلاعب بالناس للكشف عن معلومات حساسة أو تنفيذ إجراءات تُسهل الاختراق.",q:"Social engineering attacks exploit:",opts:["Software vulnerabilities in servers","Human psychology and trust rather than technical vulnerabilities","Weak encryption algorithms","Network protocol weaknesses"],ans:1},
+  Phishing:{ar:"التصيد الاحتيالي: هجوم هندسة اجتماعية يستخدم رسائل بريد إلكتروني أو مواقع مزيّفة لخداع الضحايا وسرقة بيانات الاعتماد أو تثبيت برمجيات خبيثة.",q:"Phishing is classified as a type of:",opts:["Network intrusion attack","Social engineering attack using deceptive communications","Physical security breach","Cryptographic attack"],ans:1},
+  PhysicalSecurity:{ar:"الأمن المادي: حماية المرافق والأجهزة من الوصول غير المُصرَّح به — يشمل اختبار أقفال الأبواب وأنظمة الكاميرات وضوابط الوصول.",q:"Physical security testing in penetration testing evaluates:",opts:["Network firewall configurations","Facility and server room access controls, locks, and physical barriers","Wireless network encryption","Web application vulnerabilities"],ans:1},
+  FacilityAccess:{ar:"الوصول للمرافق: اختبار مدى سهولة الوصول المادي غير المُصرَّح به لمناطق حساسة كغرف الخوادم ومراكز البيانات.",q:"Testing facility and server room access as part of physical security assesses:",opts:["How fast employees can evacuate the building","Whether unauthorized individuals can physically access sensitive areas like server rooms","The quality of CCTV cameras","Internet connectivity speed"],ans:1}
+};
+
+/* ================================================================
+   RENDER
+================================================================ */
+const nav=document.getElementById('tabsNav');
+const body=document.getElementById('tabsBody');
+
+slides.forEach((s,i)=>{
+  // Tab button
+  const btn=document.createElement('button');
+  btn.className='tab-btn'+(i===0?' active':'');
+  btn.innerHTML=`<span class="tab-slide-num">${s.num}</span>${s.label}<span class="exclaim-btn" title="Executive Summary" data-slide="${i}">!</span>`;
+  btn.addEventListener('click',e=>{
+    if(e.target.classList.contains('exclaim-btn'))return;
+    switchTab(i);
+  });
+  nav.appendChild(btn);
+
+  // Section
+  const sec=document.createElement('div');
+  sec.className='section'+(i===0?' active':'');
+  sec.id='sec-'+i;
+  sec.innerHTML=`
+    <div class="sec-header">
+      <div class="sec-num">Slide ${s.num}</div>
+      <div>
+        <div class="sec-title">${s.label}</div>
+      </div>
+    </div>
+    <div class="slide-content">${s.html}</div>`;
+  body.appendChild(sec);
+});
+
+function switchTab(idx){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===idx));
+}
+
+/* ================================================================
+   EXCLAIM SUMMARY MODAL
+================================================================ */
+document.addEventListener('click',e=>{
+  const eb=e.target.closest('.exclaim-btn');
+  if(eb){
+    e.stopPropagation();
+    const idx=parseInt(eb.dataset.slide);
+    const s=slides[idx];
+    document.getElementById('execTitle').textContent='Executive Summary — Slide '+s.num+': '+s.label;
+    document.getElementById('execEn').textContent=s.execEn;
+    document.getElementById('execAr').textContent=s.execAr;
+    document.getElementById('execModal').classList.add('open');
+  }
+});
+
+/* ================================================================
+   KEYWORD MODAL
+================================================================ */
+let currentKwKey=null;
+
+document.addEventListener('click',e=>{
+  const kw=e.target.closest('.kw');
+  if(!kw)return;
+  const k=kw.dataset.k;
+  if(!k||!kwData[k])return;
+  currentKwKey=k;
+  const d=kwData[k];
+  document.getElementById('kwTitle').textContent=k.replace(/([A-Z])/g,' $1').trim();
+  document.getElementById('kwAr').textContent=d.ar;
+  document.getElementById('kwQ').textContent=d.q;
+  const optsDiv=document.getElementById('kwOpts');
+  optsDiv.innerHTML='';
+  document.getElementById('kwFb').className='feedback-box';
+  document.getElementById('kwFb').textContent='';
+  document.getElementById('kwReset').style.display='none';
+  d.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.textContent=['A','B','C','D'][i]+'. '+o;
+    btn.addEventListener('click',()=>checkOpt(i,d.ans,optsDiv,k));
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('kwModal').classList.add('open');
+});
+
+function checkOpt(chosen,correct,container,key){
+  const btns=container.querySelectorAll('.opt-btn');
+  btns.forEach(b=>b.classList.add('disabled'));
+  btns[chosen].classList.add(chosen===correct?'correct':'wrong');
+  if(chosen!==correct)btns[correct].classList.add('correct');
+  const fb=document.getElementById('kwFb');
+  fb.className='feedback-box show-fb '+(chosen===correct?'fb-ok':'fb-no');
+  fb.textContent=chosen===correct?'✓ Correct!':'✗ Incorrect — the correct answer is highlighted above.';
+  document.getElementById('kwReset').style.display='inline-block';
+}
+
+function resetKwQ(){
+  if(!currentKwKey||!kwData[currentKwKey])return;
+  const d=kwData[currentKwKey];
+  const optsDiv=document.getElementById('kwOpts');
+  optsDiv.innerHTML='';
+  document.getElementById('kwFb').className='feedback-box';
+  document.getElementById('kwFb').textContent='';
+  document.getElementById('kwReset').style.display='none';
+  d.opts.forEach((o,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn';
+    btn.textContent=['A','B','C','D'][i]+'. '+o;
+    btn.addEventListener('click',()=>checkOpt(i,d.ans,optsDiv,currentKwKey));
+    optsDiv.appendChild(btn);
+  });
+}
+
+/* ================================================================
+   CLOSE MODALS
+================================================================ */
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('open')});
+});
+</script>
+</body>
+</html>

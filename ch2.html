@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المحاضرة 2: مراحل اختبار الاختراق والأتمتة</title>
+    
+    <!-- مكتبة Tailwind CSS للتصميم -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- مكتبات React الأساسية -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- مترجم Babel ليفهم المتصفح كود React -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        @keyframes fadeIn {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- الحاوية الأساسية لتطبيق ريأكت -->
+    <div id="root"></div>
+
+    <!-- كود التطبيق -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- البيانات لشرائح المحاضرة الثانية ---
+        const slidesData = [
+          {
+            id: 's2',
+            title: '2. Phase 2: Intelligence Gathering',
+            content: `• Definition: The second phase of PTES, involving preliminary surveying against a target to gather maximum information.\n• Utility: Information is utilized during the vulnerability assessment and exploitation phases.\n• Organizational Benefit: Helps organizations determine their external exposure as seen by the assessment team.`,
+            contentAr: `• التعريف: المرحلة الثانية من معيار PTES، وتتضمن إجراء مسح أولي للهدف لجمع أكبر قدر ممكن من المعلومات.\n• الفائدة: يتم استخدام هذه المعلومات خلال مرحلتي تقييم الثغرات والاستغلال الفعلي.\n• الفائدة التنظيمية: تساعد المؤسسات على تحديد مدى "انكشافها الخارجي" تماماً كما يراه فريق التقييم أو المهاجمون.`,
+            keywords: {
+              'Intelligence Gathering': 'جمع المعلومات (الاستخبارات): عملية دقيقة تشبه عمل المحقق، حيث يتم جمع البيانات من المصادر المفتوحة والإنترنت دون لمس أنظمة الشركة مباشرة، لتكوين خريطة واضحة قبل الهجوم.',
+              'preliminary surveying': 'المسح الأولي: النظرة الشاملة من بُعد؛ مثل مراقبة مبنى من الخارج لمعرفة عدد الأبواب ومواقع الكاميرات قبل التفكير في الدخول.',
+              'external exposure': 'الانكشاف الخارجي: كمية المعلومات الحساسة، أو الأجهزة، أو أسماء الموظفين المتاحة للعامة على الإنترنت، والتي يمكن أن يستغلها الهاكر كنقطة دخول.'
+            },
+            summary: {
+              en: 'Phase 2 focuses on gathering maximum preliminary information without direct attacks, revealing the organization\'s external exposure.',
+              ar: 'تركز المرحلة الثانية على جمع أكبر قدر من المعلومات الأولية دون توجيه هجمات مباشرة، مما يكشف عن مدى الانكشاف الخارجي للمؤسسة.'
+            },
+            keyPoints: [
+              { ar: 'جمع المعلومات يسبق دائماً مرحلتي تقييم الثغرات والاستغلال.', en: 'Intelligence gathering always precedes vulnerability assessment and exploitation.' },
+              { ar: 'الهدف هو جمع "أقصى قدر" من البيانات لفهم الهدف.', en: 'The goal is to gather "maximum information" to understand the target.' },
+              { ar: 'يُعرّف المؤسسة بما يمكن للمهاجمين الخارجيين رؤيته عنها.', en: 'Shows the organization what external attackers can see about them.' }
+            ],
+            mcq: {
+              question: 'What is a primary organizational benefit of Intelligence Gathering?',
+              options: ['Fixing all software bugs automatically', 'Determining external exposure', 'Bypassing internal firewalls', 'Writing the final report'],
+              answer: 1,
+              explanation: 'It helps the organization see what information is exposed to an external attacker or assessment team.'
+            }
+          },
+          {
+            id: 's3',
+            title: '3. Intelligence Gathering: Levels 1 & 2',
+            content: `Level 1: Automated\n• Obtained almost entirely via automated tools.\n• Appropriate to meet basic compliance requirements.\n\nLevel 2: Business-Centric\n• Uses automated tools from Level 1 combined with manual analysis.\n• Requires a good understanding of the business (Physical location, relationships, org charts).\n• Aimed at long-term security strategy and corporate acquisitions.`,
+            contentAr: `المستوى 1: الآلي (Automated)\n• يتم الحصول على المعلومات بالكامل تقريباً عبر أدوات آلية.\n• مناسب لتلبية متطلبات الامتثال الأمنية الأساسية.\n\nالمستوى 2: المتمحور حول الأعمال (Business-Centric)\n• يستخدم الأدوات الآلية من المستوى الأول مدمجة مع التحليل اليدوي.\n• يتطلب فهماً جيداً لطبيعة العمل (الموقع الفعلي، العلاقات، الهياكل التنظيمية للموظفين).\n• يهدف إلى استراتيجية الأمان طويلة المدى وعمليات الاستحواذ على الشركات.`,
+            keywords: {
+              'Automated': 'آلي: الاعتماد على برامج تقوم بالبحث السريع والروتيني دون تدخل بشري كبير، مفيد لإنجاز العمل بسرعة ولكن يفتقر للعمق والذكاء.',
+              'compliance requirements': 'متطلبات الامتثال: القوانين والمعايير الأمنية التي تفرضها الحكومات أو الجهات التنظيمية (مثل معايير أمان بطاقات الدفع PCI-DSS) والتي يجب على الشركة الالتزام بها لتجنب الغرامات.',
+              'Business-Centric': 'المتمحور حول الأعمال: هنا لا ننظر للتقنية فقط، بل ندرس كيف تربح الشركة أموالها ومن هم شركاؤها، لأن اختراق شريك ضعيف قد يكون بوابة لاختراق الشركة الرئيسية.',
+              'manual analysis': 'التحليل اليدوي: تدخل العقل البشري لربط خيوط المعلومات التي جمعتها الآلات لاستخراج استنتاجات لا يستطيع البرنامج فهمها.'
+            },
+            summary: {
+              en: 'Intelligence gathering can be Level 1 (automated for basic compliance) or Level 2 (adding manual analysis and business context for strategic security).',
+              ar: 'يمكن أن يكون جمع المعلومات من المستوى 1 (آلي للامتثال الأساسي) أو المستوى 2 (يضيف تحليلاً يدوياً وسياقاً للأعمال من أجل الأمان الاستراتيجي).'
+            },
+            keyPoints: [
+              { ar: 'المستوى الأول (الآلي) يكفي فقط للمتطلبات الأساسية.', en: 'Level 1 (Automated) is only sufficient for basic compliance requirements.' },
+              { ar: 'المستوى الثاني يتطلب دمجه مع "التحليل اليدوي" البشري.', en: 'Level 2 requires integration with human "manual analysis".' },
+              { ar: 'فهم الهيكل التنظيمي والعلاقات جزء أساسي من المستوى الثاني.', en: 'Understanding org charts and relationships is core to Level 2.' }
+            ],
+            mcq: {
+              question: 'Which level of intelligence gathering relies heavily on understanding organizational charts and business relationships?',
+              options: ['Level 1: Automated', 'Level 2: Business-Centric', 'Level 0: Physical', 'Compliance Level'],
+              answer: 1,
+              explanation: 'Level 2 adds manual analysis and requires a good understanding of the business, including relationships and org charts.'
+            }
+          },
+          {
+            id: 's4',
+            title: '4. Intelligence Gathering: Level 3',
+            content: `Advanced Penetration Testing\nThis level is reserved for the most advanced assessments, simulating highly sophisticated adversaries.\n• Includes all information from Level 1 and Level 2.\n• Requires extensive manual analysis.\n• Focuses on deep infrastructure mapping and specific personnel profiling.`,
+            contentAr: `اختبار الاختراق المتقدم\nهذا المستوى مخصص للتقييمات الأكثر تقدماً، حيث يحاكي خصوماً ومهاجمين على درجة عالية جداً من التطور.\n• يتضمن كافة المعلومات المستخرجة من المستويين الأول والثاني.\n• يتطلب تحليلاً يدوياً مكثفاً وعميقاً.\n• يركز على التخطيط (الرسم) العميق للبنية التحتية، وبناء ملفات شخصية (Profiling) دقيقة لموظفين محددين.`,
+            keywords: {
+              'sophisticated adversaries': 'الخصوم المتطورون: الهاكرز المحترفون جداً، أو المجموعات المدعومة من دول (APT)، والذين يمتلكون مهارات، ووقتاً، وموارد غير محدودة لشن الهجوم.',
+              'infrastructure mapping': 'رسم البنية التحتية: إنشاء خريطة دقيقة لكل خادم، وراوتر، وقاعدة بيانات تمتلكها المؤسسة وتحديد كيفية اتصالها ببعضها البعض لاكتشاف الممرات الخفية.',
+              'personnel profiling': 'بناء الملف الشخصي: مراقبة وتحليل السلوك الرقمي لموظف معين (ماذا يحب، أين يسافر، متى يغرد) لاستخدامه كطُعم مثالي في هجمات الهندسة الاجتماعية.'
+            },
+            summary: {
+              en: 'Level 3 intelligence gathering simulates sophisticated adversaries, focusing on deep infrastructure mapping, extensive manual analysis, and specific personnel profiling.',
+              ar: 'يحاكي المستوى الثالث من جمع المعلومات الخصوم المتطورين، مع التركيز على التخطيط العميق للبنية التحتية، والتحليل اليدوي المكثف، والتحليل الدقيق لشخصيات الموظفين.'
+            },
+            keyPoints: [
+              { ar: 'المستوى الثالث يحاكي الهجمات المتقدمة جداً (Sophisticated adversaries).', en: 'Level 3 simulates highly advanced attacks (sophisticated adversaries).' },
+              { ar: 'يعتمد بشكل مكثف وكبير على التحليل اليدوي العميق.', en: 'Relies heavily on extensive deep manual analysis.' },
+              { ar: 'يهدف لاستهداف موظفين محددين عبر الـ Personnel profiling.', en: 'Aims to target specific employees via personnel profiling.' }
+            ],
+            mcq: {
+              question: 'What is a core focus of Level 3 Intelligence Gathering?',
+              options: ['Meeting basic compliance only', 'Using strictly automated tools', 'Specific personnel profiling and deep infrastructure mapping', 'Updating the company firewalls'],
+              answer: 2,
+              explanation: 'Level 3 focuses on advanced techniques like deep infrastructure mapping and profiling specific targets (personnel).'
+            }
+          },
+          {
+            id: 's5',
+            title: '5. Phase 3: Threat Modeling',
+            content: `• Context: This is the third phase of PTES. A threat modeling approach is required for the correct execution of penetration testing.\n• Deployment: It can be used as part of a penetration test or as a separate engagement.\n• Function: Helps in itemizing potential threats based on a number of factors.\n\nInformation Feedback Loop\nIf used as part of a penetration test, the information gathered in the second phase (Intelligence Gathering) would be rolled back into the first phase for refined strategy.`,
+            contentAr: `• السياق: هذه هي المرحلة الثالثة من PTES. يُعد نهج نمذجة التهديدات ضرورياً للتنفيذ الصحيح لاختبار الاختراق.\n• التطبيق: يمكن استخدامه كجزء من اختبار الاختراق أو كمشروع (تعاقد) منفصل ومستقل.\n• الوظيفة: يساعد في حصر وتصنيف التهديدات المحتملة بناءً على عدد من العوامل.\n\nحلقة التغذية الراجعة للمعلومات\nإذا استُخدمت كجزء من اختبار الاختراق، فإن المعلومات التي جُمعت في المرحلة الثانية سيتم إعادتها للمرحلة الأولى لتحسين وتدقيق استراتيجية الاختبار.`,
+            keywords: {
+              'Threat Modeling': 'نمذجة التهديدات: التفكير كالمجرم؛ تحديد (ماذا لدينا من بيانات ثمينة؟ من قد يسرقها؟ وكيف؟) لتركيز جهود الحماية والاختبار على الأهداف الحقيقية.',
+              'itemizing': 'حصر وتصنيف: بدلاً من القلق من كل شيء، نقوم بكتابة قائمة محددة بالتهديدات (مثال: تهديد سرقة بيانات عملاء، تهديد إيقاف السيرفر) وترتيبها حسب الخطورة.',
+              'Feedback Loop': 'حلقة التغذية الراجعة: آلية ذكية تعني أن ما نكتشفه لاحقاً يُستخدم لتصحيح خططنا السابقة، لضمان أن استراتيجية الهجوم تتطور مع كل معلومة جديدة.'
+            },
+            summary: {
+              en: 'Threat Modeling (Phase 3) itemizes potential threats based on gathered data, refining the overall assessment strategy through an information feedback loop.',
+              ar: 'تقوم نمذجة التهديدات (المرحلة 3) بتصنيف التهديدات المحتملة بناءً على البيانات المجمعة، مما يُحسّن استراتيجية التقييم العامة من خلال حلقة التغذية الراجعة.'
+            },
+            keyPoints: [
+              { ar: 'نمذجة التهديدات يمكن أن تُنفذ كخدمة منفصلة عن اختبار الاختراق.', en: 'Threat modeling can be executed as a separate engagement.' },
+              { ar: 'الوظيفة الأساسية هي حصر وتصنيف التهديدات (Itemizing threats).', en: 'The main function is itemizing and categorizing threats.' },
+              { ar: 'حلقة التغذية الراجعة تُستخدم لتحسين الاستراتيجية بناءً على المعلومات المجمعة.', en: 'Feedback loops are used to refine strategy based on gathered intel.' }
+            ],
+            mcq: {
+              question: 'How does the "Information Feedback Loop" function in Threat Modeling?',
+              options: ['It automatically deletes old logs', 'It rolls gathered information back to refine the attack strategy', 'It emails the client about the testing progress', 'It blocks all incoming network traffic'],
+              answer: 1,
+              explanation: 'The feedback loop takes intel gathered in Phase 2 and rolls it back into the strategy phase to refine and improve the plan.'
+            }
+          },
+          {
+            id: 's6',
+            title: '6. Steps of Threat Modeling',
+            content: `The following steps constitute the threat-modelling phase:\n1. Gather necessary and relevant information.\n2. Identify and Categorize primary and secondary assets.\n3. Identify and Categorize threats and threat communities.\n4. Map threat communities against primary and secondary assets.`,
+            contentAr: `الخطوات التالية تشكل مرحلة نمذجة التهديدات:\n1. جمع المعلومات الضرورية وذات الصلة.\n2. تحديد وتصنيف الأصول الأولية (الأساسية) والثانوية.\n3. تحديد وتصنيف التهديدات ومجتمعات التهديد (الجهات المهاجمة).\n4. رسم (مواءمة) مجتمعات التهديد مقابل الأصول الأولية والثانوية لمعرفة من يستهدف ماذا.`,
+            keywords: {
+              'primary and secondary assets': 'الأصول: ما تملكه الشركة من قيمة. الأساسية (كقاعدة بيانات العملاء). الثانوية (كجهاز كمبيوتر لموظف الاستقبال، قد يُستخدم للوصول للأصول الأساسية).',
+              'threat communities': 'مجتمعات التهديد: تصنيف للمهاجمين؛ قد يكونون قراصنة هواة (يبحثون عن الشهرة)، أو منافسين تجاريين (يبحثون عن أسرار الصناعة)، أو عصابات فدية (يبحثون عن المال).',
+              'Map': 'رسم/مواءمة: ربط النقاط. على سبيل المثال، ربط "التهديد: عصابة فدية" مع "الأصل: سيرفر الحسابات المالي" لفهم مسار الهجوم المحتمل.'
+            },
+            summary: {
+              en: 'Threat modeling involves four steps: gathering info, categorizing assets, identifying threat communities, and mapping these threats to specific organizational assets.',
+              ar: 'تتضمن نمذجة التهديدات أربع خطوات: جمع المعلومات، تصنيف الأصول، تحديد مجتمعات التهديد، وربط هذه التهديدات بأصول المؤسسة المحددة.'
+            },
+            keyPoints: [
+              { ar: 'يجب التمييز بين الأصول الأساسية (ذات القيمة العالية) والأصول الثانوية.', en: 'Must distinguish between primary (high-value) and secondary assets.' },
+              { ar: 'يتم تحديد "مجتمعات التهديد" لمعرفة طبيعة العدو وأهدافه.', en: 'Identify "threat communities" to know the enemy\'s nature and goals.' },
+              { ar: 'الخطوة الأهم هي "المواءمة" (Mapping) بين المهاجمين والأصول التي يستهدفونها.', en: 'The key step is "mapping" attackers against the assets they target.' }
+            ],
+            mcq: {
+              question: 'What is the final step in the Threat Modeling phase?',
+              options: ['Hacking the web server', 'Gathering relevant information', 'Mapping threat communities against primary and secondary assets', 'Writing the final report'],
+              answer: 2,
+              explanation: 'Step 4 connects the attackers (threat communities) to what they want to steal or disrupt (assets).'
+            }
+          },
+          {
+            id: 's7',
+            title: '7. Phase 4: Vulnerability Analysis',
+            content: `• Transition: This is the fourth phase of PTES where the assessor identifies feasible targets for further testing.\n• Critical Note: In the first three phases, only details about the organization were extracted. The assessor has not touched any resources for testing until now.\n\nEffort Level\nVulnerability Analysis is the most time-consuming phase of PTES.`,
+            contentAr: `• الانتقال: هذه هي المرحلة الرابعة حيث يحدد المُقيّم أهدافاً مجدية (قابلة للتطبيق) لإجراء المزيد من الاختبارات عليها.\n• ملاحظة حاسمة: في المراحل الثلاث الأولى، تم استخراج تفاصيل ومعلومات عن المؤسسة فقط. لم يقم المُقيّم بلمس أو اختبار أي من الموارد والأنظمة حتى هذه اللحظة.\n\nمستوى الجهد\nيعد "تحليل الثغرات" المرحلة الأكثر استهلاكاً للوقت في معيار PTES بأكمله.`,
+            keywords: {
+              'Vulnerability Analysis': 'تحليل الثغرات: بعد أن عرفنا المبنى (جمع معلومات) ومن قد يسرقه (نمذجة التهديدات)، الآن نمشي حول المبنى للبحث عن أي نافذة مكسورة أو قفل ضعيف يمكن استغلاله.',
+              'feasible targets': 'أهداف مجدية: بدلاً من إضاعة الوقت في محاولة اختراق آلاف الأجهزة، نحدد الأجهزة التي تملك ثغرات واضحة ويمكن اختراقها فعلياً، لنركز جهودنا عليها.',
+              'time-consuming': 'الأكثر استهلاكاً للوقت: لأنها تتطلب دقة شديدة وفحصاً لملايين الأسطر البرمجية وآلاف المنافذ للتأكد من عدم وجود أي خطأ، ولتجنب الإيجابيات الكاذبة.'
+            },
+            summary: {
+              en: 'Vulnerability Analysis is the first phase where actual resources are touched to identify feasible targets. It is the most time-consuming phase of the PTES framework.',
+              ar: 'تحليل الثغرات هو المرحلة الأولى التي يتم فيها لمس الموارد الفعلية لتحديد الأهداف الممكنة. وهي المرحلة الأكثر استهلاكاً للوقت في إطار PTES.'
+            },
+            keyPoints: [
+              { ar: 'هذه هي المرحلة الأولى التي يبدأ فيها "اللمس الفعلي" للأنظمة.', en: 'This is the first phase where actual "touching" of systems begins.' },
+              { ar: 'تُعتبر هذه المرحلة الأكثر استهلاكاً للوقت (Time-consuming) في PTES.', en: 'Considered the most time-consuming phase in PTES.' },
+              { ar: 'الهدف تصفية الأنظمة للعثور على "أهداف مجدية" للاستغلال.', en: 'The goal is filtering systems to find "feasible targets" for exploitation.' }
+            ],
+            mcq: {
+              question: 'Which phase of the PTES framework is noted as being the most time-consuming?',
+              options: ['Pre-engagement', 'Threat Modeling', 'Vulnerability Analysis', 'Reporting'],
+              answer: 2,
+              explanation: 'The slide explicitly states that Vulnerability Analysis is the most time-consuming phase of PTES.'
+            }
+          },
+          {
+            id: 's8',
+            title: '8. Vulnerability Testing',
+            content: `Definition: The process of discovering flaws such as misconfiguration and insecure application designs in host systems and applications.\n• Active Testing: Involves direct interaction with the component being tested (Automated or Manual).\n• Passive Testing: Does not involve direct interaction (e.g., Metadata Analysis and Traffic Monitoring).`,
+            contentAr: `التعريف: عملية اكتشاف العيوب مثل الإعدادات الخاطئة (Misconfiguration) والتصميمات غير الآمنة للتطبيقات داخل الأنظمة المضيفة.\n• الاختبار النشط (Active Testing): يتضمن تفاعلاً واتصالاً مباشراً مع المكون أو النظام الجاري اختباره (سواء بشكل آلي أو يدوي).\n• الاختبار السلبي (Passive Testing): لا يتضمن أي تفاعل مباشر مع النظام (مثل تحليل البيانات الوصفية ومراقبة حركة مرور الشبكة خلسة).`,
+            keywords: {
+              'misconfiguration': 'الإعدادات الخاطئة: ترك كلمات المرور الافتراضية (مثل admin/admin)، أو ترك منافذ خطيرة مفتوحة بالخطأ أثناء إعداد الخادم.',
+              'Active Testing': 'الاختبار النشط: إرسال حزم بيانات بشكل متعمد ومباشر للخادم لمعرفة كيف سيرد (مثل طرق الباب بقوة لمعرفة إن كان هناك حارس). قد يتم رصده من قبل أنظمة الحماية.',
+              'Passive Testing': 'الاختبار السلبي: المراقبة في صمت. مثل الجلوس في مقهى والاستماع لحركة مرور البيانات (Traffic) في الشبكة دون إرسال أي طلب مباشر، وبالتالي يصعب جداً على أنظمة الحماية رصدك.'
+            },
+            summary: {
+              en: 'Vulnerability testing discovers flaws like misconfigurations through either Active Testing (direct interaction) or Passive Testing (monitoring without direct contact).',
+              ar: 'يكتشف اختبار الثغرات عيوباً مثل الإعدادات الخاطئة من خلال الاختبار النشط (تفاعل مباشر) أو الاختبار السلبي (المراقبة دون اتصال مباشر).'
+            },
+            keyPoints: [
+              { ar: 'يبحث عن أخطاء برمجية وإعدادات خاطئة (Misconfiguration).', en: 'Looks for software flaws and misconfigurations.' },
+              { ar: 'الاختبار النشط (Active) يتفاعل مباشرة مع الهدف وقد يُرصد.', en: 'Active testing interacts directly with the target and might be detected.' },
+              { ar: 'الاختبار السلبي (Passive) يعتمد على المراقبة فقط دون تفاعل.', en: 'Passive testing relies solely on monitoring without interaction.' }
+            ],
+            mcq: {
+              question: 'Which testing method relies on techniques like Metadata Analysis and Traffic Monitoring without direct interaction?',
+              options: ['Active Testing', 'Passive Testing', 'Physical Penetration', 'Exploitation'],
+              answer: 1,
+              explanation: 'Passive testing does not involve direct interaction; it gathers data silently via monitoring.'
+            }
+          },
+          {
+            id: 's9',
+            title: '9. Validation & Research',
+            content: `Once potential flaws are identified, the following stages are critical:\n• Validation of Findings: Proving the vulnerability exists through techniques such as Correlation between tools.\n• Research:\n• Determining the accuracy of the identified issue.\n• Researching the potential exploitability of the vulnerability within the specific scope of the test.\n\n"Validation prevents the delivery of false positives to the client."`,
+            contentAr: `بمجرد تحديد العيوب المحتملة، تصبح المراحل التالية حاسمة:\n• التحقق من النتائج (Validation): إثبات وجود الثغرة فعلياً من خلال تقنيات مثل الارتباط (Correlation) والمقاطعة بين نتائج أدوات الفحص المختلفة.\n• البحث (Research):\n• تحديد دقة وصحة المشكلة المكتشفة.\n• البحث في إمكانية الاستغلال الفعلي للثغرة ضمن النطاق المحدد للاختبار.\n\n"التحقق يمنع تسليم إيجابيات كاذبة (False positives) للعميل."`,
+            keywords: {
+              'Validation': 'التحقق: لا نثق بنتيجة أداة فحص واحدة. التحقق يعني استخدام أداة أخرى أو الفحص اليدوي لتأكيد أن الثغرة حقيقية وليست وهماً.',
+              'Correlation': 'الارتباط/المقاطعة: أداة (أ) تقول هناك ثغرة في المنفذ 80، وأداة (ب) تؤكد نفس الشيء. هذا الترابط يعطينا ثقة عالية بوجود المشكلة حقاً.',
+              'false positives': 'الإيجابيات الكاذبة: الكابوس الأكبر للعملاء. وهي أن تخبر العميل بوجود ثغرة خطيرة، فيقضي فريقه أياماً لمحاولة إصلاحها ليتبين في النهاية أنها مجرد خطأ من أداة الفحص ولا وجود لها.'
+            },
+            summary: {
+              en: 'Validation and research are critical to confirm that vulnerabilities actually exist and are exploitable, preventing the reporting of false positives to the client.',
+              ar: 'يعد التحقق والبحث أمرين حاسمين لتأكيد وجود الثغرات فعلياً وإمكانية استغلالها، مما يمنع تقديم إيجابيات كاذبة للعميل في التقرير.'
+            },
+            keyPoints: [
+              { ar: 'يجب مقاطعة نتائج الأدوات (Correlation) للتأكد من صحتها.', en: 'Results from tools must be correlated to ensure accuracy.' },
+              { ar: 'ليس كل ما تكتشفه الأدوات قابل للاستغلال الفعلي (Exploitability).', en: 'Not everything discovered by tools is actually exploitable.' },
+              { ar: 'التحقق الجيد يمنع إزعاج العميل بـ "الإيجابيات الكاذبة" الوهمية.', en: 'Good validation prevents bothering the client with imaginary "false positives".' }
+            ],
+            mcq: {
+              question: 'Why is the validation of findings a critical step?',
+              options: ['To speed up the network', 'To prevent the delivery of false positives to the client', 'To increase the length of the report', 'To automatically fix the vulnerabilities'],
+              answer: 1,
+              explanation: 'Validating findings ensures that the reported flaws are real and actionable, avoiding false alarms (false positives).'
+            }
+          },
+          {
+            id: 's10',
+            title: '10. Phase 5: Exploitation',
+            content: `• Focus: Gaining access to the system or resource by bypassing security restrictions.\n• The Culmination: In this phase, all the work done in the previous phases leads to the actual breach.\n• Methods of Access:\n• Remote exploits and custom code creation.\n• Bypassing Antivirus (AV) solutions.\n• Simple login via weak credentials.`,
+            contentAr: `• التركيز: الحصول على وصول (Access) للنظام أو الموارد من خلال تجاوز القيود والآليات الأمنية.\n• الذروة (التتويج): في هذه المرحلة، تؤدي جميع الجهود والأعمال التي تمت في المراحل السابقة إلى حدوث الاختراق الفعلي (Breach).\n• طرق الوصول:\n• الاستغلال عن بُعد (Remote exploits) وكتابة أكواد مخصصة.\n• تجاوز وتخطي حلول وبرامج مكافحة الفيروسات (Antivirus).\n• تسجيل الدخول البسيط عبر استغلال كلمات المرور الضعيفة.`,
+            keywords: {
+              'Exploitation': 'الاستغلال (الاختراق): لحظة الحقيقة. هي اللحظة التي يتحول فيها الهجوم من مجرد مسح ونظريات إلى سيطرة فعلية على النظام واستخراج البيانات.',
+              'bypassing': 'التجاوز/التخطي: خداع الأنظمة الدفاعية. مثل كتابة فيروس أو كود خبيث بطريقة مشفرة ومعدلة بحيث يبدو لبرنامج الحماية كأنه ملف نصي بريء.',
+              'weak credentials': 'بيانات الاعتماد الضعيفة: في كثير من الأحيان، أسهل طريقة لاختراق نظام معقد جداً هي تخمين كلمة مرور موظف وضعها "123456" بدلاً من قضاء أيام في كتابة أكواد معقدة!'
+            },
+            summary: {
+              en: 'Phase 5 (Exploitation) is the culmination of prior work, focusing on actually breaching the system by bypassing security using exploits or weak credentials.',
+              ar: 'المرحلة 5 (الاستغلال) هي تتويج للعمل السابق، وتركز على اختراق النظام فعلياً عن طريق تجاوز آليات الأمان باستخدام برمجيات الاستغلال أو كلمات المرور الضعيفة.'
+            },
+            keyPoints: [
+              { ar: 'هذه المرحلة هي "الذروة" التي يتحقق فيها الاختراق الفعلي.', en: 'This phase is the "culmination" where the actual breach is achieved.' },
+              { ar: 'الهدف الرئيسي هو تجاوز القيود الأمنية للحصول على صلاحية الوصول.', en: 'Main goal is bypassing security restrictions to gain access.' },
+              { ar: 'الاختراق قد يكون معقداً بأكواد، أو بسيطاً بكلمة سر ضعيفة.', en: 'Breach can be complex via code, or simple via weak passwords.' }
+            ],
+            mcq: {
+              question: 'Which phase represents the "Culmination" where actual breaches occur?',
+              options: ['Vulnerability Analysis', 'Intelligence Gathering', 'Threat Modeling', 'Exploitation'],
+              answer: 3,
+              explanation: 'Exploitation is the culmination of all previous prep work, resulting in an actual breach.'
+            }
+          },
+          {
+            id: 's11',
+            title: '11. High Value Targets (HVT)',
+            content: `• Main Entry Point: Once initial access is achieved, the assessor must identify the main entry point.\n• Target Prioritization: The focus shifts immediately to identifying High Value Target assets.\n\nPrerequisite\nIf the Vulnerability Analysis phase was properly completed, a high value target list should have been compiled before this phase began.\n\nNote: The attack vector should always take the organization's business goals into consideration.`,
+            contentAr: `• نقطة الدخول الرئيسية: بمجرد تحقيق الوصول الأولي، يجب على المُقيّم تحديد نقطة الدخول الرئيسية للشبكة الداخلية.\n• تحديد أولويات الأهداف: يتحول التركيز فوراً إلى تحديد أصول "الأهداف ذات القيمة العالية" (HVT).\n\nمتطلب مسبق\nإذا اكتملت مرحلة تحليل الثغرات بشكل صحيح، فإنه يفترض أن تكون قائمة الأهداف عالية القيمة قد جُمعت وجُهزت قبل بدء هذه المرحلة.\n\nملاحظة: يجب أن يراعي مسار الهجوم دائماً أهداف الأعمال الخاصة بالمؤسسة.`,
+            keywords: {
+              'initial access': 'الوصول الأولي: الحصول على موطئ قدم (مساحة صغيرة) داخل النظام. مثل اختراق جهاز كمبيوتر لموظف استقبال، وهو مجرد بداية للوصول للأهداف الأكبر.',
+              'High Value Targets': 'الأهداف عالية القيمة (HVT): الجائزة الكبرى. قد تكون خادم قواعد البيانات الذي يحوي أرقام البطاقات الائتمانية، أو خادم البريد الإلكتروني للمدير التنفيذي.',
+              'business goals': 'أهداف الأعمال: الهاكر المحترف يدرك أن تعطيل طابعة الشركة لا يهم بقدر اختراق نظام تحويل الأموال، فيوجه هجومه بناءً على ما يؤلم الشركة تجارياً.'
+            },
+            summary: {
+              en: 'After initial access, attackers prioritize High Value Targets (HVTs) which should have been identified during Vulnerability Analysis, aligning attacks with business impact.',
+              ar: 'بعد الوصول الأولي، يركز المهاجمون على الأهداف ذات القيمة العالية (HVTs) التي كان ينبغي تحديدها خلال تحليل الثغرات، مع مواءمة الهجمات مع تأثيرها التجاري.'
+            },
+            keyPoints: [
+              { ar: 'يتم استغلال الوصول الأولي للبحث فوراً عن الأهداف عالية القيمة (HVT).', en: 'Initial access is used to immediately hunt for High Value Targets (HVT).' },
+              { ar: 'قائمة الأهداف الثمينة يجب أن تكون جاهزة من مرحلة تحليل الثغرات.', en: 'The list of valuable targets must be ready from the Vulnerability Analysis phase.' },
+              { ar: 'يجب أن يكون الهجوم موجهاً لضرب الأنظمة المؤثرة تجارياً على المؤسسة.', en: 'The attack must target systems that have a commercial impact on the organization.' }
+            ],
+            mcq: {
+              question: 'When should the list of High Value Targets (HVTs) ideally be compiled?',
+              options: ['During Post-Exploitation', 'Before Vulnerability Analysis', 'During Vulnerability Analysis (before Exploitation begins)', 'During the Pre-engagement interactions'],
+              answer: 2,
+              explanation: 'A high value target list should have been compiled during the Vulnerability Analysis phase, before Exploitation begins.'
+            }
+          },
+          {
+            id: 's12',
+            title: '12. Phase 6: Post-Exploitation',
+            content: `• Definition: This phase begins after a successful breach and focuses on the value of the machine compromised.\n• Objective: To determine the impact of the compromise and what an attacker could actually achieve once "inside."\n• Business Value: The assessor identifies the sensitivity of the data residing on the machine and its usefulness in further compromising the network.`,
+            contentAr: `• التعريف: تبدأ هذه المرحلة بعد حدوث الاختراق الناجح وتركز على استكشاف "قيمة" الجهاز الذي تم الاستيلاء عليه.\n• الهدف: تحديد التأثير الفعلي للاختراق ومعرفة ما يمكن للمهاجم تحقيقه وتدميره بمجرد دخوله وتواجده "بالداخل".\n• قيمة الأعمال: يحدد المُقيّم مدى حساسية البيانات الموجودة على هذا الجهاز المًخترق، ومدى فائدتها كأداة لشن هجمات أعمق في الشبكة.`,
+            keywords: {
+              'Post-Exploitation': 'ما بعد الاستغلال: مرحلة ما بعد كسر الباب. الآن أنت داخل الغرفة، ماذا يمكنك أن تفعل؟ هل يمكنك قراءة الملفات؟ تشغيل الكاميرا؟ أو فتح الأبواب الأخرى؟',
+              'impact': 'التأثير: ترجمة الاختراق التقني إلى لغة يفهمها المدير. (اختراق هذا الخادم يعني أن المهاجم كان بإمكانه مسح جميع سجلات الديون للعملاء).',
+              'further compromising': 'اختراقات أعمق: استخدام الجهاز الضعيف كجسر للعبور إلى الأجهزة القوية. (استخراج كلمات المرور من جهاز الموظف لاستخدامها في الدخول لسيرفر الإدارة).'
+            },
+            summary: {
+              en: 'Post-Exploitation evaluates the true business impact of a breach, exploring what an attacker can do from within the compromised machine to further target the network.',
+              ar: 'تقيّم مرحلة ما بعد الاستغلال التأثير التجاري الحقيقي للاختراق، وتستكشف ما يمكن للمهاجم فعله من داخل الجهاز المخترق لاستهداف الشبكة بشكل أعمق.'
+            },
+            keyPoints: [
+              { ar: 'تبدأ هذه المرحلة فقط "بعد" نجاح عملية الاختراق الأولية.', en: 'This phase begins only "after" a successful initial breach.' },
+              { ar: 'تقيس حجم "التأثير الفعلي" الذي يمكن للهاكر إحداثه وهو بالداخل.', en: 'Measures the actual "impact" a hacker can cause while inside.' },
+              { ar: 'تستكشف قيمة الجهاز كجسر للوصول لأجهزة حساسة أخرى بالشبكة.', en: 'Explores the machine\'s value as a bridge to reach other sensitive devices.' }
+            ],
+            mcq: {
+              question: 'What is the main objective of the Post-Exploitation phase?',
+              options: ['To scan for open ports externally', 'To determine the impact of the compromise once "inside"', 'To sign the engagement letter', 'To remove malware from the system'],
+              answer: 1,
+              explanation: 'It focuses on assessing the value of the compromised machine and what damage an attacker can do once inside.'
+            }
+          },
+          {
+            id: 's13',
+            title: '13. Phase 6: Post Exploitation (Analysis & Pillaging)',
+            content: `• Infrastructure Analysis: A total analysis of the environment used during testing.\n• Focus: Interfaces, routing, DNS servers, Cached DNS entries, and proxy servers.\n• Goal: Understanding the internal network topology from the "inside" perspective.\n• Pillaging: Obtaining information from targeted hosts relevant to pre-defined goals.\n• Sources: Extracting data from installed programs, database servers, and network devices like printers.`,
+            contentAr: `• تحليل البنية التحتية: تحليل شامل للبيئة بعد الدخول إليها.\n• التركيز على: واجهات الشبكة، مسارات التوجيه، خوادم DNS وسجلاتها المؤقتة، والخوادم الوكيلة (Proxy).\n• الهدف: فهم هيكل وتصميم الشبكة الداخلية (Topology) ولكن من منظور "الداخل" هذه المرة.\n• السلب/النهب (Pillaging): الحصول على المعلومات والبيانات من الأجهزة المستهدفة بناءً على أهداف الاختبار المحددة مسبقاً.\n• المصادر: استخراج البيانات من البرامج المثبتة، خوادم قواعد البيانات، وحتى أجهزة الشبكة البسيطة مثل الطابعات.`,
+            keywords: {
+              'topology': 'طوبولوجيا (تصميم الشبكة): من الخارج تبدو الشركة كجهاز واحد، ولكن من الداخل تظهر الشبكة كمدينة معقدة بشوارع وتقاطعات (الروترات) يجب رسم خريطتها للتحرك فيها بحرية.',
+              'Pillaging': 'السلب/النهب الرقمي: تفتيش النظام المخترق بحثاً عن الغنائم. مثل البحث في ملفات (Word) عن كلمات سر مكتوبة، أو نسخ قاعدة بيانات العملاء بالكامل.',
+              'Cached DNS entries': 'سجلات DNS المؤقتة: فحصها يشبه النظر في سجل "المواقع التي زارها الجهاز مؤخراً"، مما يكشف للمهاجم عن وجود خوادم داخلية سرية تتواصل معها الأجهزة.'
+            },
+            summary: {
+              en: 'This stage of post-exploitation involves analyzing the internal network topology and "pillaging" (extracting valuable data) from compromised hosts and devices.',
+              ar: 'تتضمن هذه المرحلة من ما بعد الاستغلال تحليل هيكل الشبكة الداخلية و "سلب" (استخراج البيانات القيمة) من الأجهزة المضيفة المخترقة.'
+            },
+            keyPoints: [
+              { ar: 'يتم دراسة تصميم الشبكة (Topology) من منظور داخلي أعمق.', en: 'Network topology is studied from a deeper, internal perspective.' },
+              { ar: 'النهب (Pillaging) هو استخراج البيانات الحساسة القابلة للتقييم.', en: 'Pillaging is extracting valuable, sensitive data for assessment.' },
+              { ar: 'حتى الأجهزة البسيطة كالطابعات تُعتبر مصدراً مهماً للمعلومات الداخلية.', en: 'Even simple devices like printers are vital sources of internal info.' }
+            ],
+            mcq: {
+              question: 'In the context of Post-Exploitation, what does "Pillaging" refer to?',
+              options: ['Stealing physical servers', 'Obtaining valuable information/data from targeted hosts', 'Deleting all logs', 'Installing an antivirus program'],
+              answer: 1,
+              explanation: 'Pillaging is the process of extracting relevant data from installed programs, databases, and devices.'
+            }
+          },
+          {
+            id: 's14',
+            title: '14. Data Exfiltration & Persistence',
+            content: `• Data Exfiltration: Mapping and testing all possible exfiltration paths.\n• Metric: Measuring control strength for detecting and blocking sensitive information leaving the organization.\n• Creating Persistence: Maintaining access for long-term analysis.\n• Installation of authenticated backdoors and ensuring they survive system reboots.\n• Creation of alternate accounts with complex passwords to maintain a "foothold."`,
+            contentAr: `• استخراج البيانات (Exfiltration): تحديد واختبار جميع المسارات الممكنة لتهريب البيانات للخارج.\n• المقياس: قياس قوة أنظمة الرقابة في اكتشاف وحظر المعلومات الحساسة أثناء محاولة خروجها من شبكة المؤسسة.\n• إنشاء البقاء (Persistence): الحفاظ على منفذ وصول للنظام لإجراء تحليل طويل الأمد.\n• تثبيت "أبواب خلفية" (Backdoors) مصادق عليها وضمان بقائها حتى بعد إعادة تشغيل النظام (Reboot).\n• إنشاء حسابات مستخدمين بديلة بكلمات مرور معقدة للحفاظ على "موطئ قدم" داخل الشبكة.`,
+            keywords: {
+              'Data Exfiltration': 'تهريب البيانات: التحدي للهاكر ليس فقط سرقة البيانات، بل كيف يخرج بها من باب الشركة (الإنترنت) دون أن ترصده أنظمة (DLP) التي تراقب خروج الملفات الحساسة.',
+              'Persistence': 'البقاء/الاستمرارية: ضمان عدم فقدان السيطرة إذا قام الموظف بإطفاء جهازه. يزرع الهاكر برمجيات تعمل تلقائياً مع تشغيل الويندوز لضمان اتصال دائم.',
+              'backdoors': 'الأبواب الخلفية: منافذ سرية خفية يزرعها المهاجم للعودة للنظام لاحقاً بسهولة، دون الحاجة لإعادة عملية الاختراق المعقدة من البداية.',
+              'foothold': 'موطئ قدم: حساب خفي بصلاحيات عالية (Admin) يضمن للمهاجم أنه حتى لو تم ترقيع الثغرة الأساسية، فإنه لا يزال يمتلك مفتاحاً شرعياً للدخول.'
+            },
+            summary: {
+              en: 'Attackers test paths to exfiltrate sensitive data without detection, and establish persistence (using backdoors and hidden accounts) to survive system reboots and maintain access.',
+              ar: 'يختبر المهاجمون مسارات تهريب البيانات الحساسة دون اكتشافهم، وينشئون آليات استمرارية (بأبواب خلفية وحسابات خفية) للبقاء حتى بعد إعادة تشغيل النظام.'
+            },
+            keyPoints: [
+              { ar: 'اختبار مدى قدرة أنظمة الشركة على رصد ومنع "تهريب البيانات".', en: 'Testing the company\'s systems ability to detect and block "data exfiltration".' },
+              { ar: 'الاستمرارية (Persistence) تضمن بقاء تحكم الهاكر حتى بعد إطفاء الأجهزة.', en: 'Persistence ensures the hacker\'s control survives even system reboots.' },
+              { ar: 'يتم زرع أبواب خلفية (Backdoors) وحسابات وهمية لتأمين الرجوع.', en: 'Backdoors and dummy accounts are planted to secure a return path.' }
+            ],
+            mcq: {
+              question: 'Why does an attacker create alternate accounts with complex passwords during Post-Exploitation?',
+              options: ['To help the IT department', 'To test password policies', 'To maintain a "foothold" or persistence in the system', 'To encrypt data for a ransomware attack'],
+              answer: 2,
+              explanation: 'Creating alternate accounts is a technique for creating persistence, allowing the attacker to maintain a foothold even if the original flaw is patched.'
+            }
+          },
+          {
+            id: 's15',
+            title: '15. The Professional Cleanup',
+            content: `Final Technical Step\nCleanup is a mandatory requirement to return the system to its original state.\n• Restoration: Reverting system settings and application configuration parameters to their original values.\n• Removal: Deleting all backdoors, temporary scripts, and artifacts installed during the test.\n• Account Hygiene: Removing any user accounts created during the persistence phase.\n\nNote: This phase ensures the test does not leave the organization vulnerable to actual attackers.`,
+            contentAr: `الخطوة التقنية النهائية\nالتنظيف هو متطلب إلزامي وحتمي لإعادة النظام إلى حالته الأصلية.\n• الاستعادة (Restoration): إرجاع إعدادات النظام ومعلمات تكوين التطبيقات إلى قيمها الأصلية السابقة.\n• الإزالة (Removal): مسح جميع الأبواب الخلفية (Backdoors)، والبرامج النصية المؤقتة، والأدوات التي تم تثبيتها أثناء الاختبار.\n• نظافة الحسابات (Account Hygiene): حذف أي حسابات مستخدمين تم إنشاؤها لغرض ضمان البقاء (Persistence).\n\nملاحظة: تضمن هذه المرحلة أن عملية الاختبار لن تترك المؤسسة مكشوفة وعرضة للمهاجمين الحقيقيين.`,
+            keywords: {
+              'Cleanup': 'التنظيف المهني: السمة التي تميز الهاكر الأخلاقي عن المجرم. يجب محو كل آثار الاختراق التجريبي لأن ترك باب خلفي مفتوح قد يستغله هاكر حقيقي لضرب الشركة.',
+              'Restoration': 'الاستعادة: إذا قمت بتعطيل جدار ناري أو نظام منع التطفل (IPS) أثناء الاختبار لتسهيل مرورك، فيجب عليك إعادته للعمل فوراً بعد الانتهاء.',
+              'artifacts': 'الآثار/المخلفات: أي ملف نصي، أو برنامج خبيث (Payload)، أو سجل (Log) تم إنشاؤه أثناء عملية الهجوم ويجب محوه لتجنب إحداث فوضى في بيئة العمل.'
+            },
+            summary: {
+              en: 'Professional cleanup is a mandatory final technical step that removes all backdoors, accounts, and artifacts to return the system to its secure, original state.',
+              ar: 'التنظيف المهني هو خطوة تقنية نهائية إلزامية تقوم بإزالة جميع الأبواب الخلفية والحسابات والأدوات لإعادة النظام إلى حالته الأصلية الآمنة.'
+            },
+            keyPoints: [
+              { ar: 'التنظيف ليس خياراً بل "متطلب إلزامي" لسلامة الشبكة.', en: 'Cleanup is not an option but a "mandatory requirement" for network safety.' },
+              { ar: 'ترك الأدوات والأبواب الخلفية يعرض الشركة لخطر هجوم حقيقي.', en: 'Leaving tools and backdoors exposes the company to real attacks.' },
+              { ar: 'يجب استعادة الإعدادات الأصلية وحذف جميع حسابات الاختبار.', en: 'Original settings must be restored and all test accounts deleted.' }
+            ],
+            mcq: {
+              question: 'What is the primary danger of failing to perform the Professional Cleanup phase?',
+              options: ['The client will not pay the invoice', 'The test does not look professional', 'It leaves the organization vulnerable to actual attackers', 'It uses up too much hard drive space'],
+              answer: 2,
+              explanation: 'Leaving backdoors and scripts behind means a real attacker could find and use them to compromise the network.'
+            }
+          },
+          {
+            id: 's16',
+            title: '16. Phase 7: Reporting',
+            content: `Final Deliverable\nThis is the final and most important phase of PTES. The client pays on the basis of the final report after completion of the penetration test.\n• The Mirror: The report is essentially a mirror of the findings discovered by the assessor.\n• Value Proposition: High-quality reporting translates technical vulnerabilities into actionable business intelligence.`,
+            contentAr: `المنتج النهائي (Deliverable)\nهذه هي المرحلة النهائية والأكثر أهمية في PTES. يدفع العميل المال بناءً على التقرير النهائي المُسلّم بعد الانتهاء من الاختبار.\n• المرآة: التقرير هو في جوهره مرآة تعكس كافة النتائج والثغرات التي اكتشفها المُقيّم.\n• عرض القيمة (Value Proposition): التقرير عالي الجودة يُترجم الثغرات التقنية المعقدة إلى معلومات استخباراتية للأعمال (قابلة للتنفيذ والفهم الإداري).`,
+            keywords: {
+              'Deliverable': 'المنتج النهائي الملموس: بغض النظر عن مدى براعتك التقنية، المستند الورقي أو الـ PDF هو الشيء الوحيد الذي يراه العميل لتقييم جودة عملك وتبرير التكلفة المدفوعة.',
+              'The Mirror': 'المرآة: التقرير يجب أن يكون صادقاً وشفافاً تماماً؛ لا يهول من ثغرات تافهة ليظهر ببطولة، ولا يخفي أخطاء فادحة. ينقل الواقع التقني كما هو.',
+              'actionable business intelligence': 'استخبارات قابلة للتنفيذ: الإدارة لا تهتم بمعرفة اسم الثغرة التقني الطويل، بل تهتم بمعرفة: "كم ستكلفنا هذه الثغرة مالياً؟" و "كيف نصلحها وبكم؟".'
+            },
+            summary: {
+              en: 'Reporting is the crucial final deliverable that acts as a mirror of the findings, translating complex technical vulnerabilities into clear, actionable business intelligence for the client.',
+              ar: 'كتابة التقرير هي المنتج النهائي الحاسم الذي يعمل كمرآة للنتائج، ويترجم الثغرات التقنية المعقدة إلى معلومات استخباراتية واضحة وقابلة للتنفيذ للأعمال.'
+            },
+            keyPoints: [
+              { ar: 'التقرير هو المنتج الوحيد الذي يدفع العميل مقابله.', en: 'The report is the only deliverable the client pays for.' },
+              { ar: 'يعتبر مرآة عاكسة وموثقة لكل ما اكتشفه الفريق.', en: 'Acts as a documented mirror of everything the team discovered.' },
+              { ar: 'يحول الأكواد التقنية المعقدة إلى قرارات أعمال استراتيجية.', en: 'Translates complex technical code into strategic business decisions.' }
+            ],
+            mcq: {
+              question: 'Why is High-quality reporting described as a "Value Proposition"?',
+              options: ['Because it is printed on expensive paper', 'It translates technical vulnerabilities into actionable business intelligence', 'It guarantees the hackers will not return', 'It generates automated exploit codes'],
+              answer: 1,
+              explanation: 'A report provides value when it translates obscure technical jargon into business intelligence that managers can act upon.'
+            }
+          },
+          {
+            id: 's17',
+            title: '17. Executive Summary & Storyline',
+            content: `• Executive Summary:\n• Communicates specific goals and high-level findings.\n• Audience: Advisory board members or the Chief Suite (C-Suite).\n• Storyline:\n• Explains what was done during the engagement.\n• Details actual security findings/weaknesses.\n• Highlights positive controls already established by the organization.`,
+            contentAr: `• الملخص التنفيذي:\n• ينقل الأهداف المحددة والنتائج عالية المستوى بشكل مبسط.\n• الجمهور المستهدف: أعضاء المجلس الاستشاري أو كبار المديرين التنفيذيين (C-Suite).\n• السرد أو قصة الهجوم (Storyline):\n• يشرح بالتسلسل ما تم القيام به أثناء الاختبار.\n• يفصل النتائج ونقاط الضعف الأمنية الفعلية.\n• يُبرز ويسلط الضوء على آليات التحكم الإيجابية (الدفاعات الجيدة) التي تمتلكها المؤسسة بالفعل.`,
+            keywords: {
+              'Executive Summary': 'الملخص التنفيذي: قسم يقع في بداية التقرير، لا يتجاوز صفحتين، خالٍ تماماً من الأكواد المعقدة. مصمم ليقرأه المدير العام المشغول أثناء احتساء القهوة لفهم الخلاصة.',
+              'C-Suite': 'مستوى الإدارة العليا: يشمل الرئيس التنفيذي (CEO)، المدير المالي (CFO)، ومدير أمن المعلومات (CISO). صناع القرار الذين يخصصون الميزانيات لإصلاح الأنظمة.',
+              'Storyline': 'السرد القصصي: بناء التقرير كقصة مثيرة (كيف بدأنا، أين وجدنا الثغرة، وكيف تسللنا منها للكنز) ليكون مقروءاً ومترابطاً.',
+              'positive controls': 'الضوابط الإيجابية: التقرير الاحترافي لا يعتمد على جلد الذات فقط، بل يمدح الأنظمة الدفاعية الجيدة التي صدت الهجمات لرفع الروح المعنوية لفريق الـ IT الداخلي.'
+            },
+            summary: {
+              en: 'The Executive Summary translates findings for C-level executives, while the Storyline details the attack narrative, emphasizing both security flaws and existing strong defenses.',
+              ar: 'يترجم الملخص التنفيذي النتائج للمديرين التنفيذيين، بينما يشرح سرد القصة تسلسل الهجوم، مع التركيز على كل من العيوب الأمنية والدفاعات القوية الحالية.'
+            },
+            keyPoints: [
+              { ar: 'الملخص التنفيذي موجه للإدارة العليا (C-Suite) ويكون غير تقني.', en: 'Executive Summary is aimed at the C-Suite and is non-technical.' },
+              { ar: 'السرد (Storyline) يشرح كيف تمت عملية الاختراق خطوة بخطوة.', en: 'The Storyline explains how the breach happened step-by-step.' },
+              { ar: 'يجب ذكر الإيجابيات والدفاعات القوية للمنظمة وليس فقط العيوب.', en: 'Must mention the organization\'s positive controls and strong defenses, not just flaws.' }
+            ],
+            mcq: {
+              question: 'Who is the intended audience for the Executive Summary of a penetration test report?',
+              options: ['Junior Developers', 'Network Administrators', 'Advisory board members or the Chief Suite (C-Suite)', 'The attackers'],
+              answer: 2,
+              explanation: 'The executive summary provides high-level business findings specifically tailored for executives and board members.'
+            }
+          },
+          {
+            id: 's18',
+            title: '18. Technical Report (Proof of Concept)',
+            content: `This section provides the raw technical evidence required by the IT and security teams:\n• Key Success Indicators: All components agreed upon during pre-engagement.\n• Detailed Breakdown:\nScope: Exactly what was tested.\nAttack Path: The step-by-step narrative of the breach.\nImpact: The potential business damage of the flaw.\nRemediation: Specific suggestions to fix the identified issues.`,
+            contentAr: `يوفر هذا القسم الأدلة الفنية الخام التي تطلبها فرق تكنولوجيا المعلومات (IT) والفرق الأمنية:\n• مؤشرات النجاح الرئيسية: كافة المكونات والأهداف التي تم الاتفاق عليها في مرحلة ما قبل التعاقد.\n• التفصيل الدقيق:\nالنطاق (Scope): تحديد دقيق لما تم اختباره.\nمسار الهجوم (Attack Path): سرد تفصيلي، خطوة بخطوة، لكيفية حدوث الاختراق.\nالتأثير (Impact): الضرر التجاري المحتمل الذي تسببه الثغرة.\nالعلاج (Remediation): اقتراحات وتوصيات محددة لإصلاح المشاكل المكتشفة.`,
+            keywords: {
+              'Proof of Concept': 'إثبات المفهوم (POC): الدليل القاطع. كود برمجي أو صورة شاشة (Screenshot) تُرفق في التقرير لتثبت لمهندسي الشركة أن الثغرة حقيقية وتعمل بالفعل وليست من نسج الخيال.',
+              'Attack Path': 'مسار الهجوم: رسم الخريطة التكتيكية. توضيح كيف تم الانتقال من المنفذ المفتوح -> إلى تخمين كلمة السر -> ثم تصعيد الصلاحيات -> وصولاً لقاعدة البيانات.',
+              'Remediation': 'المعالجة/الإصلاح: القيمة الحقيقية للتقرير التقني. يجب أن تعطي مبرمج الشركة الحل الدقيق (مثلاً: تحديث المكتبة الفلانية، أو تغيير إعدادات الجدار الناري كذا) لسد الثغرة.'
+            },
+            summary: {
+              en: 'The Technical Report gives IT teams raw evidence (Proof of Concept), breaking down the tested scope, attack path, potential impact, and providing specific remediation steps.',
+              ar: 'يمنح التقرير التقني فرق الـ IT أدلة فنية ملموسة (إثبات المفهوم)، ويفصل النطاق المُختبر، ومسار الهجوم، والتأثير المحتمل، ويوفر خطوات معالجة محددة.'
+            },
+            keyPoints: [
+              { ar: 'هذا القسم موجه بالكامل للتقنيين ومهندسي الشبكات (IT).', en: 'This section is entirely targeted at technical and network engineers (IT).' },
+              { ar: 'يجب أن يحتوي على مسار هجوم (Attack Path) مفصل وقابل للتكرار.', en: 'Must contain a detailed and reproducible Attack Path.' },
+              { ar: 'أهم عنصر فيه هو تقديم توصيات دقيقة للإصلاح (Remediation).', en: 'The most vital element is providing precise remediation recommendations.' }
+            ],
+            mcq: {
+              question: 'Which component of the Technical Report provides specific suggestions to fix the identified issues?',
+              options: ['Scope', 'Attack Path', 'Impact', 'Remediation'],
+              answer: 3,
+              explanation: 'Remediation offers the specific technical fixes and suggestions required to patch the vulnerabilities.'
+            }
+          },
+          {
+            id: 's19',
+            title: '19. Problems in Info Analysis & Planning',
+            content: `• Consolidation Crisis: Consolidating gathered information to extract high-level conclusions for an attack strategy is difficult and time-consuming.\n• Dynamic Complexity: Hard to keep an up-to-date general overview of components and their interactions.\n• Tool Gap: There are no specific tools aimed at addressing this strategic phase.`,
+            contentAr: `• أزمة التوحيد/الدمج (Consolidation Crisis): تجميع ودمج الكم الهائل من المعلومات المستخرجة للوصول إلى استنتاجات استراتيجية لتوجيه الهجوم أمر صعب للغاية ويستهلك الكثير من الوقت.\n• التعقيد الديناميكي: من الصعب الحفاظ على نظرة عامة ومُحدّثة لجميع مكونات النظام وطرق تفاعلها مع بعضها البعض (بسبب تغيرها المستمر).\n• فجوة الأدوات (Tool Gap): لا توجد أدوات برمجية محددة أو مخصصة تهدف إلى مساعدة المُقيّم في هذه المرحلة التخطيطية الاستراتيجية المعقدة.`,
+            keywords: {
+              'Consolidation Crisis': 'أزمة الدمج: المختبر يمتلك آلاف الأوراق وملفات الإكسل المليئة بأسماء السيرفرات والموظفين. التحدي هو كيف يربط هذه المخرجات المبعثرة معاً لتشكيل خطة هجوم واحدة فعالة.',
+              'Dynamic Complexity': 'التعقيد الديناميكي: الأنظمة الحديثة ليست ثابتة؛ في كل دقيقة يتم إطلاق سيرفرات سحابية جديدة، وتحديث أكواد، مما يجعل رسم خريطة ثابتة للشبكة أمراً أشبه بمطاردة هدف متحرك.',
+              'Tool Gap': 'فجوة الأدوات: يوجد آلاف الأدوات للهجوم (التكسير والاختراق)، لكن لا توجد أدوات ذكاء اصطناعي كافية لتحليل البيانات وتخطيط الهجوم الاستراتيجي نيابة عن العقل البشري.'
+            },
+            summary: {
+              en: 'Planning an attack faces issues like consolidating massive amounts of gathered data, handling dynamically changing network complexities, and a lack of specific tools for strategy.',
+              ar: 'يواجه التخطيط للهجوم مشكلات مثل دمج الكميات الهائلة من البيانات المجمعة، والتعامل مع تعقيدات الشبكة المتغيرة ديناميكياً، ونقص الأدوات المخصصة للاستراتيجية.'
+            },
+            keyPoints: [
+              { ar: 'دمج كميات ضخمة من المعلومات لاستخراج خطة يعتبر أزمة حقيقية.', en: 'Consolidating massive amounts of info to extract a plan is a real crisis.' },
+              { ar: 'الأنظمة الحديثة تتغير وتتفاعل بسرعة مما يزيد من "التعقيد".', en: 'Modern systems change and interact rapidly, increasing "complexity".' },
+              { ar: 'هناك نقص حاد في الأدوات المصممة للمساعدة في التخطيط الاستراتيجي.', en: 'There is a severe lack of tools designed to aid in strategic planning.' }
+            ],
+            mcq: {
+              question: 'What does "Dynamic Complexity" refer to in the context of info analysis and planning?',
+              options: ['The inability to write a report', 'The difficulty in keeping an up-to-date general overview of continuously interacting components', 'The high cost of penetration testing tools', 'The lack of skilled personnel'],
+              answer: 1,
+              explanation: 'Dynamic complexity arises because network components and their interactions change frequently, making it hard to maintain a current overview.'
+            }
+          },
+          {
+            id: 's20',
+            title: '20. Problems: The Penetration Phase',
+            content: `• Time Constraints: High-level expertise is required, but overall time limits often restrict the extent of the work.\n• Resource Estimation: There are no formal processes or tools to help estimate the time and effort needed for specific exploits.\n• Unreliable Code: Publicly available exploits are generally unreliable "quick hacks" or POCs that require heavy customization and testing.\n• Theoretical vs. Practical: Knowing a vulnerability exists does not mean it can be exploited easily; failing a "theoretically possible" exploit weakens the entire engagement result.`,
+            contentAr: `• قيود الوقت: المرحلة تتطلب خبرات عالية، ولكن الحدود الزمنية المتاحة للاختبار غالباً ما تُقيد حجم وتعمق العمل.\n• تقدير الموارد: لا توجد عمليات أو أدوات رسمية للمساعدة في تقدير الوقت والجهد اللازمين لتنفيذ اختراقات معينة.\n• أكواد غير موثوقة: الأكواد الهجومية (Exploits) المتاحة للعامة هي غالباً "اختراقات سريعة" غير مستقرة، تتطلب الكثير من التعديل والاختبار المسبق.\n• النظري مقابل العملي: مجرد معرفة أن الثغرة موجودة لا يعني سهولة استغلالها؛ وفشل المختبر في تطبيق اختراق "ممكن نظرياً" يُضعف من قوة ومصداقية نتيجة التقييم بالكامل.`,
+            keywords: {
+              'Time Constraints': 'قيود الوقت: الهاكر الحقيقي لديه سنوات لاختراق الشركة، بينما الهاكر الأخلاقي ملزم بإنهاء التقييم في أسبوعين فقط، مما يولد ضغطاً هائلاً لاكتشاف كل شيء.',
+              'Unreliable Code': 'أكواد غير موثوقة: الأكواد المنتشرة في الإنترنت قد تكون ملغمة، أو تعمل على إصدار ويندوز واحد فقط، وإذا شغلها المختبر دون فهم وتعديل قد تتسبب في إيقاف سيرفرات الشركة (Crash).',
+              'Theoretical vs. Practical': 'النظري ضد العملي: برامج الفحص تخبرك أن الثغرة موجودة (نظرياً)، لكن عندما تحاول استغلالها تجد جدار حماية يمنعك (عملياً). الإدارة لا تدفع مقابل النظريات، بل مقابل الأدلة العملية.'
+            },
+            summary: {
+              en: 'The penetration phase struggles with strict time constraints, difficult effort estimation, reliance on unstable public exploit codes, and the gap between theoretical vulnerabilities and practical exploitation.',
+              ar: 'تعاني مرحلة الاختراق من قيود زمنية صارمة، وصعوبة في تقدير الجهد، والاعتماد على أكواد استغلال عامة غير مستقرة، والفجوة بين الثغرات النظرية والاستغلال العملي.'
+            },
+            keyPoints: [
+              { ar: 'ضيق الوقت يعيق المختبرين من الوصول لأقصى عمق ممكن.', en: 'Time limits restrict testers from reaching the maximum possible depth.' },
+              { ar: 'أكواد الهجوم العامة (العشوائية) تحتاج لتعديل قبل استخدامها بأمان.', en: 'Public exploit codes need customization before they can be used safely.' },
+              { ar: 'الفشل العملي في استغلال ثغرة "موجودة نظرياً" يقلل من قيمة التقييم.', en: 'Failing to practically exploit a "theoretically existing" flaw reduces assessment value.' }
+            ],
+            mcq: {
+              question: 'Why are publicly available exploits considered a problem during the Penetration Phase?',
+              options: ['They are too expensive', 'They are strictly illegal to download', 'They are often unreliable "quick hacks" requiring heavy customization', 'They work perfectly and make the job too easy'],
+              answer: 2,
+              explanation: 'Public exploits are often unreliable Proof of Concepts (POCs) that require significant modification and testing to work securely in a live environment.'
+            }
+          },
+          {
+            id: 's21',
+            title: '21. Problems: Attack & Privilege Escalation',
+            content: `• Specialization Required: Significant knowledge is needed for exploit and tool development (local host exploits, backdoors, etc.).\n• The Pivoting Gap: Pivoting is a key factor for success, yet it is currently the least formalized process in manual testing.\n• Security Weakness: There is often a lack of a dedicated security architecture for the penetration test itself (protecting the tester's own tools and data).`,
+            contentAr: `• الحاجة للتخصص: يتطلب تطوير برمجيات الاستغلال والأدوات (مثل اختراق المضيف المحلي، والأبواب الخلفية) مستوى عالياً جداً من المعرفة البرمجية المتخصصة.\n• فجوة التمحور (Pivoting): يُعد التمحور عاملاً رئيسياً لنجاح الاختراق، ومع ذلك فهو حالياً العملية الأقل تنظيماً وتوثيقاً في الاختبار اليدوي.\n• الضعف الأمني (للمختبرين): غالباً ما يكون هناك نقص في وجود هيكل أمني مخصص لحماية عملية اختبار الاختراق نفسها (أي حماية أدوات المختبر والبيانات التي جمعها من السرقة).`,
+            keywords: {
+              'Privilege Escalation': 'تصعيد الصلاحيات: أنت دخلت النظام بحساب "ضيف" (Guest) لا يستطيع فعل شيء. التحدي هو استغلال ثغرة داخلية لترقية حسابك ليصبح "مدير النظام" (Administrator).',
+              'Pivoting': 'التمحور (الدوران): استخدام سيرفر ضعيف تم اختراقه كـ "نقطة انطلاق أو جسر" للوصول إلى سيرفرات أخرى معزولة في الشبكة الداخلية لا يمكن الوصول لها من الإنترنت مباشرة.',
+              'protecting the tester\'s': 'حماية أدوات المختبر: المفارقة أن حاسوب فريق الاختبار يكون مليئاً بالثغرات والأكواد الخطيرة، وإذا تم اختراقه أثناء المهمة، سيسرق الهاكر الحقيقي كل ثغرات الشركة جاهزة!'
+            },
+            summary: {
+              en: 'Attacking and escalating privileges require highly specialized coding skills. Furthermore, pivoting lacks formal procedures, and testers often neglect the security of their own testing environment.',
+              ar: 'تتطلب عمليات الهجوم وتصعيد الصلاحيات مهارات برمجية متخصصة جداً. علاوة على ذلك، يفتقر "التمحور" للإجراءات الرسمية، وغالباً ما يهمل المختبرون تأمين بيئة الاختبار الخاصة بهم.'
+            },
+            keyPoints: [
+              { ar: 'تطوير الأدوات وتصعيد الصلاحيات يتطلب مبرمجين ذوي تخصص عميق.', en: 'Tool development and privilege escalation require deeply specialized programmers.' },
+              { ar: 'عملية "التمحور" (Pivoting) داخل الشبكة عشوائية وغير منظمة جيداً.', en: '"Pivoting" within the network is random and lacks formalized processes.' },
+              { ar: 'فريق الاختبار غالباً ما ينسى تأمين وحماية أدواته وبياناته الخاصة.', en: 'Testing teams often forget to secure and protect their own tools and data.' }
+            ],
+            mcq: {
+              question: 'What does the "Security Weakness" referring to the penetration test itself imply?',
+              options: ['The client\'s network is perfectly secure', 'The tester\'s own tools and gathered data are often left unprotected', 'Antiviruses stop working during tests', 'Passwords are too long to crack'],
+              answer: 1,
+              explanation: 'It highlights the irony that testers often lack a dedicated security architecture to protect their own hacking tools and the sensitive data they gather.'
+            }
+          },
+          {
+            id: 's22',
+            title: '22. Problems: The Clean Up Phase',
+            content: `• Operational Risk: Cleaning compromised hosts must be done securely without affecting the client's normal operations.\n• Verification: Current practice lacks a verifiable and non-repudiable cleanup process.\n• Customer Burden: Often, cleanup is incorrectly left as a "backup restore" job for the customer's IT team, wasting their resources.`,
+            contentAr: `• الخطر التشغيلي: يجب أن تتم عملية تنظيف الأجهزة المخترقة بأمان تام دون التسبب في تعطيل العمليات اليومية للعميل.\n• التحقق والتأكيد: تفتقر الممارسات الحالية إلى وجود عملية تنظيف قابلة للتحقق وغير قابلة للإنكار (Non-repudiable).\n• إرهاق العميل (Customer Burden): غالباً ما يُترك عبء التنظيف بشكل خاطئ لفريق الـ IT التابع للعميل عبر طلب "استعادة نسخة احتياطية"، مما يهدر وقتهم ومواردهم.`,
+            keywords: {
+              'Operational Risk': 'الخطر التشغيلي: محاولة حذف الباب الخلفي الذي زرعته قد تؤدي بالخطأ إلى حذف ملف نظام أساسي، مما يسبب شاشة الموت الزرقاء وتوقف عمل الشركة!',
+              'non-repudiable': 'غير قابل للإنكار: مصطلح قانوني أمني. يعني ضرورة وجود سجلات أو أدلة قاطعة تثبت أن فريق الاختبار قد قام فعلاً بإزالة كل آثاره، لكي لا يُتهم لاحقاً بترك ثغرة متعمدة.',
+              'Customer Burden': 'إرهاق العميل: أسوأ تصرف للمختبر هو أن يقول للعميل: "لقد أحدثت فوضى في السيرفر، يرجى مسحه واستعادة النسخة الاحتياطية!". هذا عمل غير احترافي ويهدر أموال العميل.'
+            },
+            summary: {
+              en: 'Cleanup carries operational risks and often lacks proper verification. Incorrectly passing this burden onto the client’s IT team to perform backup restores is highly inefficient.',
+              ar: 'يحمل التنظيف مخاطر تشغيلية ويفتقر غالباً إلى التحقق المناسب. كما أن إلقاء هذا العبء بشكل غير صحيح على فريق العميل لإجراء استعادة للنسخ الاحتياطية يعتبر أمراً غير فعال للغاية.'
+            },
+            keyPoints: [
+              { ar: 'حذف الآثار يجب ألا يتسبب في انهيار عمليات وأنظمة العميل.', en: 'Removing artifacts must not crash the client\'s operations and systems.' },
+              { ar: 'يوجد نقص في الأدلة التي "تُثبت" أن التنظيف قد تم بنسبة 100%.', en: 'There is a lack of evidence to "prove" that cleanup is 100% complete.' },
+              { ar: 'يجب ألا يُجبر العميل على استعادة النسخ الاحتياطية لإصلاح فوضى الاختبار.', en: 'The client shouldn\'t be forced into backup restores to fix testing mess.' }
+            ],
+            mcq: {
+              question: 'What is considered a "Customer Burden" during the Cleanup Phase?',
+              options: ['Providing network diagrams to testers', 'Paying the final invoice', 'Leaving the cleanup as a "backup restore" job for the client\'s IT team', 'Reading the final executive summary'],
+              answer: 2,
+              explanation: 'It is unprofessional and wasteful to force the client\'s IT team to perform a backup restore just to clean up the artifacts left by the penetration testers.'
+            }
+          },
+          {
+            id: 's23',
+            title: '23. Why Automate Penetration Testing?',
+            content: `• The Current State: Penetration testing is often a mix of hacker handiwork, monotonous tasks, and non-formal knowledge.\n• The Solution: Automating these tests brings a necessary layer of professionalism to the practice.\n• Human-Centric Focus: Automation allows the human expert to move away from repetitive work and focus on high-level strategy.`,
+            contentAr: `• الوضع الحالي: غالباً ما يكون اختبار الاختراق مزيجاً من الحرفية اليدوية للهاكر، المهام الرتيبة والمملة، والمعرفة غير الرسمية (غير الموثقة).\n• الحل: إدخال "الأتمتة" (Automation) على هذه الاختبارات يضفي طبقة ضرورية من الاحترافية والمنهجية على الممارسة.\n• التركيز المتمحور حول الإنسان: تتيح الأتمتة للخبير البشري الابتعاد عن الأعمال المتكررة للتركيز على وضع التكتيكات والاستراتيجيات عالية المستوى.`,
+            keywords: {
+              'Automate': 'الأتمتة (البرمجة الآلية): استخدام سكربتات (أكواد) برمجية لتنفيذ الخطوات المكررة، مثل فحص 10,000 منفذ شبكة بضغطة زر واحدة، بدلاً من فحصها يدوياً.',
+              'monotonous tasks': 'المهام الرتيبة: الأعمال المملة التي تستهلك الوقت دون الحاجة لذكاء. الأتمتة تترك هذه الأعمال للآلة، وتحرر العقل البشري للتفكير في كيفية دمج الثغرات المعقدة.',
+              'Human-Centric Focus': 'التركيز على الإنسان: الأتمتة لا تلغي وظيفة الهاكر، بل تعفيه من أداور "العامل اليدوي" ليصبح "المهندس المخطط" الذي يحلل النتائج ويتخذ القرارات الصعبة.'
+            },
+            summary: {
+              en: 'Automating penetration testing transforms it from ad-hoc manual labor into a professional practice, freeing human experts from monotonous tasks to focus on strategic analysis.',
+              ar: 'تؤدي أتمتة اختبارات الاختراق إلى تحويلها من عمل يدوي عشوائي إلى ممارسة احترافية، مما يحرر الخبراء البشريين من المهام الرتيبة للتركيز على التحليل الاستراتيجي.'
+            },
+            keyPoints: [
+              { ar: 'الطرق اليدوية التقليدية تستهلك الوقت في مهام رتيبة ומملة.', en: 'Traditional manual methods waste time on monotonous, boring tasks.' },
+              { ar: 'الأتمتة (البرمجة) تضفي الاحترافية والموثوقية على عملية التقييم.', en: 'Automation adds professionalism and reliability to the assessment process.' },
+              { ar: 'تفريغ العقل البشري للتركيز على التخطيط الاستراتيجي بدلاً من التكرار.', en: 'Frees the human mind to focus on strategic planning instead of repetition.' }
+            ],
+            mcq: {
+              question: 'What is the "Human-Centric" benefit of automating penetration tests?',
+              options: ['It replaces human workers entirely', 'It allows experts to move away from repetitive work and focus on high-level strategy', 'It makes computers think like humans', 'It writes reports automatically'],
+              answer: 1,
+              explanation: 'Automation takes care of the boring, repetitive tasks, freeing up the human expert to do what they do best: strategic analysis and creative attack planning.'
+            }
+          },
+          {
+            id: 's24',
+            title: '24. What is Automation Good For?',
+            content: `• Resource Optimization: Frees up valuable personnel for critical phases:\n• High-level overview and analysis.\n• Strategic attack planning.\n• Results analysis and remediation recommendations.\n• Unified Frameworks: Encompasses all penetration test phases under a single, cohesive framework.\n• Standardization: Helps define and standardize the methodology across different teams and environments.`,
+            contentAr: `• تحسين الموارد: تفريغ الكوادر البشرية القيمة للتركيز على المراحل الحاسمة:\n• النظرة العامة والتحليل عالي المستوى.\n• التخطيط الاستراتيجي للهجوم.\n• تحليل النتائج وتقديم توصيات المعالجة.\n• الأطر الموحدة: دمج واحتواء جميع مراحل اختبار الاختراق تحت إطار عمل واحد متماسك (بدلاً من أدوات مبعثرة).\n• التوحيد القياسي (Standardization): يساعد في تحديد وتوحيد المنهجية لضمان عمل جميع الفرق في مختلف البيئات بنفس الكفاءة والمعايير.`,
+            keywords: {
+              'Resource Optimization': 'تحسين الموارد: استغلال وقت المهندسين ذوي الرواتب العالية في التفكير وحل المشاكل المعمارية، بدلاً من تضييع وقتهم في كتابة أوامر طرفية (Terminal) متكررة.',
+              'Unified Frameworks': 'الأطر الموحدة: تخيل برنامجاً واحداً يجمع داخله أداة لجمع المعلومات، وأداة للفحص، وأداة للاستغلال. هذا يوفر تناغماً هائلاً وسرعة في نقل البيانات بين مراحل الهجوم.',
+              'Standardization': 'التوحيد القياسي: ضمان الجودة. لو أرسلنا خبيرين مختلفين لاختبار نفس النظام باستخدام الأدوات المؤتمتة ذاتها، سيحصل كلاهما على نفس النتائج الدقيقة، مما يمنع التفاوت البشري.'
+            },
+            summary: {
+              en: 'Automation optimizes resources by freeing experts for strategic planning, integrates tools into a unified framework, and standardizes methodologies across teams.',
+              ar: 'تعمل الأتمتة على تحسين الموارد من خلال تفرغ الخبراء للتخطيط الاستراتيجي، وتدمج الأدوات في إطار عمل موحد، وتوحد المنهجيات القياسية عبر الفرق المختلفة.'
+            },
+            keyPoints: [
+              { ar: 'توفر وقت الخبراء للتحليل وكتابة التوصيات المعقدة.', en: 'Saves experts\' time for analysis and writing complex recommendations.' },
+              { ar: 'تربط جميع مراحل الهجوم داخل بيئة (برنامج) واحد متكامل.', en: 'Links all attack phases within a single, integrated environment.' },
+              { ar: 'توحد معايير العمل فتضمن نفس الجودة بغض النظر عن من يختبر.', en: 'Standardizes procedures to ensure the same quality regardless of the tester.' }
+            ],
+            mcq: {
+              question: 'How does standardization through automation benefit an organization?',
+              options: ['It randomizes the test results', 'It helps define and standardize the methodology across different teams', 'It makes the network impossible to hack', 'It requires everyone to use the exact same operating system'],
+              answer: 1,
+              explanation: 'Standardization ensures that no matter which team does the test, they follow the same cohesive, reliable methodology.'
+            }
+          },
+          {
+            id: 's25',
+            title: '25. Ensuring Quality and Speed',
+            content: `• Quality Assurance: Enforces the following of established methodologies to ensure consistent, high-quality output.\n• Operational Security: Improves the security of the testing practice itself by using vetted, automated scripts.\n• Efficiency: Simplifies and speeds up monotonous, time-consuming tasks (e.g., scanning thousands of ports or verifying cleanup).\n\nThe Bottom Line\nAutomation turns a "craft" into an "engineering discipline."`,
+            contentAr: `• ضمان الجودة (QA): يُلزم تطبيق المنهجيات المعتمدة بصرامة لضمان مخرجات ثابتة وعالية الجودة في كل مرة.\n• الأمن التشغيلي: يحسّن من أمان ممارسة الاختبار بحد ذاتها من خلال استخدام سكربتات (نصوص برمجية) آلية موثوقة ومفحوصة مسبقاً (تمنع الأخطاء الكارثية).\n• الكفاءة: يبسط ويسرع المهام الرتيبة التي تستغلك وقتاً طويلاً (مثل فحص آلاف المنافذ أو التحقق من التنظيف).\n\nالخلاصة (The Bottom Line)\n"الأتمتة تحول (حرفة) الهاكرز الفردية إلى (نظام هندسي) مؤسسي صارم."`,
+            keywords: {
+              'Quality Assurance': 'ضمان الجودة: عندما يكون الكود الآلي هو من ينفذ الفحص، فلا مجال لنسيان خطوة أو تخطي إجراء بسبب إرهاق الموظف. النتيجة دائماً دقيقة ومضمونة.',
+              'Operational Security': 'الأمن التشغيلي: استخدام سكربتات جاهزة ومختبرة مسبقاً (Vetted) يضمن أن البرنامج لن ينهار أو يعطل أجهزة العميل بالخطأ أثناء الهجوم التجريبي.',
+              'engineering discipline': 'نظام هندسي: انتقال الأمن السيبراني من مرحلة "الفن" الذي يعتمد على الموهبة الفردية للهاكر، إلى مرحلة "الهندسة" التي تعتمد على عمليات رياضية وبرمجية قابلة للقياس والتكرار.'
+            },
+            summary: {
+              en: 'Automation ensures quality, enhances operational security with vetted scripts, and drastically improves efficiency. Ultimately, it evolves penetration testing from a mere craft into a rigorous engineering discipline.',
+              ar: 'تضمن الأتمتة الجودة، وتعزز الأمن التشغيلي بنصوص برمجية موثوقة، وتحسن الكفاءة بشكل كبير. في النهاية، هي تطور اختبار الاختراق من مجرد حرفة إلى تخصص هندسي صارم.'
+            },
+            keyPoints: [
+              { ar: 'ضمان الجودة: تمنع الأتمتة الأخطاء البشرية والنسيان أثناء الفحص.', en: 'Quality Assurance: Automation prevents human errors and oversights during scanning.' },
+              { ar: 'تأمين الفحص: السكربتات المعتمدة لا تدمر أنظمة العميل بالخطأ.', en: 'Securing the test: Vetted scripts do not accidentally destroy client systems.' },
+              { ar: 'تحول الاختراق من مهارة فردية (حرفة) إلى نظام (علم هندسي) مؤسسي.', en: 'Transforms hacking from an individual skill (craft) into a corporate system (engineering).' }
+            ],
+            mcq: {
+              question: 'According to the presentation, what is "The Bottom Line" regarding automation?',
+              options: ['It replaces the need for reporting', 'It turns a "craft" into an "engineering discipline"', 'It is too expensive for small companies', 'It only works against Windows servers'],
+              answer: 1,
+              explanation: 'The slide concludes that automation formalizes the process, transforming it from ad-hoc manual hacking (a craft) into a structured, reliable engineering discipline.'
+            }
+          }
+        ];
+
+        // --- مكونات الأيقونات ---
+        const AlertIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        );
+        const TranslateIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+        );
+        const CloseIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        );
+        const CheckIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        );
+        const CrossIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        );
+        const LightBulbIcon = () => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.8.8 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+        );
+
+        function App() {
+          const [activeSlideId, setActiveSlideId] = useState(slidesData[0].id);
+          const [modalData, setModalData] = useState(null);
+          const [mcqState, setMcqState] = useState({});
+          const [showTranslation, setShowTranslation] = useState(false);
+
+          const activeSlide = slidesData.find(s => s.id === activeSlideId);
+
+          useEffect(() => {
+            setShowTranslation(false);
+          }, [activeSlideId]);
+
+          const renderContentWithKeywords = (text, keywordsMap) => {
+            if (!keywordsMap || Object.keys(keywordsMap).length === 0) return text;
+            const sortedKeywords = Object.keys(keywordsMap).sort((a, b) => b.length - a.length);
+            const regex = new RegExp(`(${sortedKeywords.join('|')})`, 'gi');
+            const parts = text.split(regex);
+            
+            return parts.map((part, index) => {
+              const keywordKey = Object.keys(keywordsMap).find(k => k.toLowerCase() === part.toLowerCase());
+              if (keywordKey) {
+                return (
+                  <span 
+                    key={index} 
+                    onClick={() => setModalData({ type: 'keyword', data: { word: part, meaning: keywordsMap[keywordKey] }})}
+                    className="group relative inline-flex items-baseline cursor-pointer font-bold text-indigo-700 hover:text-indigo-900 transition-all duration-200 mx-1 px-1 rounded hover:bg-indigo-50 border-b-2 border-dashed border-indigo-400"
+                    title="انقر لفهم المفهوم بعمق"
+                  >
+                    {part}
+                    <span className="absolute -top-1 -right-2 flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500 text-[8px] font-bold text-white justify-center items-center">?</span>
+                    </span>
+                  </span>
+                );
+              }
+              return <span key={index}>{part}</span>;
+            });
+          };
+
+          const handleMcqSelect = (optionIndex) => {
+            setMcqState({ ...mcqState, [activeSlideId]: optionIndex });
+          };
+
+          return (
+            <div className="flex flex-col md:flex-row h-screen bg-gray-50 text-gray-800 font-sans" dir="ltr">
+              <div className="w-full md:w-1/4 bg-slate-900 text-white overflow-y-auto shadow-2xl z-10 flex flex-col">
+                <div className="p-5 bg-slate-800 text-center border-b border-slate-700 sticky top-0 shadow-sm z-20">
+                  <div className="font-extrabold text-xl tracking-wide text-indigo-400" dir="rtl">المحاضرة 2</div>
+                  <div className="text-xs font-medium text-slate-400 mt-2 uppercase tracking-widest">CYBS60201: PTES & Automation</div>
+                </div>
+                <ul className="flex-1 px-3 py-5 space-y-3">
+                  {slidesData.map(slide => (
+                    <li key={slide.id}>
+                      <button
+                        onClick={() => {
+                          setActiveSlideId(slide.id);
+                          window.scrollTo(0, 0);
+                        }}
+                        className={`w-full text-left px-4 py-3.5 rounded-xl transition-all duration-300 font-medium text-sm ${
+                          activeSlideId === slide.id 
+                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 scale-[1.02]' 
+                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-100'
+                        }`}
+                      >
+                        {slide.title}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="w-full md:w-3/4 flex flex-col h-screen overflow-y-auto bg-slate-50">
+                <div className="flex-1 p-6 md:p-10 max-w-4xl mx-auto w-full">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-8 pb-6 border-b-2 border-slate-200 gap-4">
+                    <h1 className="text-3xl font-extrabold text-slate-800 leading-tight">
+                      {activeSlide.title}
+                    </h1>
+                    <div className="flex gap-3 self-end sm:self-auto shrink-0">
+                      <button 
+                        onClick={() => setShowTranslation(!showTranslation)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold transition-all shadow-sm border-2 ${
+                          showTranslation 
+                            ? 'bg-emerald-100 text-emerald-700 border-emerald-300 hover:bg-emerald-200' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
+                      >
+                        <TranslateIcon />
+                        <span className="text-sm">{showTranslation ? 'Hide Arabic' : 'عربي'}</span>
+                      </button>
+                      <button 
+                        onClick={() => setModalData({ type: 'summary', data: activeSlide.summary })}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-100 text-amber-700 border-2 border-amber-300 hover:bg-amber-200 hover:text-amber-800 transition-all shadow-sm font-bold"
+                      >
+                        <AlertIcon />
+                        <span className="text-sm uppercase tracking-wider">Summary</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 text-lg leading-loose whitespace-pre-wrap text-slate-700 font-medium">
+                    {renderContentWithKeywords(activeSlide.content, activeSlide.keywords)}
+                  </div>
+
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${showTranslation ? 'max-h-[1000px] opacity-100 mb-8' : 'max-h-0 opacity-0 mb-0'}`}>
+                    <div className="bg-emerald-50 p-8 rounded-2xl border-r-4 border-emerald-500 shadow-sm text-right whitespace-pre-wrap text-emerald-900 text-xl leading-loose font-medium" dir="rtl">
+                      {activeSlide.contentAr}
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm mt-8">
+                    <h3 className="text-2xl font-bold mb-6 flex items-center text-slate-800">
+                      <span className="bg-indigo-100 text-indigo-700 w-10 h-10 rounded-xl flex justify-center items-center mr-4 text-sm font-black shadow-inner">Q</span>
+                      Knowledge Check
+                    </h3>
+                    <p className="font-semibold text-lg text-slate-700 mb-6">{activeSlide.mcq.question}</p>
+                    <div className="space-y-3">
+                      {activeSlide.mcq.options.map((opt, idx) => {
+                        const isSelected = mcqState[activeSlideId] === idx;
+                        const isCorrect = idx === activeSlide.mcq.answer;
+                        const showResult = mcqState[activeSlideId] !== undefined;
+                        
+                        let btnStyle = "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300 text-slate-700";
+                        if (showResult) {
+                          if (isCorrect) btnStyle = "bg-emerald-50 border-emerald-500 text-emerald-800 font-bold shadow-sm";
+                          else if (isSelected && !isCorrect) btnStyle = "bg-rose-50 border-rose-400 text-rose-800 font-semibold";
+                          else btnStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                        }
+                        return (
+                          <button
+                            key={idx}
+                            disabled={showResult}
+                            onClick={() => handleMcqSelect(idx)}
+                            className={`w-full text-left px-6 py-4 rounded-xl border-2 transition-all duration-200 flex items-center justify-between ${btnStyle}`}
+                          >
+                            <span>{opt}</span>
+                            {showResult && isCorrect && <span className="text-emerald-600 bg-emerald-100 p-1 rounded-md"><CheckIcon /></span>}
+                            {showResult && isSelected && !isCorrect && <span className="text-rose-500 bg-rose-100 p-1 rounded-md"><CrossIcon /></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {mcqState[activeSlideId] !== undefined && (
+                      <div className={`mt-6 p-5 rounded-xl border-2 animate-fadeIn ${mcqState[activeSlideId] === activeSlide.mcq.answer ? 'bg-emerald-50 border-emerald-200' : 'bg-indigo-50 border-indigo-200'}`}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <LightBulbIcon />
+                          <p className="font-bold text-slate-800">Explanation:</p>
+                        </div>
+                        <p className="text-slate-700 font-medium leading-relaxed">{activeSlide.mcq.explanation}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bg-white p-0 rounded-2xl border border-slate-200 shadow-sm mt-8 overflow-hidden">
+                    <div className="bg-amber-50 px-6 py-4 border-b border-amber-100 flex items-center gap-3" dir="rtl">
+                      <span className="bg-amber-100 text-amber-600 p-2 rounded-lg shadow-sm">
+                        <LightBulbIcon />
+                      </span>
+                      <h3 className="text-xl font-bold text-amber-900">نقاط يجدر بك معرفتها</h3>
+                    </div>
+                    <div className="overflow-x-auto p-4">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b-2 border-slate-200">
+                            <th className="p-4 font-bold text-slate-800 text-right w-1/2 bg-slate-50 rounded-tr-lg" dir="rtl">الملخص (عربي)</th>
+                            <th className="p-4 font-bold text-slate-800 w-1/2 bg-slate-50 rounded-tl-lg">Takeaway (English)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {activeSlide.keyPoints.map((point, index) => (
+                            <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors duration-150">
+                              <td className="p-4 text-slate-700 text-right font-medium leading-relaxed" dir="rtl">{point.ar}</td>
+                              <td className="p-4 text-slate-700 font-medium leading-relaxed">{point.en}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {modalData && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn" onClick={() => setModalData(null)}>
+                  <div 
+                    className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden transform transition-all scale-100"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className={`flex justify-between items-center p-5 border-b-2 ${modalData.type === 'keyword' ? 'bg-indigo-50 border-indigo-100' : 'bg-amber-50 border-amber-100'}`}>
+                      <h3 className={`text-xl font-black ${modalData.type === 'keyword' ? 'text-indigo-800' : 'text-amber-800'}`} dir="rtl">
+                        {modalData.type === 'keyword' ? 'شرح المفهوم العلمي' : 'الملخص التنفيذي'}
+                      </h3>
+                      <button onClick={() => setModalData(null)} className="text-slate-400 hover:text-rose-500 bg-white p-2 rounded-full hover:bg-rose-50 transition-colors shadow-sm border border-slate-200">
+                        <CloseIcon />
+                      </button>
+                    </div>
+                    <div className="p-8">
+                      {modalData.type === 'keyword' && (
+                        <div dir="rtl" className="text-right">
+                          <div className="inline-block bg-indigo-600 text-white text-xl font-bold mb-5 px-4 py-2 rounded-lg font-mono tracking-wide shadow-md" dir="ltr">
+                            {modalData.data.word}
+                          </div>
+                          <div className="text-lg text-slate-700 leading-loose font-medium border-r-4 border-indigo-400 pl-4 pr-6 bg-slate-50 py-4 rounded-l-xl">
+                            {modalData.data.meaning}
+                          </div>
+                        </div>
+                      )}
+                      {modalData.type === 'summary' && (
+                        <div className="space-y-8">
+                          <div className="relative p-6 rounded-2xl border-2 border-slate-200 bg-white">
+                            <span className="absolute -top-4 left-4 bg-slate-800 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">English</span>
+                            <p className="text-slate-700 leading-relaxed font-medium text-lg mt-2">{modalData.data.en}</p>
+                          </div>
+                          <div className="relative p-6 rounded-2xl border-2 border-amber-200 bg-amber-50/50" dir="rtl">
+                            <span className="absolute -top-4 right-4 bg-amber-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">عربي</span>
+                            <p className="text-amber-950 leading-relaxed font-medium text-lg mt-2 text-right">{modalData.data.ar}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // --- أمر تشغيل التطبيق في الصفحة ---
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
