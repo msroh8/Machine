@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication and Authorization - Al-Baha University</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        :lang(ar) {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .slide-container {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-top: 8px solid #1a56db;
+            border-bottom: 8px solid #10b981;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .keyword {
+            background-color: #fef08a;
+            color: #b45309;
+            padding: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-bottom: 2px dashed #b45309;
+        }
+
+        .keyword:hover {
+            background-color: #fde047;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close-btn:hover { color: #111827; }
+
+        .quiz-question {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .correct-answer { color: #16a34a; font-weight: bold; }
+        .wrong-answer { color: #dc2626; font-weight: bold; }
+
+        .slide-title { color: #1e3a8a; font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .slide-list { list-style-type: none; padding-left: 1.5rem; }
+        .slide-list > li { margin-bottom: 1rem; font-size: 1.25rem; position: relative;}
+        .slide-list > li::before { content: '■'; color: #3b82f6; position: absolute; left: -1.5rem; top: 0.2rem; font-size: 0.8rem;}
+        .slide-sublist { list-style-type: circle; padding-left: 2rem; margin-top: 0.5rem;}
+        .slide-sublist > li { font-size: 1.1rem; margin-bottom: 0.5rem; color: #4b5563;}
+
+    </style>
+</head>
+<body class="flex h-screen text-gray-800">
+
+    <!-- Sidebar -->
+    <aside class="w-1/4 bg-gray-900 text-white flex flex-col h-full overflow-hidden shadow-xl z-10 transition-all duration-300" id="sidebar">
+        <div class="p-6 border-b border-gray-700 bg-gray-800">
+            <h1 class="text-xl font-bold text-blue-400 mb-2">Operating System Security</h1>
+            <p class="text-sm text-gray-400">Chapter 03: Authentication and Authorization</p>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="slide-list-container">
+            <ul id="slide-nav" class="py-2">
+                <!-- Navigation items injected via JS -->
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto transition-all duration-300" id="main-content">
+        <!-- Top Toolbar -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+            <button id="toggle-sidebar" class="text-gray-500 hover:text-blue-600 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex gap-4">
+                <button id="lang-toggle" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-language"></i> <span id="lang-text">ترجمة للعربية</span>
+                </button>
+                <button id="quiz-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-question-circle"></i> <span>Take Quiz</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Slide Area -->
+        <div class="flex-1 p-8 flex justify-center items-start overflow-y-auto">
+            <div class="slide-container w-full max-w-4xl p-10 flex flex-col" id="slide-content">
+                <!-- Slide content injected here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Keyword Modal -->
+    <div id="keyword-modal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('keyword-modal')"></i>
+            <h2 id="kw-title" class="text-2xl font-bold text-blue-800 mb-4 pb-2 border-b"></h2>
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 text-left">
+                <p class="text-sm font-bold text-blue-600 uppercase mb-1">English Definition:</p>
+                <p id="kw-en" class="text-lg"></p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-right" dir="rtl">
+                <p class="text-sm font-bold text-green-600 mb-1">الشرح بالعربية:</p>
+                <p id="kw-ar" class="text-lg font-cairo"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal-overlay">
+        <div class="modal-content w-full max-w-3xl">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('quiz-modal')"></i>
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6 border-b pb-2"><i class="fas fa-pencil-alt mr-2"></i> Slide Quiz</h2>
+            <div id="quiz-container" class="space-y-6">
+                <!-- Quiz forms injected here -->
+            </div>
+            <div class="mt-8 flex justify-end">
+                <button onclick="evaluateQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition">Submit Answers</button>
+            </div>
+            <div id="quiz-results" class="mt-6 hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "Authentication": { en: "The process of identifying the subject or verifying the identity of a user.", ar: "عملية تحديد هوية الموضوع أو التحقق من هوية المستخدم." },
+            "Authorization": { en: "Defines a relation among subjects, actions, and objects; determines what an identified user is allowed to do.", ar: "يحدد العلاقة بين المواضيع والإجراءات والكائنات؛ لتحديد ما يُسمح للمستخدم المحدد بفعله." },
+            "Auditing": { en: "The act of monitoring or recording the actions of subjects on objects (also referred to as Accounting).", ar: "عملية مراقبة أو تسجيل إجراءات المواضيع على الكائنات (يشار إليها أيضًا بالمحاسبة)." },
+            "Accounting": { en: "The act of monitoring or auditing the actions of subjects on objects.", ar: "عملية مراقبة أو تدقيق إجراءات المواضيع على الكائنات." },
+            "Token": { en: "A physical or digital object used for authentication (What do you have?).", ar: "كائن مادي أو رقمي يستخدم للمصادقة (ماذا تملك؟)." },
+            "Biometrics": { en: "Authentication based on a part of the human body.", ar: "المصادقة بناءً على جزء من جسم الإنسان." },
+            "Access Control": { en: "Restricting access based on consumers and resources.", ar: "تقييد الوصول بناءً على المستهلكين والموارد." },
+            "Security policy": { en: "A statement that partitions the states of the system into authorized and unauthorized states.", ar: "بيان يقسم حالات النظام إلى حالات مصرح بها (آمنة) وحالات غير مصرح بها (غير آمنة)." },
+            "MAC": { en: "Mandatory Access Control: An access control model.", ar: "التحكم الإلزامي في الوصول: نموذج للتحكم في الوصول." },
+            "DAC": { en: "Discretionary Access Control: An access control model.", ar: "التحكم التقديري في الوصول: نموذج للتحكم في الوصول." },
+            "RBAC": { en: "Role-Based Access Control: An access control model based on user roles.", ar: "التحكم في الوصول القائم على الدور: نموذج يعتمد على أدوار المستخدم." },
+            "SSO": { en: "Single Sign On: Allows user credentials to be entered one time to access all resources.", ar: "تسجيل الدخول الموحد: يسمح بإدخال بيانات اعتماد المستخدم مرة واحدة للوصول إلى جميع الموارد." },
+            "Kerberos": { en: "An SSO open-standards protocol that uses symmetric key encryption.", ar: "بروتوكول SSO مفتوح المعايير يستخدم تشفير المفتاح المتماثل." },
+            "SESAME": { en: "Secure European System for Applications in a Multi-Vendor Environment: A protocol addressing multiple security domains.", ar: "بروتوكول أوروبي للتطبيقات في بيئة متعددة الموردين يعالج مجالات أمان متعددة." }
+        };
+
+        function kw(word, key) {
+            return `<span class="keyword" onclick="showKeyword('${key || word}')">${word}</span>`;
+        }
+
+        const slides = [
+            {
+                id: 2,
+                titleEn: "Outlines",
+                titleAr: "المحتويات",
+                contentEn: `
+                    <h2 class="slide-title">Outlines:</h2>
+                    <ul class="slide-list">
+                        <li>Introduction.</li>
+                        <li>${kw('Authentication', 'Authentication')}</li>
+                        <li>${kw('Authorization', 'Authorization')}</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحتويات:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>مقدمة.</li>
+                        <li>${kw('المصادقة (Authentication)', 'Authentication')}</li>
+                        <li>${kw('التفويض (Authorization)', 'Authorization')}</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is listed in the outlines?", options: ["Encryption", "Authentication", "Firewalls", "Routing"], ans: 1 },
+                    { type: 'mcq', q: "What is the final topic in the outline?", options: ["Introduction", "Accounting", "Authorization", "Logging"], ans: 2 },
+                    { type: 'tf', q: "Authentication is part of the outline.", ans: "true" },
+                    { type: 'tf', q: "Network topology is included in this outline.", ans: "false" },
+                    { type: 'short', q: "Name the first topic in the outline.", ans: "Introduction" },
+                    { type: 'short', q: "What topic comes after Authentication?", ans: "Authorization" }
+                ]
+            },
+            {
+                id: 3,
+                titleEn: "Introduction",
+                titleAr: "مقدمة",
+                contentEn: `
+                    <h2 class="slide-title">Introduction:</h2>
+                    <ul class="slide-list">
+                        <li>In order to construct a secure system, we must ensure that only authorized persons can perform certain functions. In particular we need to secure our system by controlling the subjects, objects and actions allowed on our system.</li>
+                        <li class="mt-4">Achieving this goal requires a good combination of ${kw('Authentication', 'Authentication')}, ${kw('Authorization', 'Authorization')}, and ${kw('Auditing', 'Auditing')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>من أجل بناء نظام آمن، يجب أن نضمن أن الأشخاص المصرح لهم فقط هم من يمكنهم أداء وظائف معينة. على وجه الخصوص، نحتاج إلى تأمين نظامنا من خلال التحكم في المواضيع (subjects) والكائنات (objects) والإجراءات (actions) المسموح بها في نظامنا.</li>
+                        <li class="mt-4">يتطلب تحقيق هذا الهدف مزيجًا جيدًا من ${kw('المصادقة (Authentication)', 'Authentication')}، و${kw('التفويض (Authorization)', 'Authorization')}، و${kw('التدقيق (Auditing)', 'Auditing')}.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "To construct a secure system, who can perform certain functions?", options: ["Anyone", "Only authorized persons", "Only guests", "Only computers"], ans: 1 },
+                    { type: 'mcq', q: "Achieving the security goal requires a good combination of Authentication, Authorization, and what?", options: ["Encryption", "Routing", "Auditing", "Updating"], ans: 2 },
+                    { type: 'tf', q: "We need to secure our system by controlling subjects, objects, and actions.", ans: "true" },
+                    { type: 'tf', q: "Auditing is not required to achieve the security goal.", ans: "false" },
+                    { type: 'short', q: "What must we ensure to construct a secure system?", ans: "only authorized persons can perform certain functions" },
+                    { type: 'short', q: "Name the three components whose combination is required to achieve the goal.", ans: "Authentication, Authorization, and Auditing" }
+                ]
+            },
+            {
+                id: 4,
+                titleEn: "Authentication, Authorization & Accounting",
+                titleAr: "المصادقة والتفويض والمحاسبة",
+                contentEn: `
+                    <h2 class="slide-title">Introduction:</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Authentication', 'Authentication')} is the process of identifying the subject.</li>
+                        <li>${kw('Authorization', 'Authorization')} defines a relation among subjects, actions, and objects.</li>
+                        <li>${kw('Accounting', 'Accounting')} is the act of monitoring or auditing the actions of subjects on objects.</li>
+                        <li class="mt-4 border-l-4 border-blue-500 pl-4 bg-gray-50 py-2 text-blue-900 font-semibold">Together these three components allow us to control and trace every activity that occurs in our system.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('المصادقة', 'Authentication')} هي عملية تحديد الموضوع (subject).</li>
+                        <li>${kw('التفويض', 'Authorization')} يحدد العلاقة بين المواضيع والإجراءات والكائنات.</li>
+                        <li>${kw('المحاسبة (Accounting)', 'Accounting')} هي عملية مراقبة أو تدقيق إجراءات المواضيع على الكائنات.</li>
+                        <li class="mt-4 border-r-4 border-blue-500 pr-4 bg-gray-50 py-2 text-blue-900 font-semibold">تسمح لنا هذه المكونات الثلاثة معًا بالتحكم في كل نشاط يحدث في نظامنا وتتبعه.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the process of identifying the subject?", options: ["Accounting", "Authentication", "Authorization", "Routing"], ans: 1 },
+                    { type: 'mcq', q: "What defines a relation among subjects, actions, and objects?", options: ["Authentication", "Auditing", "Authorization", "Tracing"], ans: 2 },
+                    { type: 'tf', q: "Accounting is the act of monitoring or auditing actions.", ans: "true" },
+                    { type: 'tf', q: "Authentication allows us to trace every activity alone.", ans: "false" },
+                    { type: 'short', q: "What is the act of monitoring or auditing the actions of subjects on objects called?", ans: "Accounting" },
+                    { type: 'short', q: "What do the three components together allow us to control and trace?", ans: "every activity that occurs in our system" }
+                ]
+            },
+            {
+                id: 5,
+                titleEn: "Who can do what when?",
+                titleAr: "من يمكنه فعل ماذا ومتى؟",
+                contentEn: `
+                    <h2 class="slide-title">Introduction:</h2>
+                    <ul class="slide-list">
+                        <li>This view of security can be summed up as <strong>"Who can do what when?"</strong>.</li>
+                        <li class="mt-4">
+                            <ul class="slide-sublist">
+                                <li><strong>Authentication</strong> allows us to identify "Who".</li>
+                                <li><strong>Authorization</strong> controls the action ("do what when").</li>
+                                <li><strong>Auditing</strong> records all the action.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4 text-red-600 font-bold">All three components are necessary. Missing one component is likely to result in an insecure system.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يمكن تلخيص هذه النظرة للأمان في عبارة <strong>"من يمكنه فعل ماذا ومتى؟"</strong>.</li>
+                        <li class="mt-4">
+                            <ul class="slide-sublist">
+                                <li><strong>المصادقة (Authentication)</strong> تسمح لنا بتحديد "من (Who)".</li>
+                                <li><strong>التفويض (Authorization)</strong> يتحكم في الإجراء ("فعل ماذا ومتى / do what when").</li>
+                                <li><strong>التدقيق (Auditing)</strong> يسجل كل الإجراءات.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4 text-red-600 font-bold">جميع المكونات الثلاثة ضرورية. من المرجح أن يؤدي فقدان أحد المكونات إلى نظام غير آمن.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which component allows us to identify 'Who'?", options: ["Authorization", "Authentication", "Auditing", "Accounting"], ans: 1 },
+                    { type: 'mcq', q: "What records all the action?", options: ["Auditing", "Authentication", "Authorization", "Policies"], ans: 0 },
+                    { type: 'tf', q: "Missing one component is likely to result in an insecure system.", ans: "true" },
+                    { type: 'tf', q: "Authorization identifies 'Who'.", ans: "false" },
+                    { type: 'short', q: "What question sums up this view of security?", ans: "Who can do what when?" },
+                    { type: 'short', q: "What controls the action ('do what when')?", ans: "Authorization" }
+                ]
+            },
+            {
+                id: 6,
+                titleEn: "Example: A Safe",
+                titleAr: "مثال: خزنة",
+                contentEn: `
+                    <h2 class="slide-title">Introduction</h2>
+                    <p class="font-bold text-xl text-blue-800 mb-4">Example 1: A safe.</p>
+                    <ul class="slide-list">
+                        <li>The <strong>policy</strong> of the safe is that the person with the key is allowed to access the safe.</li>
+                        <li>The <strong>authentication</strong> is the validation of the key. In this case, the mechanism for validating the key is the lock.</li>
+                        <li><strong>Accounting</strong> could be a log of people who inserted a key into the lock.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة</h2>
+                    <p class="font-bold text-xl text-blue-800 mb-4" dir="rtl">مثال 1: خزنة (A safe).</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>السياسة (policy)</strong> الخاصة بالخزنة هي أنه يُسمح للشخص الذي يحمل المفتاح بالوصول إلى الخزنة.</li>
+                        <li><strong>المصادقة (authentication)</strong> هي التحقق من صحة المفتاح. في هذه الحالة، آلية التحقق من المفتاح هي القفل (lock).</li>
+                        <li><strong>المحاسبة (Accounting)</strong> يمكن أن تكون سجلاً للأشخاص الذين أدخلوا مفتاحًا في القفل.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In the safe example, what is the mechanism for validating the key?", options: ["The policy", "The log", "The lock", "The person"], ans: 2 },
+                    { type: 'mcq', q: "In the safe example, what represents accounting?", options: ["The safe door", "A log of people who inserted a key", "The key itself", "The lock"], ans: 1 },
+                    { type: 'tf', q: "The policy of the safe allows anyone to access it.", ans: "false" },
+                    { type: 'tf', q: "Authentication is the validation of the key.", ans: "true" },
+                    { type: 'short', q: "What is the policy of the safe?", ans: "person with the key is allowed to access" },
+                    { type: 'short', q: "What acts as the authentication mechanism in this example?", ans: "the lock" }
+                ]
+            },
+            {
+                id: 7,
+                titleEn: "Authentication Definition",
+                titleAr: "تعريف المصادقة",
+                contentEn: `
+                    <h2 class="slide-title">Authentication</h2>
+                    <ul class="slide-list">
+                        <li>In a <strong>computer system</strong>, authentication is the process of verifying identity of a user.</li>
+                        <li class="mt-6">In a <strong>communication system</strong>, authentication is the process of verifying the stated source of a message.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المصادقة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>في <strong>نظام الكمبيوتر</strong>، المصادقة هي عملية التحقق من هوية المستخدم.</li>
+                        <li class="mt-6">في <strong>نظام الاتصالات</strong>، المصادقة هي عملية التحقق من المصدر المذكور للرسالة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In a computer system, authentication is the process of verifying what?", options: ["File size", "Identity of a user", "Network speed", "Disk space"], ans: 1 },
+                    { type: 'mcq', q: "In a communication system, authentication verifies what?", options: ["Stated source of a message", "The time of day", "The encryption algorithm", "The router MAC address"], ans: 0 },
+                    { type: 'tf', q: "Authentication means the same exact thing in all contexts without variation.", ans: "false" },
+                    { type: 'tf', q: "Verifying the stated source of a message is authentication in communication systems.", ans: "true" },
+                    { type: 'short', q: "What is verified in a computer system?", ans: "identity of a user" },
+                    { type: 'short', q: "What is verified in a communication system?", ans: "stated source of a message" }
+                ]
+            },
+            {
+                id: 8,
+                titleEn: "Authentication Similarities",
+                titleAr: "أوجه التشابه في المصادقة",
+                contentEn: `
+                    <h2 class="slide-title">Authentication</h2>
+                    <ul class="slide-list">
+                        <li>Although the definitions of authentication may vary in different contexts, they all share the similarity of validating the quality or condition of being trustworthy, genuine, or credible.</li>
+                        <li class="mt-4">Example: Authenticating a transcript can be done by validating the university seal on the document itself.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المصادقة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>على الرغم من أن تعريفات المصادقة قد تختلف في سياقات مختلفة، إلا أنها تشترك جميعها في تشابه التحقق من صحة الجودة أو شرط كونها جديرة بالثقة أو أصلية أو ذات مصداقية.</li>
+                        <li class="mt-4">مثال: يمكن مصادقة كشف الدرجات (transcript) عن طريق التحقق من ختم الجامعة على المستند نفسه.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What do all definitions of authentication share?", options: ["Using passwords", "Validating being trustworthy, genuine, or credible", "Requiring a physical key", "Using biometrics"], ans: 1 },
+                    { type: 'mcq', q: "How can a transcript be authenticated according to the slide?", options: ["Calling the student", "Validating the university seal", "Checking the paper type", "Reading the grades"], ans: 1 },
+                    { type: 'tf', q: "Definitions of authentication never vary in different contexts.", ans: "false" },
+                    { type: 'tf', q: "Validating a condition of being genuine is a similarity across authentication definitions.", ans: "true" },
+                    { type: 'short', q: "What quality or condition does authentication validate?", ans: "being trustworthy, genuine, or credible" },
+                    { type: 'short', q: "What is used to validate a transcript in the example?", ans: "university seal" }
+                ]
+            },
+            {
+                id: 9,
+                titleEn: "Validating a Subject",
+                titleAr: "التحقق من الموضوع",
+                contentEn: `
+                    <h2 class="slide-title">Authentication</h2>
+                    <ul class="slide-list">
+                        <li>Validating a subject would require examination of a ${kw('token', 'Token')} or investigation of some property of the subject itself. For example, validating the authenticity of a students.</li>
+                        <li class="mt-4">In this example, the token is the university seal. Similarly, the identity of a person can be validated by examining the person himself (or herself) or validating some identifying token carried by the person.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المصادقة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>التحقق من موضوع (subject) يتطلب فحص ${kw('رمز مميز (token)', 'Token')} أو التحقيق في بعض خصائص الموضوع نفسه. على سبيل المثال، التحقق من صحة الطلاب.</li>
+                        <li class="mt-4">في هذا المثال، الرمز المميز هو ختم الجامعة. وبالمثل، يمكن التحقق من هوية الشخص عن طريق فحص الشخص نفسه أو التحقق من بعض الرموز التعريفية التي يحملها الشخص.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does validating a subject require?", options: ["Only asking their name", "Examination of a token or property of the subject", "Scanning their hard drive", "Restarting the system"], ans: 1 },
+                    { type: 'mcq', q: "In the example, what is considered the token?", options: ["The student", "The university seal", "The classroom", "The professor"], ans: 1 },
+                    { type: 'tf', q: "Identity can be validated by examining the person himself.", ans: "true" },
+                    { type: 'tf', q: "Tokens are never used to validate a person's identity.", ans: "false" },
+                    { type: 'short', q: "What two things can be examined/investigated to validate a subject?", ans: "a token or some property of the subject itself" },
+                    { type: 'short', q: "What is carried by a person that can be validated?", ans: "identifying token" }
+                ]
+            },
+            {
+                id: 10,
+                titleEn: "Drawbacks & Tokens",
+                titleAr: "العيوب والرموز",
+                contentEn: `
+                    <h2 class="slide-title">Authentication</h2>
+                    <ul class="slide-list">
+                        <li>Implicitly, we have to trust a token or a property of the subject otherwise the validation process is impossible. The obvious drawback of basing the authentication on a token is the integrity of the token.</li>
+                        <li class="mt-4">If authentication relies on tokens or properties of the subject, studying protocols and methods for validating properties or token is necessary.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المصادقة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>ضمنيًا، علينا أن نثق برمز مميز (token) أو خاصية للموضوع وإلا فإن عملية التحقق مستحيلة. العيب الواضح في بناء المصادقة على الرمز المميز هو سلامة (integrity) الرمز.</li>
+                        <li class="mt-4">إذا اعتمدت المصادقة على الرموز أو خصائص الموضوع، فإن دراسة البروتوكولات وطرق التحقق من الخصائص أو الرمز أمر ضروري.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What must we implicitly trust for validation to be possible?", options: ["The network speed", "A token or property of the subject", "The operating system", "The weather"], ans: 1 },
+                    { type: 'mcq', q: "What is an obvious drawback of basing authentication on a token?", options: ["Its weight", "The integrity of the token", "Its color", "The cost of the token"], ans: 1 },
+                    { type: 'tf', q: "The validation process is impossible if we don't trust the token/property.", ans: "true" },
+                    { type: 'tf', q: "Studying protocols for validating tokens is unnecessary.", ans: "false" },
+                    { type: 'short', q: "What is the obvious drawback of token-based authentication?", ans: "integrity of the token" },
+                    { type: 'short', q: "What must be studied if authentication relies on tokens?", ans: "protocols and methods for validating properties or token" }
+                ]
+            },
+            {
+                id: 11,
+                titleEn: "Authentication Methods",
+                titleAr: "طرق المصادقة",
+                contentEn: `
+                    <h2 class="slide-title">Methods</h2>
+                    <p class="text-lg mb-4">We divide the methods into three main categories and analyze each category at a high level. Those three categories are:</p>
+                    <div class="flex justify-center gap-6 mt-8">
+                        <div class="bg-blue-100 border-2 border-blue-500 rounded-lg p-6 w-1/3 text-center shadow-lg transform transition hover:scale-105">
+                            <i class="fas fa-brain text-4xl text-blue-600 mb-4"></i>
+                            <h3 class="font-bold text-xl">What do you know?</h3>
+                        </div>
+                        <div class="bg-green-100 border-2 border-green-500 rounded-lg p-6 w-1/3 text-center shadow-lg transform transition hover:scale-105">
+                            <i class="fas fa-key text-4xl text-green-600 mb-4"></i>
+                            <h3 class="font-bold text-xl">What do you have?</h3>
+                        </div>
+                        <div class="bg-purple-100 border-2 border-purple-500 rounded-lg p-6 w-1/3 text-center shadow-lg transform transition hover:scale-105">
+                            <i class="fas fa-fingerprint text-4xl text-purple-600 mb-4"></i>
+                            <h3 class="font-bold text-xl">Who do you are / trust?</h3>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الطرق (Methods)</h2>
+                    <p class="text-lg mb-4" dir="rtl">نقسم الطرق إلى ثلاث فئات رئيسية ونحلل كل فئة على مستوى عالٍ. هذه الفئات الثلاث هي:</p>
+                    <div class="flex justify-center gap-6 mt-8" dir="ltr">
+                        <div class="bg-blue-100 border-2 border-blue-500 rounded-lg p-6 w-1/3 text-center shadow-lg transform transition hover:scale-105">
+                            <i class="fas fa-brain text-4xl text-blue-600 mb-4"></i>
+                            <h3 class="font-bold text-xl">ماذا تعرف؟<br>(What do you know?)</h3>
+                        </div>
+                        <div class="bg-green-100 border-2 border-green-500 rounded-lg p-6 w-1/3 text-center shadow-lg transform transition hover:scale-105">
+                            <i class="fas fa-key text-4xl text-green-600 mb-4"></i>
+                            <h3 class="font-bold text-xl">ماذا تملك؟<br>(What do you have?)</h3>
+                        </div>
+                        <div class="bg-purple-100 border-2 border-purple-500 rounded-lg p-6 w-1/3 text-center shadow-lg transform transition hover:scale-105">
+                            <i class="fas fa-fingerprint text-4xl text-purple-600 mb-4"></i>
+                            <h3 class="font-bold text-xl">من أنت / بمن تثق؟<br>(Who do you are / trust?)</h3>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "How many main categories are the methods divided into?", options: ["Two", "Three", "Four", "Five"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is one of the three categories?", options: ["What do you want?", "Where are you going?", "What do you have?", "Why do you trust?"], ans: 2 },
+                    { type: 'tf', q: "One of the methods is 'What do you know?'.", ans: "true" },
+                    { type: 'tf', q: "The methods are divided into ten main categories.", ans: "false" },
+                    { type: 'short', q: "Name the category related to knowledge.", ans: "What do you know?" },
+                    { type: 'short', q: "Name the category related to identity or trust.", ans: "Who do you are / trust?" }
+                ]
+            },
+            {
+                id: 12,
+                titleEn: "What do you know?",
+                titleAr: "ماذا تعرف؟",
+                contentEn: `
+                    <h2 class="slide-title">Methods</h2>
+                    <p class="font-bold text-2xl text-blue-800 mb-4">What do you know?</p>
+                    <ul class="slide-list">
+                        <li>The simplest way to verify that a person is whom they claim to be is to ask a question that only the system and the person know the answer.</li>
+                        <li class="mt-4">there is no need for a physical token, so it is easy to implement</li>
+                        <li class="mt-4">The most common example of this method is the password or passphrase;</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الطرق</h2>
+                    <p class="font-bold text-2xl text-blue-800 mb-4" dir="rtl">ماذا تعرف؟ (What do you know?)</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>أبسط طريقة للتحقق من أن الشخص هو من يدعي أنه هو، هي طرح سؤال لا يعرف إجابته سوى النظام والشخص نفسه.</li>
+                        <li class="mt-4">ليست هناك حاجة لرمز مادي (physical token)، لذلك من السهل تنفيذها.</li>
+                        <li class="mt-4">المثال الأكثر شيوعًا لهذه الطريقة هو كلمة المرور (password) أو عبارة المرور (passphrase)؛</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the simplest way to verify a person?", options: ["DNA scan", "Ask a question only the system and person know", "Check their ID card", "Call their manager"], ans: 1 },
+                    { type: 'mcq', q: "Why is 'What do you know?' easy to implement?", options: ["It uses complex math", "It requires expensive hardware", "There is no need for a physical token", "Everyone knows the answers"], ans: 2 },
+                    { type: 'tf', q: "A physical token is required for 'What do you know?' methods.", ans: "false" },
+                    { type: 'tf', q: "The most common example is the password or passphrase.", ans: "true" },
+                    { type: 'short', q: "What is the most common example of the 'What do you know?' method?", ans: "password or passphrase" },
+                    { type: 'short', q: "Does 'What do you know?' require a physical token?", ans: "no" }
+                ]
+            },
+            {
+                id: 13,
+                titleEn: "Password or Secret Rules",
+                titleAr: "قواعد كلمة المرور أو السر",
+                contentEn: `
+                    <h2 class="slide-title">Methods</h2>
+                    <p class="font-bold text-xl mb-4">Password or secret:</p>
+                    <ul class="slide-list text-lg">
+                        <li><strong>Uniqueness</strong> (good password should be a combination of numeric, alphabetic and special characters).</li>
+                        <li><strong>Length of password</strong> (UNIX systems use 8-character passwords)</li>
+                        <li><strong>Age</strong> (password should be changed regularly. In fact, if it is expected that a password can be broken (possibly by brute force) in some time period, a system should force a user to change the password within that time frame.)</li>
+                        <li><strong>Password History</strong> (With password history, a system can prevent the user from reusing recent passwords.)</li>
+                        <li><strong>Invalid attempts</strong></li>
+                        <li><strong>Time between attempts</strong></li>
+                        <li><strong>One-time password</strong></li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الطرق</h2>
+                    <p class="font-bold text-xl mb-4" dir="rtl">كلمة المرور أو السر (Password or secret):</p>
+                    <ul class="slide-list text-lg" dir="rtl">
+                        <li><strong>التفرد (Uniqueness)</strong> (يجب أن تكون كلمة المرور الجيدة مزيجًا من الأحرف الرقمية والأبجدية والخاصة).</li>
+                        <li><strong>طول كلمة المرور (Length)</strong> (تستخدم أنظمة UNIX كلمات مرور مكونة من 8 أحرف)</li>
+                        <li><strong>العمر (Age)</strong> (يجب تغيير كلمة المرور بانتظام. في الواقع، إذا كان من المتوقع إمكانية كسر كلمة المرور (ربما عن طريق القوة الغاشمة brute force) في فترة زمنية معينة، فيجب على النظام إجبار المستخدم على تغيير كلمة المرور ضمن هذا الإطار الزمني.)</li>
+                        <li><strong>سجل كلمة المرور (History)</strong> (من خلال سجل كلمة المرور، يمكن للنظام منع المستخدم من إعادة استخدام كلمات المرور الحديثة.)</li>
+                        <li><strong>المحاولات غير الصالحة (Invalid attempts)</strong></li>
+                        <li><strong>الوقت بين المحاولات (Time between attempts)</strong></li>
+                        <li><strong>كلمة مرور لمرة واحدة (One-time password)</strong></li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What should a good password be a combination of?", options: ["Only letters", "Only numbers", "Numeric, alphabetic, and special characters", "Only special characters"], ans: 2 },
+                    { type: 'mcq', q: "What prevents a user from reusing recent passwords?", options: ["Password Age", "Password History", "Invalid attempts", "One-time password"], ans: 1 },
+                    { type: 'tf', q: "UNIX systems use 8-character passwords.", ans: "true" },
+                    { type: 'tf', q: "Passwords should never be changed to avoid confusion.", ans: "false" },
+                    { type: 'short', q: "Why should a system force a user to change a password within a certain time frame?", ans: "if it is expected that a password can be broken (by brute force)" },
+                    { type: 'short', q: "Name two criteria mentioned for passwords besides age and history.", ans: "Uniqueness / Length / Invalid attempts / Time between attempts / One-time password" }
+                ]
+            },
+            {
+                id: 14,
+                titleEn: "What do you have? (Tokens)",
+                titleAr: "ماذا تملك؟ (الرموز)",
+                contentEn: `
+                    <h2 class="slide-title">Methods</h2>
+                    <p class="font-bold text-2xl text-green-800 mb-4">What do you have? (tokens)</p>
+                    <ul class="slide-list">
+                        <li>Tokens come in a variety of forms. They can be simple paper cards, smart tokens with processing power, or even a part of the human body.</li>
+                    </ul>
+                    
+                    <div class="grid grid-cols-2 gap-4 mt-8 max-w-xl mx-auto text-center">
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-id-card text-blue-500 mr-2"></i> ID</div>
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-stamp text-red-500 mr-2"></i> Seal</div>
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-microchip text-green-500 mr-2"></i> Smart Tokens</div>
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-fingerprint text-purple-500 mr-2"></i> ${kw('Biometrics', 'Biometrics')}</div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الطرق</h2>
+                    <p class="font-bold text-2xl text-green-800 mb-4" dir="rtl">ماذا تملك؟ (الرموز - tokens)</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تأتي الرموز (Tokens) بأشكال متنوعة. يمكن أن تكون بطاقات ورقية بسيطة، أو رموزًا ذكية ذات قوة معالجة، أو حتى جزءًا من جسم الإنسان.</li>
+                    </ul>
+                    
+                    <div class="grid grid-cols-2 gap-4 mt-8 max-w-xl mx-auto text-center" dir="ltr">
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-id-card text-blue-500 mr-2"></i> بطاقة هوية (ID)</div>
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-stamp text-red-500 mr-2"></i> ختم (Seal)</div>
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-microchip text-green-500 mr-2"></i> رموز ذكية (Smart Tokens)</div>
+                        <div class="bg-gray-100 p-4 border border-gray-300 rounded font-bold text-lg"><i class="fas fa-fingerprint text-purple-500 mr-2"></i> ${kw('القياسات الحيوية', 'Biometrics')}</div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is considered a token?", options: ["A password", "A part of the human body", "A mother's maiden name", "A PIN code"], ans: 1 },
+                    { type: 'mcq', q: "What kind of power might smart tokens have?", options: ["Physical strength", "Processing power", "Laser power", "Nuclear power"], ans: 1 },
+                    { type: 'tf', q: "Tokens can only be digital, not physical paper.", ans: "false" },
+                    { type: 'tf', q: "Biometrics falls under the 'What do you have?' category.", ans: "true" },
+                    { type: 'short', q: "Name two examples of tokens mentioned in the boxes.", ans: "ID / Seal / Smart Tokens / Biometrics" },
+                    { type: 'short', q: "Tokens can be simple paper cards or what kind of tokens with processing power?", ans: "smart tokens" }
+                ]
+            },
+            {
+                id: 15,
+                titleEn: "Who do you trust?",
+                titleAr: "بمن تثق؟",
+                contentEn: `
+                    <h2 class="slide-title">Methods</h2>
+                    <p class="font-bold text-2xl text-purple-800 mb-4">Who do you trust?</p>
+                    <ul class="slide-list">
+                        <li>The idea of a trust includes location, trusted third party and time.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الطرق</h2>
+                    <p class="font-bold text-2xl text-purple-800 mb-4" dir="rtl">بمن تثق؟ (Who do you trust?)</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تتضمن فكرة الثقة (trust) الموقع، والطرف الثالث الموثوق به، والوقت.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does the idea of trust include?", options: ["Only time", "Location, trusted third party and time", "Only location", "Passwords and tokens"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is part of 'Who do you trust?'", options: ["Biometrics", "Trusted third party", "Passphrases", "Smart tokens"], ans: 1 },
+                    { type: 'tf', q: "Location is a factor in the idea of trust.", ans: "true" },
+                    { type: 'tf', q: "Trust does not involve time.", ans: "false" },
+                    { type: 'short', q: "Name the three components included in the idea of a trust.", ans: "location, trusted third party and time" },
+                    { type: 'short', q: "Which category does 'trusted third party' belong to?", ans: "Who do you trust?" }
+                ]
+            },
+            {
+                id: 16,
+                titleEn: "Authorization",
+                titleAr: "التفويض",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <ul class="slide-list">
+                        <li>While Authentication is critical for identifying a person, Authorization is critical for controlling people and resources in a system based on their identity..</li>
+                        <li class="mt-4">A secure system should also protect resources by only allowing those resources to be used by those with grant authority. Restricting access based on consumers and resources is generally referred to as ${kw('Access Control', 'Access Control')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض (Authorization)</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>في حين أن المصادقة أمر بالغ الأهمية لتحديد هوية الشخص، فإن التفويض أمر بالغ الأهمية للتحكم في الأشخاص والموارد في النظام بناءً على هويتهم.</li>
+                        <li class="mt-4">يجب أن يحمي النظام الآمن أيضًا الموارد من خلال السماح باستخدام تلك الموارد فقط لأولئك الذين لديهم سلطة المنح (grant authority). يشار عمومًا إلى تقييد الوصول بناءً على المستهلكين والموارد باسم ${kw('التحكم في الوصول (Access Control)', 'Access Control')}.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is critical for controlling people and resources based on identity?", options: ["Authentication", "Authorization", "Logging", "Encryption"], ans: 1 },
+                    { type: 'mcq', q: "What is restricting access based on consumers and resources referred to as?", options: ["Access Control", "Threat Modeling", "System Updating", "Data Backup"], ans: 0 },
+                    { type: 'tf', q: "Authentication and Authorization are exactly the same thing.", ans: "false" },
+                    { type: 'tf', q: "A secure system protects resources by only allowing those with grant authority to use them.", ans: "true" },
+                    { type: 'short', q: "What is Authorization critical for?", ans: "controlling people and resources in a system" },
+                    { type: 'short', q: "What do we call restricting access based on consumers and resources?", ans: "Access Control" }
+                ]
+            },
+            {
+                id: 17,
+                titleEn: "Authorization Policy",
+                titleAr: "سياسة التفويض",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl text-blue-800 mb-4">Policy:</p>
+                    <ul class="slide-list">
+                        <li>A ${kw('security policy', 'Security policy')} is a statement that partitions the states of the system into a set of authorized, or secure, states and a set of unauthorized or insecure state.</li>
+                        <li class="mt-4">Intuitively from the definition, we can say that "the art of securing a system is the process of preventing a system from entering an unauthorized state".</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl text-blue-800 mb-4" dir="rtl">السياسة (Policy):</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('السياسة الأمنية (security policy)', 'Security policy')} عبارة عن بيان يقسم حالات النظام إلى مجموعة من الحالات المصرح بها (أو الآمنة) ومجموعة من الحالات غير المصرح بها أو غير الآمنة.</li>
+                        <li class="mt-4">بشكل بديهي من التعريف، يمكننا القول أن "فن تأمين النظام هو عملية منع النظام من الدخول في حالة غير مصرح بها".</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What partitions the states of the system into authorized and unauthorized states?", options: ["A firewall", "A security policy", "A token", "A password"], ans: 1 },
+                    { type: 'mcq', q: "The art of securing a system is preventing it from entering what kind of state?", options: ["An authorized state", "An unauthorized state", "A paused state", "A powered off state"], ans: 1 },
+                    { type: 'tf', q: "An authorized state is also known as a secure state.", ans: "true" },
+                    { type: 'tf', q: "A security policy merges all states into one secure state.", ans: "false" },
+                    { type: 'short', q: "What is the process of preventing a system from entering an unauthorized state called?", ans: "the art of securing a system" },
+                    { type: 'short', q: "What two sets of states does a security policy partition the system into?", ans: "authorized (secure) and unauthorized (insecure)" }
+                ]
+            },
+            {
+                id: 18,
+                titleEn: "Access Control Models",
+                titleAr: "نماذج التحكم في الوصول",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl text-indigo-800 mb-4">Access Control Models</p>
+                    <ul class="slide-list">
+                        <li class="bg-gray-100 p-3 mb-2 rounded shadow-sm border-l-4 border-blue-500">${kw('Mandatory Access Control (MAC)', 'MAC')}</li>
+                        <li class="bg-gray-100 p-3 mb-2 rounded shadow-sm border-l-4 border-green-500">${kw('Discretionary Access Control (DAC)', 'DAC')}</li>
+                        <li class="bg-gray-100 p-3 mb-2 rounded shadow-sm border-l-4 border-purple-500">${kw('Role-Based Access Control (RBAC)', 'RBAC')}</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl text-indigo-800 mb-4" dir="rtl">نماذج التحكم في الوصول (Access Control Models)</p>
+                    <ul class="slide-list" dir="ltr">
+                        <li class="bg-gray-100 p-3 mb-2 rounded shadow-sm border-l-4 border-blue-500">${kw('التحكم الإلزامي في الوصول (MAC)', 'MAC')}</li>
+                        <li class="bg-gray-100 p-3 mb-2 rounded shadow-sm border-l-4 border-green-500">${kw('التحكم التقديري في الوصول (DAC)', 'DAC')}</li>
+                        <li class="bg-gray-100 p-3 mb-2 rounded shadow-sm border-l-4 border-purple-500">${kw('التحكم في الوصول القائم على الدور (RBAC)', 'RBAC')}</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does MAC stand for?", options: ["Machine Access Control", "Mandatory Access Control", "Main Access Center", "Memory Allocation Control"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is an access control model?", options: ["RBAC", "HTML", "HTTP", "SSO"], ans: 0 },
+                    { type: 'tf', q: "DAC stands for Discretionary Access Control.", ans: "true" },
+                    { type: 'tf', q: "Role-Based Access Control is not an access control model.", ans: "false" },
+                    { type: 'short', q: "Name one Access Control Model listed.", ans: "MAC / DAC / RBAC" },
+                    { type: 'short', q: "What does RBAC stand for?", ans: "Role-Based Access Control" }
+                ]
+            },
+            {
+                id: 19,
+                titleEn: "Authorization Determination",
+                titleAr: "تحديد التفويض",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <ul class="slide-list">
+                        <li>Determines that the proven identity has some set of characteristics associated with it that gives it the right to access the requested resources.</li>
+                        <li class="mt-4">Granting access rights to subjects should be based on the level of trust a company has in a subject and the subject's need to know.</li>
+                        <li class="mt-4">Is a core component of every operating system and established whether a user is authorized to access a particular resource and what actions he is permitted to perform on the resource.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يحدد أن الهوية المُثبتة (proven identity) لها مجموعة من الخصائص المرتبطة بها والتي تمنحها الحق في الوصول إلى الموارد المطلوبة.</li>
+                        <li class="mt-4">يجب أن يعتمد منح حقوق الوصول للمواضيع على مستوى الثقة الذي تكنّه الشركة للموضوع وحاجة الموضوع إلى المعرفة (need to know).</li>
+                        <li class="mt-4">هو مكون أساسي لكل نظام تشغيل ويؤسس ما إذا كان المستخدم مصرحًا له بالوصول إلى مورد معين والإجراءات التي يُسمح له بتنفيذها على المورد.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Granting access rights should be based on the level of trust and the subject's what?", options: ["Age", "Need to know", "Password length", "Network speed"], ans: 1 },
+                    { type: 'mcq', q: "Authorization is a core component of every what?", options: ["Web browser", "Operating system", "Keyboard", "Antivirus"], ans: 1 },
+                    { type: 'tf', q: "Authorization establishes what actions a user is permitted to perform on a resource.", ans: "true" },
+                    { type: 'tf', q: "Granting access rights ignores the level of trust.", ans: "false" },
+                    { type: 'short', q: "What determines that a proven identity has the right to access requested resources?", ans: "Authorization" },
+                    { type: 'short', q: "Access rights depend on trust and what other principle?", ans: "need to know" }
+                ]
+            },
+            {
+                id: 20,
+                titleEn: "Access Criteria 1",
+                titleAr: "معايير الوصول 1",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl mb-4">Access Criteria can be thought of as:</p>
+                    <ul class="slide-list">
+                        <li><strong>Roles:</strong> Is an efficient way to assign rights to a type of user who performs a certain task (job assignment or function).</li>
+                        <li class="mt-4"><strong>Groups:</strong> When several users require the same type of access to information and resources.</li>
+                        <li class="mt-4"><strong>Location:</strong> To restrict unauthorized individuals from being able to get in and reconfigure the server remotely.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl mb-4" dir="rtl">يمكن التفكير في معايير الوصول (Access Criteria) على النحو التالي:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>الأدوار (Roles):</strong> طريقة فعالة لتعيين الحقوق لنوع المستخدم الذي يؤدي مهمة معينة (تخصيص وظيفي أو وظيفة).</li>
+                        <li class="mt-4"><strong>المجموعات (Groups):</strong> عندما يتطلب العديد من المستخدمين نفس النوع من الوصول إلى المعلومات والموارد.</li>
+                        <li class="mt-4"><strong>الموقع (Location):</strong> لمنع الأفراد غير المصرح لهم من الدخول وإعادة تكوين الخادم عن بُعد.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which criteria is efficient to assign rights to a user performing a certain task?", options: ["Location", "Roles", "Time", "Groups"], ans: 1 },
+                    { type: 'mcq', q: "What is used when several users require the same type of access?", options: ["Roles", "Location", "Groups", "Passwords"], ans: 2 },
+                    { type: 'tf', q: "Location can restrict individuals from reconfiguring the server remotely.", ans: "true" },
+                    { type: 'tf', q: "Roles are used when several users require the same access.", ans: "false" },
+                    { type: 'short', q: "What restricts unauthorized remote reconfiguration of a server?", ans: "Location" },
+                    { type: 'short', q: "What is an efficient way to assign rights based on job assignment?", ans: "Roles" }
+                ]
+            },
+            {
+                id: 21,
+                titleEn: "Access Criteria 2",
+                titleAr: "معايير الوصول 2",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl mb-4">Access Criteria (cont.):</p>
+                    <ul class="slide-list">
+                        <li><strong>Time:</strong> Restrict the times that certain actions or services can be accessed.</li>
+                        <li class="mt-6"><strong>Transaction Types:</strong> It can be used to control what data is accessed during certain types of functions and what commands can be carried out on the data.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl mb-4" dir="rtl">معايير الوصول (يتبع):</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>الوقت (Time):</strong> تقييد الأوقات التي يمكن فيها الوصول إلى إجراءات أو خدمات معينة.</li>
+                        <li class="mt-6"><strong>أنواع المعاملات (Transaction Types):</strong> يمكن استخدامه للتحكم في البيانات التي يتم الوصول إليها أثناء أنواع معينة من الوظائف والأوامر التي يمكن تنفيذها على البيانات.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which criteria restricts WHEN certain actions can be accessed?", options: ["Time", "Groups", "Roles", "Location"], ans: 0 },
+                    { type: 'mcq', q: "Which criteria controls what commands can be carried out on the data?", options: ["Roles", "Transaction Types", "Location", "Time"], ans: 1 },
+                    { type: 'tf', q: "Time cannot be used as an access criterion.", ans: "false" },
+                    { type: 'tf', q: "Transaction types control what data is accessed during certain functions.", ans: "true" },
+                    { type: 'short', q: "What criterion restricts access to services based on the clock?", ans: "Time" },
+                    { type: 'short', q: "What criterion controls commands carried out on data?", ans: "Transaction Types" }
+                ]
+            },
+            {
+                id: 22,
+                titleEn: "Access Control Problems",
+                titleAr: "مشاكل التحكم في الوصول",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl text-red-800 mb-4">Problems in controlling access to assets:</p>
+                    <ul class="slide-list">
+                        <li>Different levels of users with different levels of access.</li>
+                        <li>Resources may be classified differently.</li>
+                        <li>Diverse identity of data.</li>
+                        <li>Corporate environments keep changing.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl text-red-800 mb-4" dir="rtl">مشاكل التحكم في الوصول إلى الأصول:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>مستويات مختلفة من المستخدمين مع مستويات مختلفة من الوصول.</li>
+                        <li>قد يتم تصنيف الموارد بشكل مختلف.</li>
+                        <li>الهوية المتنوعة للبيانات.</li>
+                        <li>بيئات الشركات تتغير باستمرار.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is a problem in controlling access?", options: ["Static corporate environments", "Diverse identity of data", "Only one level of user", "Homogeneous data"], ans: 1 },
+                    { type: 'mcq', q: "What happens to corporate environments that poses a problem?", options: ["They stop existing", "They keep changing", "They stay exactly the same", "They become smaller"], ans: 1 },
+                    { type: 'tf', q: "Resources may be classified differently.", ans: "true" },
+                    { type: 'tf', q: "All users have the exact same level of access.", ans: "false" },
+                    { type: 'short', q: "What kind of users create a problem for access control?", ans: "Different levels of users with different levels of access" },
+                    { type: 'short', q: "What is diverse about data that causes a problem?", ans: "identity of data" }
+                ]
+            },
+            {
+                id: 23,
+                titleEn: "Enterprise & SSO Solutions",
+                titleAr: "حلول المؤسسة وتسجيل الدخول الموحد",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl text-green-800 mb-4">Solutions that enterprise wide and single sign on solutions supply:</p>
+                    <ul class="slide-list">
+                        <li>User provisioning.</li>
+                        <li>Password synchronization and reset.</li>
+                        <li>Centralized auditing and reporting.</li>
+                        <li>Regulatory compliance.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl text-green-800 mb-4" dir="rtl">الحلول التي توفرها حلول المؤسسة على نطاق واسع وتسجيل الدخول الموحد:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تزويد المستخدم (User provisioning).</li>
+                        <li>مزامنة كلمة المرور وإعادة تعيينها.</li>
+                        <li>التدقيق والإبلاغ المركزي.</li>
+                        <li>الامتثال التنظيمي (Regulatory compliance).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is a solution supplied by SSO?", options: ["Diverse data identity", "Password synchronization and reset", "Slower network speeds", "Hardware upgrades"], ans: 1 },
+                    { type: 'mcq', q: "What kind of auditing does SSO supply?", options: ["Decentralized auditing", "No auditing", "Centralized auditing and reporting", "Manual auditing"], ans: 2 },
+                    { type: 'tf', q: "Regulatory compliance is a solution supplied by SSO.", ans: "true" },
+                    { type: 'tf', q: "SSO removes user provisioning.", ans: "false" },
+                    { type: 'short', q: "What happens to passwords with these solutions?", ans: "synchronization and reset" },
+                    { type: 'short', q: "What kind of compliance is supplied?", ans: "Regulatory compliance" }
+                ]
+            },
+            {
+                id: 24,
+                titleEn: "SSO Capabilities",
+                titleAr: "قدرات تسجيل الدخول الموحد",
+                contentEn: `
+                    <h2 class="slide-title">Authorization</h2>
+                    <p class="font-bold text-xl mb-4">${kw('Single Sign On (SSO)', 'SSO')} Capabilities</p>
+                    <ul class="slide-list">
+                        <li>Allow user credentials to be entered one time and the user is then able to access all resources in primary and secondary network domains.</li>
+                        <li class="mt-4 font-bold text-lg text-indigo-700">SSO technologies include:
+                            <ul class="slide-sublist mt-2 font-normal">
+                                <li>${kw('Kerberos', 'Kerberos')}</li>
+                                <li>${kw('Sesame', 'SESAME')}</li>
+                                <li>Security Domains</li>
+                                <li>Directory Services</li>
+                                <li>Dumb Terminals</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التفويض</h2>
+                    <p class="font-bold text-xl mb-4" dir="rtl">قدرات ${kw('تسجيل الدخول الموحد (SSO)', 'SSO')}</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>السماح بإدخال بيانات اعتماد المستخدم مرة واحدة، وبعد ذلك يتمكن المستخدم من الوصول إلى جميع الموارد في مجالات الشبكة الأولية والثانوية.</li>
+                        <li class="mt-4 font-bold text-lg text-indigo-700">تتضمن تقنيات SSO ما يلي:
+                            <ul class="slide-sublist mt-2 font-normal" dir="ltr">
+                                <li>${kw('Kerberos', 'Kerberos')}</li>
+                                <li>${kw('Sesame', 'SESAME')}</li>
+                                <li>Security Domains</li>
+                                <li>Directory Services</li>
+                                <li>Dumb Terminals</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "How many times are user credentials entered with SSO?", options: ["Every hour", "One time", "Twice", "Never"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is an SSO technology?", options: ["Microsoft Word", "HTML", "Kerberos", "Wi-Fi"], ans: 2 },
+                    { type: 'tf', q: "SSO only allows access to primary network domains.", ans: "false" },
+                    { type: 'tf', q: "Sesame is listed as an SSO technology.", ans: "true" },
+                    { type: 'short', q: "What does SSO stand for?", ans: "Single Sign On" },
+                    { type: 'short', q: "Name two SSO technologies.", ans: "Kerberos / Sesame / Security Domains / Directory Services / Dumb Terminals" }
+                ]
+            },
+            {
+                id: 25,
+                titleEn: "SSO Process",
+                titleAr: "عملية SSO",
+                contentEn: `
+                    <h2 class="slide-title">SSO Process</h2>
+                    <ul class="slide-list">
+                        <li>SSOs enable users to logon to the authentication server and still obtain access to all additional authorized networked systems without additional identification and authentication.</li>
+                        <li class="mt-4">SSO is also referred to as reduced sign-on, and is used in web-based environments in federated ID management systems.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">عملية SSO</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تُمكّن أنظمة SSO المستخدمين من تسجيل الدخول إلى خادم المصادقة مع الاستمرار في الحصول على إمكانية الوصول إلى جميع الأنظمة الشبكية الإضافية المصرح بها دون تحديد أو مصادقة إضافية.</li>
+                        <li class="mt-4">يشار إلى SSO أيضًا باسم تقليل تسجيل الدخول (reduced sign-on)، ويُستخدم في البيئات القائمة على الويب في أنظمة إدارة الهوية الموحدة (federated ID management systems).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Where do users initially logon in the SSO process?", options: ["Application server", "Authentication server", "Database", "Router"], ans: 1 },
+                    { type: 'mcq', q: "What is SSO also referred to as?", options: ["Multiple sign-on", "Reduced sign-on", "Zero sign-on", "Complex sign-on"], ans: 1 },
+                    { type: 'tf', q: "SSO requires additional identification for every networked system accessed.", ans: "false" },
+                    { type: 'tf', q: "SSO is used in federated ID management systems.", ans: "true" },
+                    { type: 'short', q: "What server do users logon to in SSO?", ans: "authentication server" },
+                    { type: 'short', q: "What kind of environments use SSO in federated ID management systems?", ans: "web-based environments" }
+                ]
+            },
+            {
+                id: 26,
+                titleEn: "SSO Process Diagram",
+                titleAr: "مخطط عملية SSO",
+                contentEn: `
+                    <h2 class="slide-title">SSO Process</h2>
+                    <div class="flex items-center justify-center gap-6 mt-10 p-6 bg-white rounded shadow border border-gray-200">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-laptop text-6xl text-gray-700"></i>
+                            <span class="mt-2 font-bold text-sm">Client</span>
+                        </div>
+                        
+                        <div class="text-4xl text-yellow-400"><i class="fas fa-arrow-right"></i></div>
+                        
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-server text-6xl text-blue-900"></i>
+                            <span class="mt-2 font-bold text-sm text-green-800">Authentication Server</span>
+                        </div>
+                        
+                        <div class="flex flex-col justify-center gap-8">
+                            <div class="text-4xl text-yellow-400 transform -rotate-12"><i class="fas fa-arrow-right"></i></div>
+                            <div class="text-4xl text-yellow-400 transform rotate-12"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center gap-4">
+                                <i class="fas fa-server text-5xl text-gray-600"></i>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <i class="fas fa-server text-5xl text-gray-600"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="font-bold text-xl text-green-800 ml-4">
+                            Application<br>Servers
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">عملية SSO</h2>
+                    <div class="flex items-center justify-center gap-6 mt-10 p-6 bg-white rounded shadow border border-gray-200" dir="ltr">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-laptop text-6xl text-gray-700"></i>
+                            <span class="mt-2 font-bold text-sm">العميل (Client)</span>
+                        </div>
+                        
+                        <div class="text-4xl text-yellow-400"><i class="fas fa-arrow-right"></i></div>
+                        
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-server text-6xl text-blue-900"></i>
+                            <span class="mt-2 font-bold text-sm text-green-800">خادم المصادقة<br>Auth Server</span>
+                        </div>
+                        
+                        <div class="flex flex-col justify-center gap-8">
+                            <div class="text-4xl text-yellow-400 transform -rotate-12"><i class="fas fa-arrow-right"></i></div>
+                            <div class="text-4xl text-yellow-400 transform rotate-12"><i class="fas fa-arrow-right"></i></div>
+                        </div>
+
+                        <div class="flex flex-col gap-4">
+                            <div class="flex items-center gap-4">
+                                <i class="fas fa-server text-5xl text-gray-600"></i>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <i class="fas fa-server text-5xl text-gray-600"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="font-bold text-xl text-green-800 ml-4 text-center">
+                            خوادم التطبيقات<br>App Servers
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In the diagram, what does the laptop represent?", options: ["Application Server", "Authentication Server", "Client", "Database"], ans: 2 },
+                    { type: 'mcq', q: "What sits between the client and the application servers in the diagram?", options: ["Firewall", "Authentication Server", "Router", "Switch"], ans: 1 },
+                    { type: 'tf', q: "The client connects directly to the Application Servers without going through the Authentication Server.", ans: "false" },
+                    { type: 'tf', q: "The diagram shows multiple Application Servers.", ans: "true" },
+                    { type: 'short', q: "What server is located in the middle of the diagram?", ans: "Authentication Server" },
+                    { type: 'short', q: "What is located on the far right of the diagram?", ans: "Application Servers" }
+                ]
+            },
+            {
+                id: 27,
+                titleEn: "SSO Technologies: Legacy",
+                titleAr: "تقنيات SSO: الأنظمة القديمة",
+                contentEn: `
+                    <h2 class="slide-title">SSO Technologies</h2>
+                    <p class="font-bold text-xl mb-2 text-indigo-800">Legacy Single Sign-On (SSO):</p>
+                    <ul class="slide-list">
+                        <li>Although many legacy systems do not support an external means to identify and authenticate their users, it is possible to store user credentials centrally, and automatically enter them where and when needed.</li>
+                        <li class="mt-4">The SSO system stores every user's password to every system. This causes concern with respect to availability: if the SSO system fails, denial of service results.</li>
+                        <li class="mt-4 text-red-600 font-bold">If the SSO is compromised, controls over access to all systems may be lost.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقنيات SSO</h2>
+                    <p class="font-bold text-xl mb-2 text-indigo-800" dir="rtl">تسجيل الدخول الموحد للأنظمة القديمة (Legacy SSO):</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>على الرغم من أن العديد من الأنظمة القديمة لا تدعم وسيلة خارجية لتحديد ومصادقة مستخدميها، إلا أنه من الممكن تخزين بيانات اعتماد المستخدم بشكل مركزي، وإدخالها تلقائيًا أينما ومتى لزم الأمر.</li>
+                        <li class="mt-4">يقوم نظام SSO بتخزين كلمة مرور كل مستخدم لكل نظام. يثير هذا قلقًا فيما يتعلق بالتوافر (availability): إذا فشل نظام SSO، فسينتج عن ذلك رفض الخدمة (denial of service).</li>
+                        <li class="mt-4 text-red-600 font-bold">إذا تم اختراق SSO، فقد يتم فقدان الضوابط على الوصول إلى جميع الأنظمة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What do legacy SSO systems store centrally?", options: ["Hard drives", "User credentials", "Hardware MAC addresses", "Network packets"], ans: 1 },
+                    { type: 'mcq', q: "What happens if the legacy SSO system fails?", options: ["System runs faster", "Denial of service results", "Users get admin rights", "Nothing changes"], ans: 1 },
+                    { type: 'tf', q: "Legacy systems always support external means for authentication natively.", ans: "false" },
+                    { type: 'tf', q: "If the SSO is compromised, access controls to all systems may be lost.", ans: "true" },
+                    { type: 'short', q: "What is stored for every user to every system in legacy SSO?", ans: "password" },
+                    { type: 'short', q: "What concern arises if the SSO system fails?", ans: "concern with respect to availability (denial of service)" }
+                ]
+            },
+            {
+                id: 28,
+                titleEn: "SSO Technologies: Kerberos",
+                titleAr: "تقنيات SSO: Kerberos",
+                contentEn: `
+                    <h2 class="slide-title">SSO Technologies</h2>
+                    <p class="font-bold text-xl mb-2 text-indigo-800">${kw('Kerberos', 'Kerberos')}:</p>
+                    <ul class="slide-list">
+                        <li>An SSO open-standards protocol for authentication in a single security domain.</li>
+                        <li class="mt-4">Kerberos is an authentication protocol that uses symmetric key encryption in three key pairs: two authentication pairs are shared by the authenticator and a single principal, and one session pair is shared between principals.</li>
+                        <li class="mt-4">The session-key pair is distributed in such a way that principals are required to trust the authenticator rather than each other.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقنيات SSO</h2>
+                    <p class="font-bold text-xl mb-2 text-indigo-800" dir="rtl">${kw('كيربيروس (Kerberos)', 'Kerberos')}:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>بروتوكول SSO مفتوح المعايير للمصادقة في مجال أمان واحد (single security domain).</li>
+                        <li class="mt-4">Kerberos هو بروتوكول مصادقة يستخدم تشفير المفتاح المتماثل (symmetric key encryption) في ثلاثة أزواج من المفاتيح: زوجان للمصادقة يتم مشاركتهما بواسطة المُصادِق (authenticator) ومدير واحد (principal)، وزوج جلسة واحد تتم مشاركته بين المديرين (principals).</li>
+                        <li class="mt-4">يتم توزيع زوج مفاتيح الجلسة بطريقة تجعل المديرين مطالبين بالوثوق بالمُصادِق بدلاً من بعضهم البعض.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Kerberos is used for authentication in how many security domains?", options: ["Multiple", "Infinite", "A single security domain", "Zero"], ans: 2 },
+                    { type: 'mcq', q: "What type of encryption does Kerberos use?", options: ["Asymmetric key encryption", "Symmetric key encryption", "Hashing only", "No encryption"], ans: 1 },
+                    { type: 'tf', q: "Kerberos uses three key pairs in total.", ans: "true" },
+                    { type: 'tf', q: "Principals in Kerberos are required to trust each other, not the authenticator.", ans: "false" },
+                    { type: 'short', q: "Who must principals trust in Kerberos?", ans: "the authenticator" },
+                    { type: 'short', q: "What kind of protocol is Kerberos?", ans: "An SSO open-standards protocol for authentication" }
+                ]
+            },
+            {
+                id: 29,
+                titleEn: "SSO Technologies: SESAME",
+                titleAr: "تقنيات SSO: SESAME",
+                contentEn: `
+                    <h2 class="slide-title">SSO Technologies</h2>
+                    <p class="font-bold text-xl mb-2 text-indigo-800">${kw('SESAME', 'SESAME')}</p>
+                    <ul class="slide-list">
+                        <li>The Secure European System for Applications in a Multi-Vendor Environment (SESAME) is a protocol developed by the European Union that addresses multiple or disparate security domains.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقنيات SSO</h2>
+                    <p class="font-bold text-xl mb-2 text-indigo-800" dir="rtl">${kw('SESAME', 'SESAME')}</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>النظام الأوروبي الآمن للتطبيقات في بيئة متعددة الموردين (SESAME) هو بروتوكول طوره الاتحاد الأوروبي يعالج مجالات أمان متعددة أو متباينة (multiple or disparate security domains).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Who developed the SESAME protocol?", options: ["The United States", "The European Union", "A private company", "A university"], ans: 1 },
+                    { type: 'mcq', q: "What does SESAME address?", options: ["A single security domain", "Multiple or disparate security domains", "Hardware failures", "Network routing"], ans: 1 },
+                    { type: 'tf', q: "SESAME stands for Secure European System for Applications in a Multi-Vendor Environment.", ans: "true" },
+                    { type: 'tf', q: "SESAME is designed for a single security domain only.", ans: "false" },
+                    { type: 'short', q: "What protocol addresses multiple or disparate security domains?", ans: "SESAME" },
+                    { type: 'short', q: "What does the 'E' in SESAME (after Secure) stand for?", ans: "European" }
+                ]
+            },
+            {
+                id: 30,
+                titleEn: "SSO: Pros",
+                titleAr: "إيجابيات SSO",
+                contentEn: `
+                    <h2 class="slide-title">SSO: Pros and Cons</h2>
+                    <p class="font-bold text-xl mb-2 text-green-700">PROS:</p>
+                    <ul class="slide-list">
+                        <li><strong>Efficient log-on process</strong> - The user logs on only once to access all authorized systems.</li>
+                        <li class="mt-4"><strong>Encourages users to create stronger passwords</strong> - With only one password to remember and control, users may be inclined to use passwords that are harder and more difficult to crack. Fewer passwords to manage should also result in fewer being written down in unsafe locations.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">إيجابيات وسلبيات SSO</h2>
+                    <p class="font-bold text-xl mb-2 text-green-700" dir="rtl">الإيجابيات (PROS):</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>عملية تسجيل دخول فعالة</strong> - يسجل المستخدم الدخول مرة واحدة فقط للوصول إلى جميع الأنظمة المصرح بها.</li>
+                        <li class="mt-4"><strong>يشجع المستخدمين على إنشاء كلمات مرور أقوى</strong> - نظرًا لوجود كلمة مرور واحدة فقط يجب تذكرها والتحكم فيها، قد يميل المستخدمون إلى استخدام كلمات مرور أصعب وأكثر صعوبة في الاختراق. كما أن إدارة عدد أقل من كلمات المرور يجب أن يؤدي إلى كتابة عدد أقل منها في أماكن غير آمنة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "How many times does a user log on in SSO to access all authorized systems?", options: ["Once per system", "Only once", "Twice", "Never"], ans: 1 },
+                    { type: 'mcq', q: "What might users be inclined to do when they only have one password to remember?", options: ["Forget it", "Use stronger passwords", "Use '123456'", "Share it with everyone"], ans: 1 },
+                    { type: 'tf', q: "SSO encourages users to write down passwords in unsafe locations.", ans: "false" },
+                    { type: 'tf', q: "An efficient log-on process is a pro of SSO.", ans: "true" },
+                    { type: 'short', q: "What process is considered efficient in SSO?", ans: "log-on process" },
+                    { type: 'short', q: "Fewer passwords to manage results in fewer passwords being written where?", ans: "in unsafe locations" }
+                ]
+            },
+            {
+                id: 31,
+                titleEn: "SSO: Pros and Cons",
+                titleAr: "إيجابيات وسلبيات SSO",
+                contentEn: `
+                    <h2 class="slide-title">SSO: Pros and Cons</h2>
+                    <ul class="slide-list">
+                        <li><strong>Centralized administration</strong> - Ensures consistent application of policy and procedures.</li>
+                    </ul>
+                    <p class="font-bold text-xl mb-2 mt-6 text-red-700">Cons:</p>
+                    <ul class="slide-list">
+                        <li><strong>Single point of compromise</strong> - A single compromised sign-in allows the intruder into all of the account owners authorized resources.</li>
+                        <li class="mt-2"><strong>Legacy Interoperability</strong> - It may be difficult to include unique computers or legacy systems in the single sign on network.</li>
+                        <li class="mt-2"><strong>Implementation difficulties</strong> - Unusual types of systems may not interface well with SSO software.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">إيجابيات وسلبيات SSO</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>إدارة مركزية</strong> - يضمن التطبيق المتسق للسياسات والإجراءات.</li>
+                    </ul>
+                    <p class="font-bold text-xl mb-2 mt-6 text-red-700" dir="rtl">السلبيات (Cons):</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>نقطة اختراق واحدة (Single point of compromise)</strong> - يسمح تسجيل الدخول الواحد المخترَق للمتسلل بالدخول إلى جميع الموارد المصرح بها لمالك الحساب.</li>
+                        <li class="mt-2"><strong>إمكانية التشغيل البيني للأنظمة القديمة (Legacy Interoperability)</strong> - قد يكون من الصعب تضمين أجهزة كمبيوتر فريدة أو أنظمة قديمة في شبكة تسجيل الدخول الموحد.</li>
+                        <li class="mt-2"><strong>صعوبات التنفيذ (Implementation difficulties)</strong> - قد لا تتفاعل الأنواع غير العادية من الأنظمة بشكل جيد مع برامج SSO.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What ensures consistent application of policy and procedures?", options: ["Legacy Interoperability", "Centralized administration", "Single point of compromise", "Implementation difficulties"], ans: 1 },
+                    { type: 'mcq', q: "What happens if there is a single point of compromise in SSO?", options: ["The system gets faster", "Intruder accesses all authorized resources", "Only one file is lost", "The password is reset automatically"], ans: 1 },
+                    { type: 'tf', q: "It is very easy to include legacy systems in the SSO network.", ans: "false" },
+                    { type: 'tf', q: "Unusual types of systems may not interface well with SSO software.", ans: "true" },
+                    { type: 'short', q: "What is the term for a single compromised sign-in allowing an intruder full access?", ans: "Single point of compromise" },
+                    { type: 'short', q: "What kind of administration is a PRO of SSO?", ans: "Centralized administration" }
+                ]
+            },
+            {
+                id: 32,
+                titleEn: "Conclusion",
+                titleAr: "خاتمة",
+                contentEn: `
+                    <h2 class="slide-title">Conclusion</h2>
+                    <ul class="slide-list">
+                        <li>Authentication is the first step of security.</li>
+                        <li>There exist several authentication methods. Each method has different criteria.</li>
+                        <li>Through the section, we have provided a guideline to a wide variety of authentication protocols.</li>
+                        <li>We expected to understand the pros and cons of each method.</li>
+                        <li>It is worth to emphasize that there is <strong>no</strong> such completely secure system. <em>(Contextually corrected from "is such")</em></li>
+                        <li>Every authentication method has a cost associated with it and can be circumvented.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">خاتمة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>المصادقة هي الخطوة الأولى للأمان.</li>
+                        <li>توجد عدة طرق للمصادقة. كل طريقة لها معايير مختلفة.</li>
+                        <li>خلال هذا القسم، قدمنا دليلاً لمجموعة متنوعة من بروتوكولات المصادقة.</li>
+                        <li>توقعنا أن نفهم إيجابيات وسلبيات كل طريقة.</li>
+                        <li>تجدر الإشارة إلى أنه <strong>لا يوجد</strong> نظام آمن تمامًا.</li>
+                        <li>كل طريقة مصادقة لها تكلفة مرتبطة بها ويمكن التحايل عليها (circumvented).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the first step of security?", options: ["Encryption", "Authentication", "Backups", "Formatting"], ans: 1 },
+                    { type: 'mcq', q: "What does every authentication method have associated with it?", options: ["A physical key", "A cost", "A fingerprint", "A daily limit"], ans: 1 },
+                    { type: 'tf', q: "There is a completely secure system available.", ans: "false" },
+                    { type: 'tf', q: "Every authentication method can be circumvented.", ans: "true" },
+                    { type: 'short', q: "What step of security is Authentication?", ans: "the first step" },
+                    { type: 'short', q: "What can happen to every authentication method?", ans: "can be circumvented" }
+                ]
+            },
+            {
+                id: 33,
+                titleEn: "The End",
+                titleAr: "النهاية",
+                contentEn: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="Al-Baha University Logo" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10">The End</h1>
+                    </div>
+                `,
+                contentAr: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="شعار جامعة الباحة" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10 font-cairo">النهاية</h1>
+                    </div>
+                `,
+                quiz: []
+            }
+        ];
+
+        // --- 2. STATE & LOGIC ---
+        let currentSlideIndex = 0;
+        let isArabic = false;
+
+        const slideNav = document.getElementById('slide-nav');
+        const slideContent = document.getElementById('slide-content');
+        const langToggleBtn = document.getElementById('lang-toggle');
+        const langText = document.getElementById('lang-text');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const quizBtn = document.getElementById('quiz-btn');
+
+        function init() {
+            buildNavigation();
+            renderSlide(0);
+        }
+
+        function buildNavigation() {
+            slideNav.innerHTML = '';
+            slides.forEach((slide, index) => {
+                const li = document.createElement('li');
+                li.className = `px-6 py-3 cursor-pointer border-l-4 transition-colors duration-200 ${index === currentSlideIndex ? 'border-blue-500 bg-gray-700 text-white' : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-white'}`;
+                li.innerHTML = `<span class="mr-2 opacity-50">${slide.id.toString().padStart(2, '0')}</span> ${isArabic ? slide.titleAr : slide.titleEn}`;
+                li.onclick = () => {
+                    currentSlideIndex = index;
+                    renderSlide(index);
+                    buildNavigation();
+                };
+                slideNav.appendChild(li);
+            });
+        }
+
+        function renderSlide(index) {
+            const slide = slides[index];
+            const content = isArabic ? slide.contentAr : slide.contentEn;
+            
+            const footer = `
+                <div class="mt-auto pt-8 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500 ${isArabic ? 'flex-row-reverse' : ''}">
+                    <div class="font-bold text-blue-800">BU <br> <span class="font-normal text-xs text-black">${isArabic ? 'جامعة الباحة' : 'Al-Baha University'}</span></div>
+                    <div class="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">${slide.id}</div>
+                </div>
+            `;
+
+            slideContent.innerHTML = content + footer;
+
+            if(slide.quiz && slide.quiz.length > 0) {
+                quizBtn.style.display = 'flex';
+            } else {
+                quizBtn.style.display = 'none';
+            }
+        }
+
+        langToggleBtn.onclick = () => {
+            isArabic = !isArabic;
+            document.documentElement.lang = isArabic ? 'ar' : 'en';
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            langText.innerText = isArabic ? 'English' : 'ترجمة للعربية';
+            
+            if(isArabic) {
+                sidebar.classList.remove('border-r');
+                sidebar.classList.add('border-l');
+            } else {
+                sidebar.classList.remove('border-l');
+                sidebar.classList.add('border-r');
+            }
+
+            buildNavigation();
+            renderSlide(currentSlideIndex);
+        };
+
+        toggleSidebarBtn.onclick = () => {
+            sidebar.classList.toggle('w-0');
+            sidebar.classList.toggle('w-1/4');
+            sidebar.classList.toggle('px-0');
+        };
+
+        function showKeyword(wordKey) {
+            const data = dictionary[wordKey];
+            if(!data) return;
+
+            document.getElementById('kw-title').innerText = wordKey;
+            document.getElementById('kw-en').innerText = data.en;
+            document.getElementById('kw-ar').innerText = data.ar;
+            
+            document.getElementById('keyword-modal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if(modalId === 'quiz-modal') {
+                document.getElementById('quiz-results').classList.add('hidden');
+                document.getElementById('quiz-results').innerHTML = '';
+            }
+        }
+
+        quizBtn.onclick = () => {
+            const slide = slides[currentSlideIndex];
+            if(!slide || !slide.quiz || slide.quiz.length === 0) return;
+
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            document.getElementById('quiz-results').classList.add('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                let html = `<div class="quiz-question" id="q-block-${i}">
+                    <p class="font-bold text-lg mb-2" dir="ltr">${i + 1}. ${q.q}</p>`;
+
+                if(q.type === 'mcq') {
+                    q.options.forEach((opt, optIndex) => {
+                        html += `<label class="block cursor-pointer p-2 hover:bg-blue-50 rounded" dir="ltr">
+                            <input type="radio" name="q${i}" value="${optIndex}" class="mr-2"> ${opt}
+                        </label>`;
+                    });
+                } else if(q.type === 'tf') {
+                    html += `
+                        <label class="inline-block cursor-pointer p-2 mr-4 hover:bg-blue-50 rounded" dir="ltr"><input type="radio" name="q${i}" value="true" class="mr-1"> True</label>
+                        <label class="inline-block cursor-pointer p-2 hover:bg-blue-50 rounded" dir="ltr"><input type="radio" name="q${i}" value="false" class="mr-1"> False</label>
+                    `;
+                } else if(q.type === 'short') {
+                    html += `<input type="text" name="q${i}" class="w-full border border-gray-300 p-2 rounded mt-1 focus:outline-none focus:border-blue-500" placeholder="Type your answer..." dir="ltr">`;
+                }
+                
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+
+            document.getElementById('quiz-modal').style.display = 'flex';
+        };
+
+        function evaluateQuiz() {
+            const slide = slides[currentSlideIndex];
+            let score = 0;
+            const resultsDiv = document.getElementById('quiz-results');
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                const block = document.getElementById(`q-block-${i}`);
+                let isCorrect = false;
+                let userAnswer = '';
+                let correctAnswerStr = '';
+
+                if(q.type === 'mcq') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.options[q.ans];
+                    if(selected) {
+                        userAnswer = q.options[parseInt(selected.value)];
+                        if(parseInt(selected.value) === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'tf') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.ans.charAt(0).toUpperCase() + q.ans.slice(1);
+                    if(selected) {
+                        userAnswer = selected.value === "true" ? "True" : "False";
+                        if(selected.value === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'short') {
+                    const input = document.querySelector(`input[name="q${i}"]`);
+                    correctAnswerStr = q.ans;
+                    if(input && input.value.trim() !== '') {
+                        userAnswer = input.value.trim();
+                        if(userAnswer.length > 2) {
+                             isCorrect = true; 
+                        }
+                    }
+                }
+
+                if(isCorrect) score++;
+
+                const feedback = document.createElement('div');
+                feedback.className = 'mt-2 p-3 rounded ' + (isCorrect ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300');
+                feedback.innerHTML = `
+                    <p class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">
+                        <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
+                        Q${i+1}: ${isCorrect ? 'Correct!' : 'Incorrect.'}
+                    </p>
+                    ${!isCorrect ? `<p class="text-sm mt-1 text-gray-700"><b>Correct Answer:</b> ${correctAnswerStr}</p>` : ''}
+                `;
+                block.appendChild(feedback);
+            });
+
+            resultsDiv.innerHTML = `<div class="bg-indigo-100 border-l-4 border-indigo-500 p-4 rounded text-center">
+                <p class="text-2xl font-bold text-indigo-800">Your Score: ${score} / 6</p>
+            </div>`;
+        }
+
+        window.onclick = function(event) {
+            const kwModal = document.getElementById('keyword-modal');
+            const qzModal = document.getElementById('quiz-modal');
+            if (event.target == kwModal) {
+                closeModal('keyword-modal');
+            }
+            if (event.target == qzModal) {
+                closeModal('quiz-modal');
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
