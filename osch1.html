@@ -1,0 +1,2517 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operating System Security - Al-Baha University</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        :lang(ar) {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .slide-container {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-top: 8px solid #1a56db; /* Blue accent */
+            border-bottom: 8px solid #10b981; /* Green accent */
+            min-height: 500px;
+            position: relative;
+        }
+
+        .keyword {
+            background-color: #fef08a;
+            color: #b45309;
+            padding: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-bottom: 2px dashed #b45309;
+        }
+
+        .keyword:hover {
+            background-color: #fde047;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close-btn:hover { color: #111827; }
+
+        .diagram-box {
+            border: 2px solid #3b82f6;
+            background-color: #eff6ff;
+            text-align: center;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .quiz-question {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .correct-answer { color: #16a34a; font-weight: bold; }
+        .wrong-answer { color: #dc2626; font-weight: bold; }
+
+        /* Slide specific typography */
+        .slide-title { color: #1e3a8a; font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .slide-list { list-style-type: none; padding-left: 1.5rem; }
+        .slide-list > li { margin-bottom: 1rem; font-size: 1.25rem; position: relative;}
+        .slide-list > li::before { content: '■'; color: #3b82f6; position: absolute; left: -1.5rem; top: 0.2rem; font-size: 0.8rem;}
+        .slide-sublist { list-style-type: circle; padding-left: 2rem; margin-top: 0.5rem;}
+        .slide-sublist > li { font-size: 1.1rem; margin-bottom: 0.5rem; color: #4b5563;}
+
+    </style>
+</head>
+<body class="flex h-screen text-gray-800">
+
+    <!-- Sidebar -->
+    <aside class="w-1/4 bg-gray-900 text-white flex flex-col h-full overflow-hidden shadow-xl z-10 transition-all duration-300" id="sidebar">
+        <div class="p-6 border-b border-gray-700 bg-gray-800">
+            <h1 class="text-xl font-bold text-blue-400 mb-2">Operating System Security</h1>
+            <p class="text-sm text-gray-400">Al-Baha University</p>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="slide-list-container">
+            <ul id="slide-nav" class="py-2">
+                <!-- Navigation items injected via JS -->
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto transition-all duration-300" id="main-content">
+        <!-- Top Toolbar -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+            <button id="toggle-sidebar" class="text-gray-500 hover:text-blue-600 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex gap-4">
+                <button id="lang-toggle" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-language"></i> <span id="lang-text">ترجمة للعربية</span>
+                </button>
+                <button id="quiz-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-question-circle"></i> <span>Take Quiz</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Slide Area -->
+        <div class="flex-1 p-8 flex justify-center items-start overflow-y-auto">
+            <div class="slide-container w-full max-w-4xl p-10 flex flex-col" id="slide-content">
+                <!-- Slide content injected here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Keyword Modal -->
+    <div id="keyword-modal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('keyword-modal')"></i>
+            <h2 id="kw-title" class="text-2xl font-bold text-blue-800 mb-4 pb-2 border-b"></h2>
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 text-left">
+                <p class="text-sm font-bold text-blue-600 uppercase mb-1">English Definition:</p>
+                <p id="kw-en" class="text-lg"></p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-right" dir="rtl">
+                <p class="text-sm font-bold text-green-600 mb-1">الشرح بالعربية:</p>
+                <p id="kw-ar" class="text-lg font-cairo"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal-overlay">
+        <div class="modal-content w-full max-w-3xl">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('quiz-modal')"></i>
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6 border-b pb-2"><i class="fas fa-pencil-alt mr-2"></i> Slide Quiz</h2>
+            <div id="quiz-container" class="space-y-6">
+                <!-- Quiz forms injected here -->
+            </div>
+            <div class="mt-8 flex justify-end">
+                <button onclick="evaluateQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition">Submit Answers</button>
+            </div>
+            <div id="quiz-results" class="mt-6 hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA STRUCTURE (All Content, Translations, Keywords, Quizzes) ---
+        const dictionary = {
+            // Part 1 Keywords
+            "Operating System": { en: "A program that acts as an intermediary between a user of a computer and the computer hardware.", ar: "برنامج يعمل كوسيط بين مستخدم جهاز الكمبيوتر وأجهزة الكمبيوتر (العتاد)." },
+            "Multiprogramming": { en: "Organizes jobs (code and data) so CPU always has one to execute.", ar: "تنظيم المهام (التعليمات البرمجية والبيانات) بحيث يكون لدى وحدة المعالجة المركزية دائمًا مهمة لتنفيذها." },
+            "Multitasking": { en: "Logical extension of multiprogramming in which CPU switches jobs so frequently that users can interact with each job while it is running.", ar: "امتداد منطقي للبرمجة المتعددة حيث تبدل وحدة المعالجة المركزية بين المهام بشكل متكرر بحيث يمكن للمستخدمين التفاعل مع كل مهمة أثناء تشغيلها." },
+            "Hardware": { en: "Provides basic computing resources (CPU, memory, I/O devices).", ar: "يوفر موارد الحوسبة الأساسية (وحدة المعالجة المركزية، الذاكرة، أجهزة الإدخال/الإخراج)." },
+            "Application programs": { en: "Define the ways in which the system resources are used to solve the computing problems of the users.", ar: "تحدد الطرق التي يتم بها استخدام موارد النظام لحل مشاكل الحوسبة للمستخدمين." },
+            "resource allocator": { en: "Manages all resources: CPU time, memory space, file-storage space, I/O.", ar: "يدير جميع الموارد: وقت المعالج، مساحة الذاكرة، مساحة تخزين الملفات، والإدخال/الإخراج." },
+            "control program": { en: "Controls execution of programs to prevent errors and improper use of the computer.", ar: "يتحكم في تنفيذ البرامج لمنع الأخطاء والاستخدام غير السليم للكمبيوتر." },
+            "bootstrap program": { en: "Simple code loaded at power-up or reboot to initialize the system and load the kernel.", ar: "كود بسيط يتم تحميله عند التشغيل أو إعادة التشغيل لتهيئة النظام وتحميل النواة." },
+            "kernel": { en: "The core of the operating system that loads and starts execution.", ar: "جوهر نظام التشغيل الذي يتم تحميله ويبدأ التنفيذ." },
+            "daemons": { en: "Services provided outside of the kernel, started by the kernel.", ar: "خدمات يتم توفيرها خارج النواة، وتبدأ بواسطة النواة." },
+            "interrupt": { en: "A signal to the CPU driven by hardware or software.", ar: "إشارة إلى وحدة المعالجة المركزية مدفوعة بالأجهزة أو البرامج." },
+            "system call": { en: "Request for operating system service.", ar: "طلب خدمة من نظام التشغيل." },
+            "job scheduling": { en: "The process of selecting one job to run from the subset of total jobs kept in memory.", ar: "عملية اختيار مهمة واحدة لتشغيلها من مجموعة المهام الإجمالية المحفوظة في الذاكرة." },
+            "interactive computing": { en: "A consequence of timesharing allowing user interaction with running jobs.", ar: "نتيجة للمشاركة الزمنية تتيح تفاعل المستخدم مع المهام قيد التشغيل." },
+            "Virtual memory": { en: "Allows execution of processes not completely in memory.", ar: "يسمح بتنفيذ العمليات غير الموجودة بالكامل في الذاكرة." },
+            "process": { en: "A program in execution. It is an active entity.", ar: "برنامج قيد التنفيذ. وهو كيان نشط." },
+            "program counter": { en: "Specifies the location of the next instruction to execute.", ar: "يحدد موقع التعليمة التالية المراد تنفيذها." },
+            "Concurrency": { en: "Multiplexing the CPUs among the processes/threads.", ar: "تعدد إرسال وحدات المعالجة المركزية بين العمليات / الخيوط." },
+            "file": { en: "Abstracts physical properties to logical storage unit.", ar: "يستخلص الخصائص المادية إلى وحدة تخزين منطقية." },
+            "Backup": { en: "Saving files onto stable (non-volatile) storage media.", ar: "حفظ الملفات على وسائط تخزين ثابتة (غير متطايرة)." },
+            "Virtualization": { en: "Allows operating systems to run applications within other OSes.", ar: "يسمح لأنظمة التشغيل بتشغيل التطبيقات داخل أنظمة تشغيل أخرى." },
+            "VMM": { en: "Virtual Machine Manager provides virtualization services.", ar: "مدير الآلة الافتراضية يوفر خدمات المحاكاة الافتراضية." },
+            "host": { en: "The native operating system running on the hardware.", ar: "نظام التشغيل الأساسي الذي يعمل على الأجهزة." },
+            "guest": { en: "An operating system running virtually inside a host OS.", ar: "نظام تشغيل يعمل بشكل افتراضي داخل نظام تشغيل مضيف." },
+            "Distributed computing": { en: "Collection of separate, possibly heterogeneous, systems networked together.", ar: "مجموعة من الأنظمة المنفصلة، وربما غير المتجانسة، متصلة بشبكة معًا." },
+            "Client-Server": { en: "Model where systems act as servers responding to requests generated by clients.", ar: "نموذج حيث تعمل الأنظمة كخوادم تستجيب للطلبات التي يولدها العملاء." },
+            "Peer-to-Peer": { en: "P2P model does not distinguish clients and servers; all nodes are peers.", ar: "نموذج الند للند لا يميز بين العملاء والخوادم؛ جميع العقد أقران." },
+            "Cloud computing": { en: "Delivers computing, storage, even apps as a service across a network.", ar: "يقدم الحوسبة والتخزين وحتى التطبيقات كخدمة عبر شبكة." },
+            "SaaS": { en: "Software as a Service - applications available via the Internet.", ar: "البرمجيات كخدمة - تطبيقات متاحة عبر الإنترنت." },
+            "Real-time embedded systems": { en: "Computers with well-defined fixed time constraints.", ar: "أجهزة كمبيوتر ذات قيود زمنية ثابتة ومحددة جيدًا." },
+
+            // Part 2 Keywords
+            "batch systems": { en: "Systems that originally only permitted one process to be run at a time.", ar: "أنظمة كانت تسمح في الأصل بتشغيل عملية واحدة فقط في كل مرة." },
+            "timesharing systems": { en: "Systems where multiple processes run concurrently and share the CPU time.", ar: "أنظمة تعمل فيها عمليات متعددة بشكل متزامن وتتشارك وقت وحدة المعالجة المركزية." },
+            "resource mechanisms": { en: "Mechanisms like file systems and memory management that define how processes use hardware.", ar: "آليات مثل أنظمة الملفات وإدارة الذاكرة التي تحدد كيفية استخدام العمليات للأجهزة." },
+            "scheduling": { en: "The responsibility of switching among processes fairly for good performance.", ar: "مسؤولية التبديل بين العمليات بإنصاف لتحقيق أداء جيد." },
+            "constrained systems": { en: "Systems that can enforce security goals with a high degree of assurance.", ar: "أنظمة يمكنها فرض أهداف الأمان بدرجة عالية من الضمان." },
+            "general-purpose systems": { en: "Systems that can enforce limited security goals with a low to medium degree of assurance.", ar: "أنظمة تفرض أهدافًا أمنية محدودة بدرجة ضمان منخفضة إلى متوسطة." },
+            "secure operating system": { en: "Provides security mechanisms ensuring system's security goals are enforced despite threats.", ar: "يوفر آليات أمان تضمن فرض أهداف الأمان للنظام على الرغم من التهديدات." },
+            "security goals": { en: "Define the operations that can be executed by a system while preventing unauthorized access.", ar: "تحدد العمليات التي يمكن للنظام تنفيذها مع منع الوصول غير المصرح به." },
+            "secrecy": { en: "Requirements that limit the objects that individual subjects can read.", ar: "متطلبات تقيد الكائنات التي يمكن للأشخاص/الموضوعات قراءتها." },
+            "integrity": { en: "Requirements that limit the objects that subjects can write.", ar: "متطلبات تقيد الكائنات التي يمكن للأشخاص/الموضوعات تعديلها أو الكتابة عليها." },
+            "availability": { en: "Requirements that limit the system resources that subjects may consume.", ar: "متطلبات تقيد موارد النظام التي يمكن للأشخاص/الموضوعات استهلاكها." },
+            "subjects": { en: "Entities such as processes and users that perform operations.", ar: "كيانات مثل العمليات والمستخدمين التي تنفذ العمليات." },
+            "objects": { en: "Entities such as files and sockets that are operated upon.", ar: "كيانات مثل الملفات والمقابس التي يتم إجراء العمليات عليها." },
+            "TCB": { en: "Trusted Computing Base; the set of software and data upon which the system depends for correct security enforcement.", ar: "قاعدة الحوسبة الموثوقة؛ مجموعة البرامج والبيانات التي يعتمد عليها النظام لفرض الأمان بشكل صحيح." },
+            "threat model": { en: "Defines a set of operations that an attacker may use to compromise a system.", ar: "يحدد مجموعة من العمليات التي قد يستخدمها المهاجم لاختراق نظام ما." },
+            "trust model": { en: "Defines the set of software and data upon which the system depends for correct enforcement of security goals.", ar: "يحدد مجموعة البرامج والبيانات التي يعتمد عليها النظام لفرض أهداف الأمان بشكل صحيح." }
+        };
+
+        function kw(word) {
+            return `<span class="keyword" onclick="showKeyword('${word}')">${word}</span>`;
+        }
+
+        const slides = [
+            // ================== PART 1 SLIDES ==================
+            {
+                id: 2,
+                titleEn: "Outlines (Part 1)",
+                titleAr: "المحتويات (الجزء الأول)",
+                contentEn: `
+                    <h2 class="slide-title">Outlines:</h2>
+                    <ul class="slide-list">
+                        <li>Computer System Structure.</li>
+                        <li>What is an ${kw('Operating System')}?</li>
+                        <li>${kw('Multiprogramming')} and ${kw('Multitasking')}.</li>
+                        <li>Process Management.</li>
+                        <li>Memory Management.</li>
+                        <li>File-system Management.</li>
+                        <li>Mass-Storage Management.</li>
+                        <li>${kw('Virtualization')}.</li>
+                        <li>Distributed Systems.</li>
+                        <li>Computing Environments.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحتويات:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>هيكل نظام الكمبيوتر.</li>
+                        <li>ما هو ${kw('Operating System')}؟</li>
+                        <li>${kw('Multiprogramming')} و ${kw('Multitasking')}.</li>
+                        <li>إدارة العمليات.</li>
+                        <li>إدارة الذاكرة.</li>
+                        <li>إدارة نظام الملفات.</li>
+                        <li>إدارة التخزين الشامل.</li>
+                        <li>${kw('Virtualization')}.</li>
+                        <li>الأنظمة الموزعة.</li>
+                        <li>بيئات الحوسبة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is included in the outlines?", options: ["Database Design", "Virtualization", "Web Development", "Network Routing"], ans: 1 },
+                    { type: 'mcq', q: "Which management topic is listed in the outline?", options: ["User Management", "Cable Management", "File-system Management", "Power Management"], ans: 2 },
+                    { type: 'tf', q: "Multiprogramming and Multitasking are part of the course outlines.", ans: "true" },
+                    { type: 'tf', q: "Hardware maintenance is explicitly listed in the outlines.", ans: "false" },
+                    { type: 'short', q: "Name one type of 'Management' listed in the outline.", ans: "Process Management / Memory Management / File-system Management / Mass-Storage Management" },
+                    { type: 'short', q: "What is the topic mentioned before 'Distributed Systems'?", ans: "Virtualization" }
+                ]
+            },
+            {
+                id: 3,
+                titleEn: "Computer System Structure",
+                titleAr: "هيكل نظام الكمبيوتر",
+                contentEn: `
+                    <h2 class="slide-title">Computer System Structure</h2>
+                    <p class="mb-4 text-lg">Computer system can be divided into four components:</p>
+                    <ul class="slide-list">
+                        <li><strong>${kw('Hardware')}</strong> - provides basic computing resources
+                            <ul class="slide-sublist"><li>CPU, memory, I/O devices</li></ul>
+                        </li>
+                        <li><strong>${kw('Operating System')}</strong>
+                            <ul class="slide-sublist"><li>Controls and coordinates use of hardware among various applications and users</li></ul>
+                        </li>
+                        <li><strong>${kw('Application programs')}</strong> - define the ways in which the system resources are used to solve the computing problems of the users
+                            <ul class="slide-sublist"><li>Word processors, compilers, web browsers, database systems, video games</li></ul>
+                        </li>
+                        <li><strong>Users</strong>
+                            <ul class="slide-sublist"><li>People, machines, other computers</li></ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">هيكل نظام الكمبيوتر</h2>
+                    <p class="mb-4 text-lg" dir="rtl">يمكن تقسيم نظام الكمبيوتر إلى أربعة مكونات:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>${kw('Hardware')} (الأجهزة)</strong> - توفر موارد الحوسبة الأساسية
+                            <ul class="slide-sublist"><li>وحدة المعالجة المركزية، الذاكرة، أجهزة الإدخال/الإخراج</li></ul>
+                        </li>
+                        <li><strong>${kw('Operating System')} (نظام التشغيل)</strong>
+                            <ul class="slide-sublist"><li>يتحكم وينسق استخدام الأجهزة بين مختلف التطبيقات والمستخدمين</li></ul>
+                        </li>
+                        <li><strong>${kw('Application programs')} (برامج التطبيقات)</strong> - تحدد الطرق التي يتم بها استخدام موارد النظام لحل مشاكل الحوسبة للمستخدمين
+                            <ul class="slide-sublist"><li>معالجات النصوص، المترجمات، متصفحات الويب، أنظمة قواعد البيانات، ألعاب الفيديو</li></ul>
+                        </li>
+                        <li><strong>المستخدمون</strong>
+                            <ul class="slide-sublist"><li>أشخاص، آلات، أجهزة كمبيوتر أخرى</li></ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which component provides basic computing resources?", options: ["Operating System", "Users", "Hardware", "Application programs"], ans: 2 },
+                    { type: 'mcq', q: "What defines the ways system resources are used to solve computing problems?", options: ["Hardware", "Application programs", "CPU", "Memory"], ans: 1 },
+                    { type: 'tf', q: "Users of a computer system can only be people.", ans: "false" },
+                    { type: 'tf', q: "Compilers and web browsers are examples of application programs.", ans: "true" },
+                    { type: 'short', q: "Name the four components a computer system can be divided into.", ans: "Hardware, Operating system, Application programs, Users" },
+                    { type: 'short', q: "What does the operating system coordinate the use of?", ans: "hardware" }
+                ]
+            },
+            {
+                id: 4,
+                titleEn: "Abstract View of Components",
+                titleAr: "عرض مجرد للمكونات",
+                contentEn: `
+                    <h2 class="slide-title">Abstract View of Components of Computer</h2>
+                    <div class="flex flex-col items-center mt-8 w-full max-w-lg mx-auto space-y-4">
+                        <div class="diagram-box w-1/2 bg-blue-100 border-blue-400">User</div>
+                        <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                        <div class="diagram-box w-full bg-gray-200 border-gray-400 text-sm">
+                            Application Programs<br>
+                            <span class="font-normal">(compilers, web browsers, development kits, etc.)</span>
+                        </div>
+                        <div class="flex justify-around w-full px-10">
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                        </div>
+                        <div class="diagram-box w-full bg-blue-200 border-blue-500">Operating System</div>
+                        <div class="flex justify-around w-full px-10">
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                        </div>
+                        <div class="diagram-box w-full bg-gray-300 border-gray-500 text-sm">
+                            Computer Hardware<br>
+                            <span class="font-normal">(CPU, memory, I/O devices, etc.)</span>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">عرض مجرد لمكونات الكمبيوتر</h2>
+                    <div class="flex flex-col items-center mt-8 w-full max-w-lg mx-auto space-y-4" dir="rtl">
+                        <div class="diagram-box w-1/2 bg-blue-100 border-blue-400">المستخدم (User)</div>
+                        <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                        <div class="diagram-box w-full bg-gray-200 border-gray-400 text-sm">
+                            برامج التطبيقات<br>
+                            <span class="font-normal">(المترجمات، متصفحات الويب، أدوات التطوير، إلخ)</span>
+                        </div>
+                        <div class="flex justify-around w-full px-10">
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                        </div>
+                        <div class="diagram-box w-full bg-blue-200 border-blue-500">نظام التشغيل</div>
+                        <div class="flex justify-around w-full px-10">
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                             <i class="fas fa-arrows-alt-v text-gray-500 text-xl"></i>
+                        </div>
+                        <div class="diagram-box w-full bg-gray-300 border-gray-500 text-sm">
+                            أجهزة الكمبيوتر (Hardware)<br>
+                            <span class="font-normal">(وحدة المعالجة المركزية، الذاكرة، أجهزة الإدخال/الإخراج، إلخ)</span>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In the abstract view, what sits directly between Application Programs and Computer Hardware?", options: ["User", "Operating System", "Compilers", "Memory"], ans: 1 },
+                    { type: 'mcq', q: "According to the diagram, what interacts directly with the user?", options: ["Computer Hardware", "Operating System", "Application Programs", "CPU"], ans: 2 },
+                    { type: 'tf', q: "The Operating System interacts directly with the Computer Hardware.", ans: "true" },
+                    { type: 'tf', q: "Web browsers are considered part of the Operating System layer.", ans: "false" },
+                    { type: 'short', q: "What is the topmost layer in the abstract view of computer components?", ans: "user" },
+                    { type: 'short', q: "What is the bottommost layer in the abstract view?", ans: "computer hardware" }
+                ]
+            },
+            {
+                id: 5,
+                titleEn: "What is an Operating System?",
+                titleAr: "ما هو نظام التشغيل؟",
+                contentEn: `
+                    <h2 class="slide-title">What is an Operating System?</h2>
+                    <p class="mb-4 text-xl">A program that acts as an intermediary between a user of a computer and the computer hardware.</p>
+                    <ul class="slide-list mt-6">
+                        <li><strong>Operating system goals:</strong>
+                            <ul class="slide-sublist">
+                                <li>Execute user programs and make solving user problems easier.</li>
+                                <li>Make the computer system convenient to use.</li>
+                                <li>Use the computer hardware in an efficient manner.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4"><strong>OS is a ${kw('resource allocator')}:</strong>
+                            <ul class="slide-sublist">
+                                <li>Manages all resources: CPU time, memory space, file-storage space, I/O.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4"><strong>OS is a ${kw('control program')}:</strong>
+                            <ul class="slide-sublist">
+                                <li>Controls execution of programs to prevent errors and improper use of the computer.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">ما هو نظام التشغيل؟</h2>
+                    <p class="mb-4 text-xl" dir="rtl">برنامج يعمل كوسيط بين مستخدم جهاز الكمبيوتر وأجهزة الكمبيوتر (العتاد).</p>
+                    <ul class="slide-list mt-6" dir="rtl">
+                        <li><strong>أهداف نظام التشغيل:</strong>
+                            <ul class="slide-sublist">
+                                <li>تنفيذ برامج المستخدم وجعل حل مشاكل المستخدم أسهل.</li>
+                                <li>جعل نظام الكمبيوتر ملائمًا للاستخدام.</li>
+                                <li>استخدام أجهزة الكمبيوتر بطريقة فعالة.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4"><strong>نظام التشغيل هو ${kw('resource allocator')} (موزع موارد):</strong>
+                            <ul class="slide-sublist">
+                                <li>يدير جميع الموارد: وقت وحدة المعالجة المركزية، مساحة الذاكرة، مساحة تخزين الملفات، الإدخال/الإخراج.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4"><strong>نظام التشغيل هو ${kw('control program')} (برنامج تحكم):</strong>
+                            <ul class="slide-sublist">
+                                <li>يتحكم في تنفيذ البرامج لمنع الأخطاء والاستخدام غير السليم للكمبيوتر.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What acts as an intermediary between a user and computer hardware?", options: ["Application", "Operating System", "Compiler", "Hardware"], ans: 1 },
+                    { type: 'mcq', q: "When the OS manages CPU time and memory space, it is acting as a:", options: ["Control program", "User interface", "Resource allocator", "Hardware device"], ans: 2 },
+                    { type: 'tf', q: "One goal of an OS is to make solving user problems easier.", ans: "true" },
+                    { type: 'tf', q: "The OS prevents errors and improper use by acting as a resource allocator.", ans: "false" },
+                    { type: 'short', q: "Fill the blank: OS is a ______ program that controls execution of programs.", ans: "control" },
+                    { type: 'short', q: "Name one resource managed by the resource allocator.", ans: "CPU time / memory space / file-storage space / I/O" }
+                ]
+            },
+            {
+                id: 6,
+                titleEn: "Computer Startup",
+                titleAr: "بدء تشغيل الكمبيوتر",
+                contentEn: `
+                    <h2 class="slide-title">Computer Startup</h2>
+                    <ul class="slide-list mt-6 space-y-4">
+                        <li>${kw('bootstrap program')} is loaded at power-up or reboot
+                            <ul class="slide-sublist mt-2 space-y-2">
+                                <li>Typically stored in ROM or EPROM, generally known as firmware</li>
+                                <li>Initializes all aspects of system</li>
+                                <li>Loads operating system ${kw('kernel')} and starts execution</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بدء تشغيل الكمبيوتر</h2>
+                    <ul class="slide-list mt-6 space-y-4" dir="rtl">
+                        <li>يتم تحميل ${kw('bootstrap program')} (برنامج التمهيد) عند تشغيل الطاقة أو إعادة التشغيل
+                            <ul class="slide-sublist mt-2 space-y-2">
+                                <li>يتم تخزينه عادةً في ROM أو EPROM، ويُعرف عمومًا باسم البرنامج الثابت (firmware)</li>
+                                <li>يهيئ جميع جوانب النظام</li>
+                                <li>يحمل ${kw('kernel')} (نواة) نظام التشغيل ويبدأ التنفيذ</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is loaded at power-up or reboot?", options: ["Application software", "User files", "Bootstrap program", "Web browser"], ans: 2 },
+                    { type: 'mcq', q: "Where is the bootstrap program typically stored?", options: ["RAM", "ROM or EPROM", "Hard Drive", "USB Flash Drive"], ans: 1 },
+                    { type: 'tf', q: "The bootstrap program is generally known as hardware.", ans: "false" },
+                    { type: 'tf', q: "The bootstrap program initializes all aspects of the system.", ans: "true" },
+                    { type: 'short', q: "What does the bootstrap program load to start execution?", ans: "operating system kernel" },
+                    { type: 'short', q: "Besides ROM, where else might the firmware be stored?", ans: "EPROM" }
+                ]
+            },
+            {
+                id: 7,
+                titleEn: "Operating-System Operations",
+                titleAr: "عمليات نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Operating-System Operations</h2>
+                    <p class="mb-4 text-lg font-semibold">Bootstrap program - simple code to initialize the system, load the kernel</p>
+                    <ul class="slide-list">
+                        <li>Kernel loads</li>
+                        <li>Starts system ${kw('daemons')} (services provided outside of the kernel)</li>
+                        <li>Kernel ${kw('interrupt')} driven (hardware and software)
+                            <ul class="slide-sublist">
+                                <li>Hardware interrupt by one of the devices</li>
+                                <li>Software interrupt (exception or trap):
+                                    <ul class="list-disc pl-6 mt-1">
+                                        <li>Software error (e.g., division by zero)</li>
+                                        <li>Request for operating system service - ${kw('system call')}</li>
+                                        <li>Other process problems include infinite loop, processes modifying each other or the operating system</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">عمليات نظام التشغيل</h2>
+                    <p class="mb-4 text-lg font-semibold" dir="rtl">برنامج التمهيد - كود بسيط لتهيئة النظام، وتحميل النواة</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يتم تحميل النواة</li>
+                        <li>يبدأ ${kw('daemons')} (الخدمات الخفية) للنظام (وهي خدمات تقدم خارج النواة)</li>
+                        <li>النواة موجهة بواسطة الـ ${kw('interrupt')} (المقاطعة) (الأجهزة والبرامج)
+                            <ul class="slide-sublist">
+                                <li>مقاطعة الأجهزة (Hardware interrupt) بواسطة أحد الأجهزة</li>
+                                <li>مقاطعة البرامج (Software interrupt) (استثناء أو فخ):
+                                    <ul class="list-disc pr-6 mt-1">
+                                        <li>خطأ برمجي (مثل، القسمة على صفر)</li>
+                                        <li>طلب خدمة نظام التشغيل - ${kw('system call')} (استدعاء النظام)</li>
+                                        <li>مشاكل العمليات الأخرى تشمل الحلقة اللانهائية، العمليات التي تعدل بعضها البعض أو تعدل نظام التشغيل</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What are system daemons?", options: ["Hardware devices", "Services provided outside of the kernel", "Parts of the bootstrap program", "Types of memory"], ans: 1 },
+                    { type: 'mcq', q: "A software interrupt is also known as:", options: ["Trap or exception", "System boot", "Hardware signal", "Daemon"], ans: 0 },
+                    { type: 'tf', q: "Division by zero is an example of a hardware interrupt.", ans: "false" },
+                    { type: 'tf', q: "A request for an operating system service is called a system call.", ans: "true" },
+                    { type: 'short', q: "What drives the kernel's operation according to the slide?", ans: "interrupt" },
+                    { type: 'short', q: "Name one process problem mentioned besides division by zero.", ans: "infinite loop / processes modifying each other" }
+                ]
+            },
+            {
+                id: 8,
+                titleEn: "Multiprogramming and Multitasking",
+                titleAr: "البرمجة المتعددة والمهام المتعددة",
+                contentEn: `
+                    <h2 class="slide-title">Multiprogramming and Multitasking</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Multiprogramming')} (Batch system) needed for efficiency
+                            <ul class="slide-sublist">
+                                <li>Single user cannot keep CPU and I/O devices busy at all times</li>
+                                <li>Multiprogramming organizes jobs (code and data) so CPU always has one to execute</li>
+                                <li>A subset of total jobs in system is kept in memory</li>
+                                <li>One job selected and run via ${kw('job scheduling')}</li>
+                                <li>When it has to wait (for I/O for example), OS switches to another job</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">البرمجة المتعددة والمهام المتعددة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('Multiprogramming')} (البرمجة المتعددة - نظام الدُفعات) مطلوبة للكفاءة
+                            <ul class="slide-sublist">
+                                <li>لا يمكن لمستخدم واحد أن يبقي وحدة المعالجة المركزية وأجهزة الإدخال/الإخراج مشغولة في جميع الأوقات</li>
+                                <li>تنظم البرمجة المتعددة المهام (الكود والبيانات) بحيث يكون لدى وحدة المعالجة المركزية دائماً مهمة لتنفيذها</li>
+                                <li>يتم الاحتفاظ بمجموعة فرعية من إجمالي المهام في النظام داخل الذاكرة</li>
+                                <li>يتم اختيار مهمة واحدة وتشغيلها عبر ${kw('job scheduling')} (جدولة المهام)</li>
+                                <li>عندما تضطر إلى الانتظار (من أجل الإدخال/الإخراج على سبيل المثال)، ينتقل نظام التشغيل إلى مهمة أخرى</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Why is multiprogramming needed?", options: ["For security", "For efficiency", "For networking", "For graphics"], ans: 1 },
+                    { type: 'mcq', q: "What does the OS do when a job has to wait for I/O?", options: ["Shuts down", "Restarts the job", "Switches to another job", "Displays an error"], ans: 2 },
+                    { type: 'tf', q: "A single user can keep the CPU and I/O devices busy at all times.", ans: "false" },
+                    { type: 'tf', q: "In multiprogramming, only one job is ever kept in memory at a time.", ans: "false" },
+                    { type: 'short', q: "What organizes jobs so the CPU always has one to execute?", ans: "Multiprogramming" },
+                    { type: 'short', q: "Through what mechanism is one job selected and run?", ans: "job scheduling" }
+                ]
+            },
+            {
+                id: 9,
+                titleEn: "Multitasking (Cont..)",
+                titleAr: "المهام المتعددة (يتبع..)",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>Timesharing (${kw('Multitasking')}) is logical extension in which CPU switches jobs so frequently that users can interact with each job while it is running, creating ${kw('interactive computing')}
+                            <ul class="slide-sublist">
+                                <li>Response time should be &lt; 1 second</li>
+                                <li>Each user has at least one program executing in memory &#8594; process</li>
+                                <li>If several jobs ready to run at the same time &#8594; CPU scheduling</li>
+                                <li>If processes don't fit in memory, swapping moves them in and out to run</li>
+                                <li>${kw('Virtual memory')} allows execution of processes not completely in memory</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>المشاركة الزمنية (${kw('Multitasking')}) هي امتداد منطقي حيث تقوم وحدة المعالجة المركزية بتبديل المهام بشكل متكرر بحيث يمكن للمستخدمين التفاعل مع كل مهمة أثناء تشغيلها، مما يؤدي إلى إنشاء ${kw('interactive computing')} (الحوسبة التفاعلية)
+                            <ul class="slide-sublist">
+                                <li>يجب أن يكون وقت الاستجابة أقل من 1 ثانية</li>
+                                <li>لكل مستخدم برنامج واحد على الأقل ينفذ في الذاكرة &#8592; عملية (process)</li>
+                                <li>إذا كانت هناك عدة مهام جاهزة للتشغيل في نفس الوقت &#8592; جدولة وحدة المعالجة المركزية (CPU scheduling)</li>
+                                <li>إذا كانت العمليات لا تتسع في الذاكرة، فإن التبديل (swapping) ينقلها للداخل والخارج لتشغيلها</li>
+                                <li>${kw('Virtual memory')} (الذاكرة الافتراضية) تسمح بتنفيذ العمليات غير الموجودة بالكامل في الذاكرة</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What should the response time be in timesharing?", options: ["> 10 seconds", "< 1 second", "Exactly 5 seconds", "> 1 minute"], ans: 1 },
+                    { type: 'mcq', q: "What allows the execution of processes not completely in memory?", options: ["Swapping", "Virtual memory", "CPU scheduling", "Job scheduling"], ans: 1 },
+                    { type: 'tf', q: "Timesharing creates interactive computing.", ans: "true" },
+                    { type: 'tf', q: "If processes don't fit in memory, the CPU simply stops.", ans: "false" },
+                    { type: 'short', q: "What moves processes in and out of memory to run if they don't fit?", ans: "swapping" },
+                    { type: 'short', q: "What is timesharing a logical extension of? (implied from previous slide/topic)", ans: "multiprogramming" }
+                ]
+            },
+            {
+                id: 10,
+                titleEn: "Memory Layout Diagram",
+                titleAr: "مخطط تخطيط الذاكرة",
+                contentEn: `
+                    <h2 class="slide-title">Memory Layout for Multiprogrammed System</h2>
+                    <div class="flex justify-center mt-10">
+                        <div class="w-64 border-2 border-gray-800 flex flex-col font-mono text-center relative">
+                            <div class="absolute -left-12 top-0">max</div>
+                            <div class="absolute -left-8 bottom-0">0</div>
+                            
+                            <div class="bg-gray-300 py-6 border-b-2 border-gray-800 font-bold">operating system</div>
+                            <div class="bg-white py-6 border-b-2 border-gray-800">process 1</div>
+                            <div class="bg-white py-6 border-b-2 border-gray-800">process 2</div>
+                            <div class="bg-white py-6 border-b-2 border-gray-800">process 3</div>
+                            <div class="bg-white py-6">process 4</div>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تخطيط الذاكرة لنظام البرمجة المتعددة</h2>
+                    <div class="flex justify-center mt-10" dir="rtl">
+                        <div class="w-64 border-2 border-gray-800 flex flex-col font-mono text-center relative">
+                            <div class="absolute -right-12 top-0">الحد الأقصى (max)</div>
+                            <div class="absolute -right-8 bottom-0">0</div>
+                            
+                            <div class="bg-gray-300 py-6 border-b-2 border-gray-800 font-bold">نظام التشغيل (operating system)</div>
+                            <div class="bg-white py-6 border-b-2 border-gray-800">العملية 1 (process 1)</div>
+                            <div class="bg-white py-6 border-b-2 border-gray-800">العملية 2 (process 2)</div>
+                            <div class="bg-white py-6 border-b-2 border-gray-800">العملية 3 (process 3)</div>
+                            <div class="bg-white py-6">العملية 4 (process 4)</div>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In the memory layout diagram, what occupies the top section of memory?", options: ["process 1", "process 4", "operating system", "free space"], ans: 2 },
+                    { type: 'mcq', q: "How many user processes are shown in the diagram?", options: ["2", "3", "4", "5"], ans: 2 },
+                    { type: 'tf', q: "The operating system is shown at the memory address 0.", ans: "false" },
+                    { type: 'tf', q: "Process 1, 2, 3, and 4 are shown occupying memory simultaneously.", ans: "true" },
+                    { type: 'short', q: "What label is at the bottom of the memory layout?", ans: "0" },
+                    { type: 'short', q: "What label is at the top of the memory layout?", ans: "max" }
+                ]
+            },
+            {
+                id: 11,
+                titleEn: "Process Management",
+                titleAr: "إدارة العمليات",
+                contentEn: `
+                    <h2 class="slide-title">Process Management</h2>
+                    <p class="mb-4 text-lg">A ${kw('process')} is a program in execution. It is a unit of work within the system. Program is a passive entity, process is an active entity.</p>
+                    <ul class="slide-list">
+                        <li>Process needs resources to accomplish its task
+                            <ul class="slide-sublist">
+                                <li>CPU, memory, I/O, files</li>
+                                <li>Initialization data</li>
+                            </ul>
+                        </li>
+                        <li>Process termination requires reclaim of any reusable resources</li>
+                        <li>Single-threaded process has one ${kw('program counter')} specifying location of next instruction to execute
+                            <ul class="slide-sublist"><li>Process executes instructions sequentially, one at a time, until completion</li></ul>
+                        </li>
+                        <li>Multi-threaded process has one program counter per thread</li>
+                        <li>Typically, system has many processes, some user, some operating system running concurrently on one or more CPUs</li>
+                        <li>${kw('Concurrency')} by multiplexing the CPUs among the processes / threads</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">إدارة العمليات</h2>
+                    <p class="mb-4 text-lg" dir="rtl">الـ ${kw('process')} (العملية) هي برنامج قيد التنفيذ. وهي وحدة عمل داخل النظام. البرنامج كيان غير نشط (سلبي)، بينما العملية كيان نشط.</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تحتاج العملية إلى موارد لإنجاز مهمتها
+                            <ul class="slide-sublist">
+                                <li>وحدة المعالجة المركزية، الذاكرة، الإدخال/الإخراج، الملفات</li>
+                                <li>بيانات التهيئة</li>
+                            </ul>
+                        </li>
+                        <li>يتطلب إنهاء العملية استرداد أي موارد قابلة لإعادة الاستخدام</li>
+                        <li>العملية ذات الخيط الواحد (Single-threaded) لها ${kw('program counter')} (عداد برنامج) واحد يحدد موقع التعليمة التالية المراد تنفيذها
+                            <ul class="slide-sublist"><li>تنفذ العملية التعليمات بالتسلسل، واحدة تلو الأخرى، حتى تكتمل</li></ul>
+                        </li>
+                        <li>العملية متعددة الخيوط (Multi-threaded) لها عداد برنامج واحد لكل خيط</li>
+                        <li>عادةً، يحتوي النظام على العديد من العمليات، بعضها للمستخدم، وبعضها لنظام التشغيل تعمل بشكل متزامن على وحدة معالجة مركزية واحدة أو أكثر</li>
+                        <li>الـ ${kw('Concurrency')} (التزامن) يتم عن طريق تعدد إرسال (multiplexing) وحدات المعالجة المركزية بين العمليات / الخيوط</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "A program is a passive entity, what is a process?", options: ["Also passive", "An active entity", "A hardware device", "A memory slot"], ans: 1 },
+                    { type: 'mcq', q: "What does a single-threaded process use to specify the location of the next instruction?", options: ["Thread counter", "Program counter", "Memory register", "I/O controller"], ans: 1 },
+                    { type: 'tf', q: "Process termination requires the system to reclaim reusable resources.", ans: "true" },
+                    { type: 'tf', q: "A multi-threaded process has only one program counter in total.", ans: "false" },
+                    { type: 'short', q: "What is achieved by multiplexing CPUs among processes/threads?", ans: "Concurrency" },
+                    { type: 'short', q: "Name two resources a process needs to accomplish its task.", ans: "CPU / memory / I/O / files / Initialization data" }
+                ]
+            },
+            {
+                id: 12,
+                titleEn: "Memory Management",
+                titleAr: "إدارة الذاكرة",
+                contentEn: `
+                    <h2 class="slide-title">Memory Management</h2>
+                    <ul class="slide-list">
+                        <li>To execute a program, all (or part) of the instructions must be in memory.</li>
+                        <li>All (or part) of the data that is needed by the program must be in memory.</li>
+                        <li>Memory management determines what is in memory and when
+                            <ul class="slide-sublist"><li>Optimizing CPU utilization and computer response to users</li></ul>
+                        </li>
+                        <li>Memory management activities:
+                            <ul class="slide-sublist">
+                                <li>Keeping track of which parts of memory are currently being used and by whom</li>
+                                <li>Deciding which processes (or parts thereof) and data to move into and out of memory</li>
+                                <li>Allocating and deallocating memory space as needed</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">إدارة الذاكرة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>لتنفيذ برنامج، يجب أن تكون جميع (أو جزء من) التعليمات في الذاكرة.</li>
+                        <li>يجب أن تكون جميع (أو جزء من) البيانات التي يحتاجها البرنامج في الذاكرة.</li>
+                        <li>تحدد إدارة الذاكرة ما هو موجود في الذاكرة ومتى
+                            <ul class="slide-sublist"><li>تحسين استخدام وحدة المعالجة المركزية واستجابة الكمبيوتر للمستخدمين</li></ul>
+                        </li>
+                        <li>أنشطة إدارة الذاكرة:
+                            <ul class="slide-sublist">
+                                <li>تتبع أجزاء الذاكرة المستخدمة حاليًا ومَن يستخدمها</li>
+                                <li>تحديد العمليات (أو أجزاء منها) والبيانات التي يجب نقلها داخل وخارج الذاكرة</li>
+                                <li>تخصيص وإلغاء تخصيص مساحة الذاكرة حسب الحاجة</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "To execute a program, where must its instructions be?", options: ["In the CPU register", "In the hard drive", "In memory", "In the ROM"], ans: 2 },
+                    { type: 'mcq', q: "Which of the following is a memory management activity?", options: ["Allocating and deallocating memory space", "Rendering graphics", "Managing network packets", "Compiling code"], ans: 0 },
+                    { type: 'tf', q: "Memory management aims to optimize CPU utilization.", ans: "true" },
+                    { type: 'tf', q: "Memory management only tracks parts of memory that are completely free.", ans: "false" },
+                    { type: 'short', q: "What does memory management allocate and deallocate?", ans: "memory space" },
+                    { type: 'short', q: "What determines what is in memory and when?", ans: "Memory management" }
+                ]
+            },
+            {
+                id: 13,
+                titleEn: "File-system Management",
+                titleAr: "إدارة نظام الملفات",
+                contentEn: `
+                    <h2 class="slide-title">File-system Management</h2>
+                    <ul class="slide-list">
+                        <li>OS provides uniform, logical view of information storage
+                            <ul class="slide-sublist"><li>Abstracts physical properties to logical storage unit - ${kw('file')}</li></ul>
+                        </li>
+                        <li>Each medium is controlled by device (i.e., disk drive, tape drive)
+                            <ul class="slide-sublist"><li>Varying properties include access speed, capacity, data-transfer rate, access method (sequential or random)</li></ul>
+                        </li>
+                        <li>File-System management
+                            <ul class="slide-sublist">
+                                <li>Files usually organized into directories</li>
+                                <li>Access control on most systems to determine who can access what</li>
+                            </ul>
+                        </li>
+                        <li>OS activities include
+                            <ul class="slide-sublist">
+                                <li>Creating and deleting files and directories</li>
+                                <li>Mapping files onto secondary storage</li>
+                                <li>Primitives to manipulate files and directories</li>
+                                <li>${kw('Backup')} files onto stable (non-volatile) storage media</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">إدارة نظام الملفات</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يوفر نظام التشغيل عرضًا منطقيًا وموحدًا لتخزين المعلومات
+                            <ul class="slide-sublist"><li>يستخلص الخصائص المادية إلى وحدة تخزين منطقية - ${kw('file')} (ملف)</li></ul>
+                        </li>
+                        <li>يتم التحكم في كل وسيط بواسطة جهاز (مثل: محرك الأقراص، محرك الشريط)
+                            <ul class="slide-sublist"><li>تشمل الخصائص المتغيرة سرعة الوصول، السعة، معدل نقل البيانات، طريقة الوصول (تسلسلي أو عشوائي)</li></ul>
+                        </li>
+                        <li>إدارة نظام الملفات
+                            <ul class="slide-sublist">
+                                <li>عادة ما يتم تنظيم الملفات في أدلة (Directories)</li>
+                                <li>التحكم في الوصول في معظم الأنظمة لتحديد مَن يمكنه الوصول إلى ماذا</li>
+                            </ul>
+                        </li>
+                        <li>تشمل أنشطة نظام التشغيل
+                            <ul class="slide-sublist">
+                                <li>إنشاء وحذف الملفات والأدلة</li>
+                                <li>تعيين (Mapping) الملفات على التخزين الثانوي</li>
+                                <li>البدائيات (Primitives) لمعالجة الملفات والأدلة</li>
+                                <li>${kw('Backup')} (النسخ الاحتياطي) للملفات على وسائط تخزين ثابتة (غير متطايرة)</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is a logical storage unit that abstracts physical properties?", options: ["Directory", "Process", "File", "Drive"], ans: 2 },
+                    { type: 'mcq', q: "Files are usually organized into what?", options: ["Registers", "Directories", "Queues", "Stacks"], ans: 1 },
+                    { type: 'tf', q: "Access speed and capacity are varying properties of storage media.", ans: "true" },
+                    { type: 'tf', q: "Backing up files means storing them on volatile memory.", ans: "false" },
+                    { type: 'short', q: "What mechanism determines who can access what in the file system?", ans: "Access control" },
+                    { type: 'short', q: "Name two OS activities regarding files and directories.", ans: "Creating and deleting / Mapping files / Primitives to manipulate / Backup files" }
+                ]
+            },
+            {
+                id: 14,
+                titleEn: "Mass-Storage Management",
+                titleAr: "إدارة التخزين الشامل",
+                contentEn: `
+                    <h2 class="slide-title">Mass-Storage Management</h2>
+                    <ul class="slide-list">
+                        <li>Usually disks used to store data that does not fit in main memory or data that must be kept for a "long" period of time</li>
+                        <li>Proper management is of central importance</li>
+                        <li>Entire speed of computer operation hinges on disk subsystem and its algorithms</li>
+                        <li>OS activities
+                            <ul class="slide-sublist">
+                                <li>Free-space management</li>
+                                <li>Storage allocation</li>
+                                <li>Disk scheduling</li>
+                                <li>Partitioning</li>
+                                <li>Protection</li>
+                            </ul>
+                        </li>
+                        <li>Some storage need not be fast
+                            <ul class="slide-sublist">
+                                <li>Tertiary storage includes optical storage, magnetic tape</li>
+                                <li>Still must be managed - by OS or applications</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">إدارة التخزين الشامل</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>عادةً ما تُستخدم الأقراص لتخزين البيانات التي لا تتسع في الذاكرة الرئيسية أو البيانات التي يجب الاحتفاظ بها لفترة "طويلة" من الزمن</li>
+                        <li>الإدارة السليمة ذات أهمية مركزية</li>
+                        <li>تعتمد سرعة تشغيل الكمبيوتر بأكملها على النظام الفرعي للقرص وخوارزمياته</li>
+                        <li>أنشطة نظام التشغيل
+                            <ul class="slide-sublist">
+                                <li>إدارة المساحة الحرة</li>
+                                <li>تخصيص مساحة التخزين</li>
+                                <li>جدولة القرص</li>
+                                <li>التقسيم (Partitioning)</li>
+                                <li>الحماية</li>
+                            </ul>
+                        </li>
+                        <li>بعض وحدات التخزين لا يلزم أن تكون سريعة
+                            <ul class="slide-sublist">
+                                <li>التخزين الثلاثي (Tertiary storage) يشمل التخزين البصري، الشريط المغناطيسي</li>
+                                <li>لا يزال يجب إدارتها - بواسطة نظام التشغيل أو التطبيقات</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does the entire speed of computer operation hinge on?", options: ["CPU speed only", "Disk subsystem and its algorithms", "Monitor refresh rate", "Keyboard type"], ans: 1 },
+                    { type: 'mcq', q: "Which of these is NOT listed as an OS activity for mass-storage?", options: ["Disk scheduling", "Partitioning", "Compiling", "Storage allocation"], ans: 2 },
+                    { type: 'tf', q: "Tertiary storage includes optical storage and magnetic tape.", ans: "true" },
+                    { type: 'tf', q: "Tertiary storage does not need to be managed by the OS or applications.", ans: "false" },
+                    { type: 'short', q: "What is used to store data that does not fit in main memory?", ans: "disks" },
+                    { type: 'short', q: "Name two OS activities related to Mass-Storage Management.", ans: "Free-space management / Storage allocation / Disk scheduling / Partitioning / Protection" }
+                ]
+            },
+            {
+                id: 15,
+                titleEn: "Virtualization",
+                titleAr: "المحاكاة الافتراضية",
+                contentEn: `
+                    <h2 class="slide-title">Virtualization</h2>
+                    <ul class="slide-list">
+                        <li>Allows operating systems to run applications within other OSes</li>
+                        <li>Vast and growing industry</li>
+                        <li>Emulation used when source CPU type different from target type (i.e. PowerPC to Intel x86)
+                            <ul class="slide-sublist">
+                                <li>Generally slowest method</li>
+                                <li>When computer language not compiled to native code - Interpretation</li>
+                            </ul>
+                        </li>
+                        <li>${kw('Virtualization')} - OS natively compiled for CPU, running guest OSes also natively compiled
+                            <ul class="slide-sublist">
+                                <li>Consider VMware running WinXP guests, each running applications, all on native WinXP host OS</li>
+                            </ul>
+                        </li>
+                        <li>${kw('VMM')} (virtual machine Manager) provides virtualization services</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحاكاة الافتراضية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تسمح لأنظمة التشغيل بتشغيل التطبيقات داخل أنظمة تشغيل أخرى</li>
+                        <li>صناعة واسعة ومتنامية</li>
+                        <li>تُستخدم المحاكاة (Emulation) عندما يكون نوع وحدة المعالجة المركزية المصدر مختلفاً عن النوع الهدف (مثل PowerPC إلى Intel x86)
+                            <ul class="slide-sublist">
+                                <li>تعتبر الطريقة الأبطأ بشكل عام</li>
+                                <li>عندما لا يتم تجميع (Compile) لغة الكمبيوتر إلى كود أصلي (Native code) - الترجمة الفورية (Interpretation)</li>
+                            </ul>
+                        </li>
+                        <li>${kw('Virtualization')} (المحاكاة الافتراضية) - نظام تشغيل مُجمّع محليًا لوحدة المعالجة المركزية، يُشغل أنظمة تشغيل ضيفة مُجمّعة محليًا أيضًا
+                            <ul class="slide-sublist">
+                                <li>تأمل VMware يقوم بتشغيل أنظمة WinXP ضيفة، كل منها يقوم بتشغيل التطبيقات، وكل ذلك على نظام تشغيل WinXP مضيف أصلي</li>
+                            </ul>
+                        </li>
+                        <li>${kw('VMM')} (مدير الآلة الافتراضية) يوفر خدمات المحاكاة الافتراضية</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is used when the source CPU type is different from the target type?", options: ["Virtualization", "Emulation", "Multitasking", "Interpretation"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following provides virtualization services?", options: ["CPU", "VMM", "ROM", "GPU"], ans: 1 },
+                    { type: 'tf', q: "Emulation is generally considered the slowest method.", ans: "true" },
+                    { type: 'tf', q: "In Virtualization, the guest OS is NOT natively compiled.", ans: "false" },
+                    { type: 'short', q: "What does VMM stand for?", ans: "virtual machine Manager" },
+                    { type: 'short', q: "What happens when computer language is not compiled to native code?", ans: "Interpretation" }
+                ]
+            },
+            {
+                id: 16,
+                titleEn: "Virtualization (cont.)",
+                titleAr: "المحاكاة الافتراضية (يتبع)",
+                contentEn: `
+                    <h2 class="slide-title">Virtualization (cont.)</h2>
+                    <p class="mb-4 text-lg">Use cases involve laptops and desktops running multiple OSes for exploration or compatibility</p>
+                    <ul class="slide-list">
+                        <li>Apple laptop running Mac OS X ${kw('host')}, Windows as a ${kw('guest')}</li>
+                        <li>Developing apps for multiple OSes without having multiple systems</li>
+                        <li>QA testing (Quality assurance) applications without having multiple systems</li>
+                        <li>Executing and managing compute environments within data centers</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحاكاة الافتراضية (يتبع)</h2>
+                    <p class="mb-4 text-lg" dir="rtl">تتضمن حالات الاستخدام أجهزة الكمبيوتر المحمولة والمكتبية التي تعمل بأنظمة تشغيل متعددة للاستكشاف أو التوافق</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>كمبيوتر محمول من Apple يعمل بنظام Mac OS X كـ ${kw('host')} (مضيف)، ونظام Windows كـ ${kw('guest')} (ضيف)</li>
+                        <li>تطوير تطبيقات لأنظمة تشغيل متعددة دون امتلاك أنظمة متعددة</li>
+                        <li>تطبيقات اختبار ضمان الجودة (QA testing) دون الحاجة لأنظمة متعددة</li>
+                        <li>تنفيذ وإدارة بيئات الحوسبة داخل مراكز البيانات</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In the Apple laptop example, what is the guest OS?", options: ["Mac OS X", "Linux", "Windows", "iOS"], ans: 2 },
+                    { type: 'mcq', q: "What does QA stand for in the context of this slide?", options: ["Quality assurance", "Quantitative analysis", "Query action", "Quick access"], ans: 0 },
+                    { type: 'tf', q: "Virtualization allows developing apps for multiple OSes on a single system.", ans: "true" },
+                    { type: 'tf', q: "Virtualization cannot be used for managing compute environments in data centers.", ans: "false" },
+                    { type: 'short', q: "In the Apple laptop example, Mac OS X is the ____.", ans: "host" },
+                    { type: 'short', q: "Name one use case for running multiple OSes on laptops/desktops mentioned.", ans: "exploration or compatibility / Developing apps / QA testing" }
+                ]
+            },
+            {
+                id: 17,
+                titleEn: "Computing Environments - Virtualization",
+                titleAr: "بيئات الحوسبة - المحاكاة الافتراضية",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments - Virtualization</h2>
+                    <div class="flex justify-between items-end mt-10 px-8">
+                        <!-- Left Diagram (a) -->
+                        <div class="w-2/5 flex flex-col text-center relative">
+                            <div class="border-2 border-gray-800 h-64 flex items-center justify-center bg-white">
+                                <span class="text-xl">processes</span>
+                            </div>
+                            <div class="absolute" style="top: 130px; left: 50%; transform: translateX(-50%);">
+                                <i class="fas fa-arrow-down text-4xl text-gray-500"></i>
+                            </div>
+                            <div class="bg-blue-200 py-4 border-l-2 border-r-2 border-gray-800 relative">
+                                <span class="absolute -left-32 top-2 text-sm">programming<br>interface &#8594;</span>
+                                kernel
+                            </div>
+                            <div class="bg-gray-300 py-4 border-2 border-gray-800">hardware</div>
+                            <div class="mt-2 font-bold">(a)</div>
+                        </div>
+
+                        <!-- Right Diagram (b) -->
+                        <div class="w-1/2 flex flex-col text-center relative">
+                            <div class="flex border-2 border-b-0 border-gray-800 h-48 bg-white">
+                                <div class="w-1/3 border-r-2 border-gray-800 flex items-center justify-center">processes</div>
+                                <div class="w-1/3 border-r-2 border-gray-800 flex items-center justify-center">processes</div>
+                                <div class="w-1/3 flex items-center justify-center">processes</div>
+                            </div>
+                            
+                            <div class="flex relative">
+                                <div class="w-1/3 flex justify-center absolute -top-8 left-0"><i class="fas fa-arrow-down text-4xl text-gray-500"></i></div>
+                                <div class="w-1/3 flex justify-center absolute -top-8 left-1/3"><i class="fas fa-arrow-down text-4xl text-gray-500"></i></div>
+                                <div class="w-1/3 flex justify-center absolute -top-8 right-0"><i class="fas fa-arrow-down text-4xl text-gray-500"></i></div>
+                            </div>
+
+                            <div class="flex border-2 border-b-0 border-gray-800 relative bg-blue-200">
+                                 <span class="absolute -left-32 -top-4 text-sm z-10 bg-white px-1">&#8599; programming<br>interface</span>
+                                <div class="w-1/3 border-r-2 border-gray-800 py-2">kernel</div>
+                                <div class="w-1/3 border-r-2 border-gray-800 py-2">kernel</div>
+                                <div class="w-1/3 py-2">kernel</div>
+                            </div>
+                            <div class="flex border-2 border-b-0 border-gray-800 bg-white">
+                                <div class="w-1/3 border-r-2 border-gray-800 py-1 text-sm">VM1</div>
+                                <div class="w-1/3 border-r-2 border-gray-800 py-1 text-sm">VM2</div>
+                                <div class="w-1/3 py-1 text-sm">VM3</div>
+                            </div>
+                            <div class="bg-blue-100 py-4 border-2 border-b-0 border-gray-800 flex flex-col justify-center items-center">
+                                virtual machine<br>manager
+                            </div>
+                            <div class="bg-gray-300 py-4 border-2 border-gray-800">hardware</div>
+                            <div class="mt-2 font-bold">(b)</div>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة - المحاكاة الافتراضية</h2>
+                    <div class="flex justify-between items-end mt-10 px-8" dir="ltr">
+                        <!-- Left Diagram (a) -->
+                        <div class="w-2/5 flex flex-col text-center relative">
+                            <div class="border-2 border-gray-800 h-64 flex items-center justify-center bg-white">
+                                <span class="text-xl">العمليات (processes)</span>
+                            </div>
+                            <div class="absolute" style="top: 130px; left: 50%; transform: translateX(-50%);">
+                                <i class="fas fa-arrow-down text-4xl text-gray-500"></i>
+                            </div>
+                            <div class="bg-blue-200 py-4 border-l-2 border-r-2 border-gray-800 relative">
+                                <span class="absolute -left-32 top-2 text-sm">واجهة البرمجة<br>&#8594;</span>
+                                النواة (kernel)
+                            </div>
+                            <div class="bg-gray-300 py-4 border-2 border-gray-800">الأجهزة (hardware)</div>
+                            <div class="mt-2 font-bold">(a) عادي</div>
+                        </div>
+
+                        <!-- Right Diagram (b) -->
+                        <div class="w-1/2 flex flex-col text-center relative">
+                            <div class="flex border-2 border-b-0 border-gray-800 h-48 bg-white">
+                                <div class="w-1/3 border-r-2 border-gray-800 flex items-center justify-center">عمليات</div>
+                                <div class="w-1/3 border-r-2 border-gray-800 flex items-center justify-center">عمليات</div>
+                                <div class="w-1/3 flex items-center justify-center">عمليات</div>
+                            </div>
+                            
+                            <div class="flex relative">
+                                <div class="w-1/3 flex justify-center absolute -top-8 left-0"><i class="fas fa-arrow-down text-4xl text-gray-500"></i></div>
+                                <div class="w-1/3 flex justify-center absolute -top-8 left-1/3"><i class="fas fa-arrow-down text-4xl text-gray-500"></i></div>
+                                <div class="w-1/3 flex justify-center absolute -top-8 right-0"><i class="fas fa-arrow-down text-4xl text-gray-500"></i></div>
+                            </div>
+
+                            <div class="flex border-2 border-b-0 border-gray-800 relative bg-blue-200">
+                                 <span class="absolute -left-28 -top-4 text-sm z-10 bg-white px-1">&#8599; واجهة البرمجة</span>
+                                <div class="w-1/3 border-r-2 border-gray-800 py-2">نواة</div>
+                                <div class="w-1/3 border-r-2 border-gray-800 py-2">نواة</div>
+                                <div class="w-1/3 py-2">نواة</div>
+                            </div>
+                            <div class="flex border-2 border-b-0 border-gray-800 bg-white">
+                                <div class="w-1/3 border-r-2 border-gray-800 py-1 text-sm">VM1</div>
+                                <div class="w-1/3 border-r-2 border-gray-800 py-1 text-sm">VM2</div>
+                                <div class="w-1/3 py-1 text-sm">VM3</div>
+                            </div>
+                            <div class="bg-blue-100 py-4 border-2 border-b-0 border-gray-800 flex flex-col justify-center items-center">
+                                مدير الآلة الافتراضية<br>(VMM)
+                            </div>
+                            <div class="bg-gray-300 py-4 border-2 border-gray-800">الأجهزة (hardware)</div>
+                            <div class="mt-2 font-bold">(b) افتراضي</div>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In diagram (b), what sits directly above the hardware?", options: ["Kernel", "Virtual machine manager", "Processes", "VM1"], ans: 1 },
+                    { type: 'mcq', q: "How many Virtual Machines (VMs) are shown in diagram (b)?", options: ["1", "2", "3", "4"], ans: 2 },
+                    { type: 'tf', q: "In the non-virtualized system (a), the kernel sits directly on top of the hardware.", ans: "true" },
+                    { type: 'tf', q: "In the virtualized system (b), processes communicate directly with the virtual machine manager.", ans: "false" },
+                    { type: 'short', q: "What does the interface between the processes and the kernel represent?", ans: "programming interface" },
+                    { type: 'short', q: "What layer is present in diagram (b) but absent in diagram (a)?", ans: "virtual machine manager / VMs" }
+                ]
+            },
+            {
+                id: 18,
+                titleEn: "Distributed Systems",
+                titleAr: "الأنظمة الموزعة",
+                contentEn: `
+                    <h2 class="slide-title">Distributed Systems</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Distributed computing')}
+                            <ul class="slide-sublist">
+                                <li>Collection of separate, possibly heterogeneous, systems networked together</li>
+                                <li>Network is a communications path, TCP/IP most common</li>
+                                <li>Local Area Network (LAN)</li>
+                                <li>Wide Area Network (WAN)</li>
+                                <li>Metropolitan Area Network (MAN)</li>
+                                <li>Personal Area Network (PAN)</li>
+                            </ul>
+                        </li>
+                        <li>Network Operating System provides features between systems across network
+                            <ul class="slide-sublist">
+                                <li>Communication scheme allows systems to exchange messages</li>
+                                <li>Illusion of a single system</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الأنظمة الموزعة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('Distributed computing')} (الحوسبة الموزعة)
+                            <ul class="slide-sublist">
+                                <li>مجموعة من الأنظمة المنفصلة، وربما غير المتجانسة، متصلة بشبكة معًا</li>
+                                <li>الشبكة هي مسار اتصالات، و TCP/IP هو الأكثر شيوعًا</li>
+                                <li>شبكة المنطقة المحلية (LAN)</li>
+                                <li>شبكة المنطقة الواسعة (WAN)</li>
+                                <li>شبكة منطقة العاصمة (MAN)</li>
+                                <li>شبكة المنطقة الشخصية (PAN)</li>
+                            </ul>
+                        </li>
+                        <li>يوفر نظام تشغيل الشبكة ميزات بين الأنظمة عبر الشبكة
+                            <ul class="slide-sublist">
+                                <li>يسمح نظام الاتصال للأنظمة بتبادل الرسائل</li>
+                                <li>خلق وهم (Illusion) وجود نظام واحد</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the most common communications path protocol mentioned?", options: ["UDP", "IPX", "TCP/IP", "HTTP"], ans: 2 },
+                    { type: 'mcq', q: "Which of the following is NOT listed as a network type on this slide?", options: ["LAN", "CAN", "WAN", "PAN"], ans: 1 },
+                    { type: 'tf', q: "Distributed computing only involves homogeneous systems.", ans: "false" },
+                    { type: 'tf', q: "A Network Operating System gives the illusion of a single system.", ans: "true" },
+                    { type: 'short', q: "What does LAN stand for?", ans: "Local Area Network" },
+                    { type: 'short', q: "What allows systems to exchange messages across the network?", ans: "Communication scheme" }
+                ]
+            },
+            {
+                id: 19,
+                titleEn: "Computing Environments Client-Server",
+                titleAr: "بيئات الحوسبة عميل-خادم",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments Client-Server</h2>
+                    <p class="font-bold text-lg mb-2">Client-Server Computing</p>
+                    <ul class="slide-list mb-6">
+                        <li>Dumb terminals supplanted by smart PCs</li>
+                        <li>Many systems now servers, responding to requests generated by clients</li>
+                        <li>Compute-server system provides an interface to client to request services (i.e., database)</li>
+                        <li>File-server system provides interface for clients to store and retrieve files</li>
+                    </ul>
+                    
+                    <!-- Diagram -->
+                    <div class="flex justify-center items-center space-x-4 mt-8">
+                        <div class="bg-blue-100 border border-blue-400 rounded-full py-4 px-8 font-semibold">Server</div>
+                        <div class="h-1 w-16 bg-black"></div>
+                        <div class="bg-blue-200 border border-blue-400 rounded-full py-8 px-12 text-xl font-bold relative cloud-shape">Network
+                            <style>
+                                .cloud-shape {
+                                    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+                                }
+                            </style>
+                        </div>
+                        <div class="flex flex-col space-y-4">
+                            <div class="flex items-center">
+                                <div class="h-1 w-16 bg-black transform rotate-12 origin-left"></div>
+                                <div class="bg-gray-200 border border-gray-400 rounded-full py-3 px-6 text-center text-sm">client<br>desktop</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="h-1 w-16 bg-black"></div>
+                                <div class="bg-gray-200 border border-gray-400 rounded-full py-3 px-6 text-center text-sm">client<br>laptop</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="h-1 w-16 bg-black transform -rotate-12 origin-left"></div>
+                                <div class="bg-gray-200 border border-gray-400 rounded-full py-3 px-6 text-center text-sm">client<br>smartphone</div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة عميل-خادم</h2>
+                    <p class="font-bold text-lg mb-2" dir="rtl">حوسبة العميل-الخادم (Client-Server)</p>
+                    <ul class="slide-list mb-6" dir="rtl">
+                        <li>حلت أجهزة الكمبيوتر الشخصية الذكية (smart PCs) محل المحطات الطرفية الغبية (Dumb terminals)</li>
+                        <li>العديد من الأنظمة الآن أصبحت خوادم، تستجيب للطلبات التي يولدها العملاء</li>
+                        <li>يوفر نظام خادم الحوسبة (Compute-server) واجهة للعميل لطلب الخدمات (مثل، قاعدة البيانات)</li>
+                        <li>يوفر نظام خادم الملفات (File-server) واجهة للعملاء لتخزين الملفات واستردادها</li>
+                    </ul>
+                    
+                    <!-- Diagram in Arabic -->
+                    <div class="flex justify-center items-center space-x-4 mt-8" dir="ltr">
+                        <div class="bg-blue-100 border border-blue-400 rounded-full py-4 px-8 font-semibold">خادم<br>Server</div>
+                        <div class="h-1 w-16 bg-black"></div>
+                        <div class="bg-blue-200 border border-blue-400 rounded-full py-8 px-12 text-xl font-bold relative cloud-shape">الشبكة<br>Network</div>
+                        <div class="flex flex-col space-y-4">
+                            <div class="flex items-center">
+                                <div class="h-1 w-16 bg-black transform rotate-12 origin-left"></div>
+                                <div class="bg-gray-200 border border-gray-400 rounded-full py-3 px-6 text-center text-sm">عميل<br>مكتبي</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="h-1 w-16 bg-black"></div>
+                                <div class="bg-gray-200 border border-gray-400 rounded-full py-3 px-6 text-center text-sm">عميل<br>محمول</div>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="h-1 w-16 bg-black transform -rotate-12 origin-left"></div>
+                                <div class="bg-gray-200 border border-gray-400 rounded-full py-3 px-6 text-center text-sm">عميل<br>هاتف ذكي</div>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What supplanted dumb terminals?", options: ["Mainframes", "Smart PCs", "Smartphones only", "File servers"], ans: 1 },
+                    { type: 'mcq', q: "Which system provides an interface for clients to store and retrieve files?", options: ["Compute-server", "Database server", "File-server", "Mail server"], ans: 2 },
+                    { type: 'tf', q: "Servers respond to requests generated by clients.", ans: "true" },
+                    { type: 'tf', q: "A compute-server system is primarily for storing and retrieving files.", ans: "false" },
+                    { type: 'short', q: "What provides an interface to client to request services like a database?", ans: "Compute-server system" },
+                    { type: 'short', q: "Name one type of client device shown in the diagram.", ans: "desktop / laptop / smartphone" }
+                ]
+            },
+            {
+                id: 20,
+                titleEn: "Computing Environments - Peer-to-Peer",
+                titleAr: "بيئات الحوسبة - الند للند",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments - Peer-to-Peer</h2>
+                    <div class="flex justify-between items-start">
+                        <div class="w-1/2">
+                            <p class="font-bold mb-2">Another model of distributed system</p>
+                            <ul class="slide-list">
+                                <li>P2P does not distinguish clients and servers</li>
+                                <li>Instead all nodes are considered peers</li>
+                                <li>May each act as client, server or both</li>
+                                <li>Node must join P2P network
+                                    <ul class="slide-sublist">
+                                        <li>Registers its service with central lookup service on network, or</li>
+                                        <li>Broadcast request for service and respond to requests for service via discovery protocol</li>
+                                    </ul>
+                                </li>
+                                <li>Examples include Napster and Gnutella, Voice over IP (VoIP) such as Skype</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- P2P Diagram -->
+                        <div class="w-1/2 flex justify-center relative mt-10 h-64">
+                            <div class="absolute top-0 flex justify-center w-full">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10" id="c1">client</div>
+                            </div>
+                            <div class="absolute top-20 left-4">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10" id="c2">client</div>
+                            </div>
+                            <div class="absolute top-20 right-4">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10" id="c3">client</div>
+                            </div>
+                            <div class="absolute bottom-0 left-16">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10" id="c4">client</div>
+                            </div>
+                            <div class="absolute bottom-0 right-16">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10" id="c5">client</div>
+                            </div>
+                            <!-- Lines representing connections (simplified using SVG) -->
+                            <svg class="absolute inset-0 w-full h-full" style="z-index:0">
+                                <line x1="50%" y1="10%" x2="20%" y2="40%" stroke="black" stroke-width="1.5"/>
+                                <line x1="50%" y1="10%" x2="80%" y2="40%" stroke="black" stroke-width="1.5"/>
+                                <line x1="20%" y1="40%" x2="80%" y2="40%" stroke="black" stroke-width="1.5"/>
+                                <line x1="20%" y1="40%" x2="30%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="80%" y1="40%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="30%" y1="90%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="50%" y1="10%" x2="30%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="50%" y1="10%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="20%" y1="40%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="80%" y1="40%" x2="30%" y2="90%" stroke="black" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة - الند للند</h2>
+                    <div class="flex justify-between items-start" dir="rtl">
+                        <div class="w-1/2">
+                            <p class="font-bold mb-2">نموذج آخر للنظام الموزع</p>
+                            <ul class="slide-list">
+                                <li>نظام الند للند (P2P) لا يميز بين العملاء والخوادم</li>
+                                <li>بدلاً من ذلك، تعتبر جميع العقد (nodes) أقرانًا</li>
+                                <li>قد يعمل كل منها كعميل أو خادم أو كليهما</li>
+                                <li>يجب أن تنضم العقدة إلى شبكة P2P
+                                    <ul class="slide-sublist">
+                                        <li>تسجل خدمتها مع خدمة بحث مركزية على الشبكة، أو</li>
+                                        <li>تبث طلبًا للخدمة وتستجيب لطلبات الخدمة عبر بروتوكول الاكتشاف (discovery protocol)</li>
+                                    </ul>
+                                </li>
+                                <li>من الأمثلة Napster و Gnutella و بروتوكول نقل الصوت عبر الإنترنت (VoIP) مثل Skype</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- P2P Diagram AR -->
+                        <div class="w-1/2 flex justify-center relative mt-10 h-64" dir="ltr">
+                            <div class="absolute top-0 flex justify-center w-full">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10 text-sm font-bold">عميل</div>
+                            </div>
+                            <div class="absolute top-20 left-4">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10 text-sm font-bold">عميل</div>
+                            </div>
+                            <div class="absolute top-20 right-4">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10 text-sm font-bold">عميل</div>
+                            </div>
+                            <div class="absolute bottom-0 left-16">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10 text-sm font-bold">عميل</div>
+                            </div>
+                            <div class="absolute bottom-0 right-16">
+                                <div class="bg-blue-100 border border-blue-400 rounded-full py-2 px-6 z-10 text-sm font-bold">عميل</div>
+                            </div>
+                            <!-- Lines -->
+                            <svg class="absolute inset-0 w-full h-full" style="z-index:0">
+                                <line x1="50%" y1="10%" x2="20%" y2="40%" stroke="black" stroke-width="1.5"/>
+                                <line x1="50%" y1="10%" x2="80%" y2="40%" stroke="black" stroke-width="1.5"/>
+                                <line x1="20%" y1="40%" x2="80%" y2="40%" stroke="black" stroke-width="1.5"/>
+                                <line x1="20%" y1="40%" x2="30%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="80%" y1="40%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="30%" y1="90%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="50%" y1="10%" x2="30%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="50%" y1="10%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="20%" y1="40%" x2="70%" y2="90%" stroke="black" stroke-width="1.5"/>
+                                <line x1="80%" y1="40%" x2="30%" y2="90%" stroke="black" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is true about P2P networks?", options: ["They rely entirely on a single server", "They do not distinguish clients and servers", "They are only used for Voice over IP", "They do not allow nodes to act as clients"], ans: 1 },
+                    { type: 'mcq', q: "What is an example of Voice over IP (VoIP) mentioned?", options: ["Napster", "Gnutella", "Skype", "Amazon EC2"], ans: 2 },
+                    { type: 'tf', q: "In a P2P network, all nodes are considered peers.", ans: "true" },
+                    { type: 'tf', q: "A node in a P2P network can act only as a server.", ans: "false" },
+                    { type: 'short', q: "What protocol is used to broadcast and respond to requests for service?", ans: "discovery protocol" },
+                    { type: 'short', q: "Name one file-sharing example of a P2P network mentioned.", ans: "Napster / Gnutella" }
+                ]
+            },
+            {
+                id: 21,
+                titleEn: "Computing Environments – Cloud Computing",
+                titleAr: "بيئات الحوسبة - الحوسبة السحابية",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments – Cloud Computing</h2>
+                    <ul class="slide-list">
+                        <li>Delivers computing, storage, even apps as a service across a network</li>
+                        <li>Logical extension of virtualization because it uses virtualization as the base for it functionality.</li>
+                        <li>Amazon EC2 has thousands of servers, millions of virtual machines, petabytes of storage available across the Internet, pay based on usage</li>
+                        <li>Many types
+                            <ul class="slide-sublist">
+                                <li><strong>Public cloud</strong> - available via Internet to anyone willing to pay</li>
+                                <li><strong>Private cloud</strong> - run by a company for the company's own use</li>
+                                <li><strong>Hybrid cloud</strong> - includes both public and private cloud components</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة - الحوسبة السحابية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تقدم الحوسبة والتخزين وحتى التطبيقات كخدمة عبر الشبكة</li>
+                        <li>امتداد منطقي للمحاكاة الافتراضية لأنها تستخدم المحاكاة الافتراضية كأساس لوظائفها.</li>
+                        <li>تمتلك Amazon EC2 آلاف الخوادم، وملايين الآلات الافتراضية، وبيتابايت من التخزين المتاح عبر الإنترنت، والدفع بناءً على الاستخدام</li>
+                        <li>العديد من الأنواع
+                            <ul class="slide-sublist">
+                                <li><strong>Public cloud (السحابة العامة)</strong> - متاحة عبر الإنترنت لأي شخص على استعداد للدفع</li>
+                                <li><strong>Private cloud (السحابة الخاصة)</strong> - تديرها شركة لاستخدام الشركة الخاص</li>
+                                <li><strong>Hybrid cloud (السحابة الهجينة)</strong> - تتضمن مكونات السحابة العامة والخاصة معًا</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Cloud computing is a logical extension of what technology?", options: ["Peer-to-peer", "Virtualization", "Batch systems", "Embedded systems"], ans: 1 },
+                    { type: 'mcq', q: "Which type of cloud is run by a company for its own use?", options: ["Public cloud", "Hybrid cloud", "Private cloud", "Network cloud"], ans: 2 },
+                    { type: 'tf', q: "Amazon EC2 requires users to pay a flat rate regardless of usage.", ans: "false" },
+                    { type: 'tf', q: "A hybrid cloud includes both public and private cloud components.", ans: "true" },
+                    { type: 'short', q: "What does cloud computing deliver across a network?", ans: "computing, storage, even apps as a service" },
+                    { type: 'short', q: "What type of cloud is available via the Internet to anyone willing to pay?", ans: "Public cloud" }
+                ]
+            },
+            {
+                id: 22,
+                titleEn: "Computing Environments - Cloud Computing Services",
+                titleAr: "بيئات الحوسبة - خدمات الحوسبة السحابية",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments - Cloud Computing</h2>
+                    <ul class="slide-list space-y-6 mt-8">
+                        <li><strong>Software as a Service (${kw('SaaS')})</strong>
+                            <ul class="slide-sublist"><li>one or more applications available via the Internet (i.e., word processor)</li></ul>
+                        </li>
+                        <li><strong>Platform as a Service (PaaS)</strong>
+                            <ul class="slide-sublist"><li>software stack ready for application use via the Internet (i.e., a database server)</li></ul>
+                        </li>
+                        <li><strong>Infrastructure as a Service (IaaS)</strong>
+                            <ul class="slide-sublist"><li>servers or storage available over Internet (i.e., storage available for backup use)</li></ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة - الحوسبة السحابية</h2>
+                    <ul class="slide-list space-y-6 mt-8" dir="rtl">
+                        <li><strong>البرمجيات كخدمة (${kw('SaaS')})</strong>
+                            <ul class="slide-sublist"><li>تطبيق أو أكثر متاح عبر الإنترنت (مثل، معالج النصوص)</li></ul>
+                        </li>
+                        <li><strong>المنصة كخدمة (PaaS)</strong>
+                            <ul class="slide-sublist"><li>مكدس برمجيات جاهز لاستخدام التطبيقات عبر الإنترنت (مثل، خادم قاعدة البيانات)</li></ul>
+                        </li>
+                        <li><strong>البنية التحتية كخدمة (IaaS)</strong>
+                            <ul class="slide-sublist"><li>خوادم أو تخزين متاح عبر الإنترنت (مثل، التخزين المتاح لاستخدام النسخ الاحتياطي)</li></ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which cloud service model provides applications available via the Internet?", options: ["IaaS", "PaaS", "SaaS", "VMM"], ans: 2 },
+                    { type: 'mcq', q: "A database server provided ready for application use is an example of:", options: ["SaaS", "PaaS", "IaaS", "Hardware as a Service"], ans: 1 },
+                    { type: 'tf', q: "IaaS stands for Infrastructure as a Service.", ans: "true" },
+                    { type: 'tf', q: "A word processor accessed via the Internet is an example of PaaS.", ans: "false" },
+                    { type: 'short', q: "What does SaaS stand for?", ans: "Software as a Service" },
+                    { type: 'short', q: "What service model provides servers or storage available over the Internet?", ans: "Infrastructure as a Service (IaaS)" }
+                ]
+            },
+            {
+                id: 23,
+                titleEn: "Cloud Computing Diagram",
+                titleAr: "مخطط الحوسبة السحابية",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments Cloud Computing</h2>
+                    <p class="mb-4">Cloud computing environments composed of traditional OSes, plus VMMs, plus cloud management tools</p>
+                    <ul class="slide-list mb-6">
+                        <li>Internet connectivity requires security like firewalls</li>
+                        <li>Load balancers spread traffic across multiple applications</li>
+                    </ul>
+
+                    <div class="flex flex-col items-center border border-gray-300 bg-white p-4 rounded relative">
+                        <div class="bg-blue-200 border border-blue-400 rounded-full py-2 px-10 mb-4 z-10">Internet</div>
+                        <div class="w-1 h-6 bg-black"></div>
+                        <div class="bg-gray-300 border border-gray-500 py-1 px-8 mb-4">firewall</div>
+                        <div class="w-1 h-6 bg-black"></div>
+                        <div class="bg-gray-300 border border-gray-500 py-1 px-8 mb-4">load balancer</div>
+                        
+                        <!-- Connecting lines -->
+                        <div class="w-3/4 border-t-2 border-black h-4 relative">
+                            <div class="absolute left-0 w-0.5 h-4 bg-black"></div>
+                            <div class="absolute left-1/4 w-0.5 h-4 bg-black"></div>
+                            <div class="absolute right-1/4 w-0.5 h-4 bg-black"></div>
+                            <div class="absolute right-0 w-0.5 h-4 bg-black"></div>
+                        </div>
+
+                        <!-- Cloud area -->
+                        <div class="w-full bg-blue-50 border-2 border-blue-300 rounded-xl p-4 flex justify-between relative" style="border-radius: 50px;">
+                            
+                            <div class="flex space-x-2 w-1/2">
+                                <div class="bg-gray-200 border border-gray-400 h-32 w-1/2 flex flex-col">
+                                    <div class="flex-1 border-b border-gray-400 text-center text-sm p-1 bg-gray-100">virtual<br>machines</div>
+                                    <div class="h-6 bg-blue-100 text-center text-xs pt-1">servers</div>
+                                </div>
+                                <div class="bg-gray-200 border border-gray-400 h-32 w-1/2 flex flex-col">
+                                    <div class="flex-1 border-b border-gray-400 text-center text-sm p-1 bg-gray-100">virtual<br>machines</div>
+                                    <div class="h-6 bg-blue-100 text-center text-xs pt-1">servers</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-200 border border-gray-400 h-32 w-1/5 text-center flex items-center justify-center">storage</div>
+
+                            <div class="bg-gray-200 border border-gray-400 h-24 w-1/4 text-center text-sm flex items-center justify-center">cloud<br>managment<br>services</div>
+                        </div>
+
+                        <!-- Side boxes -->
+                        <div class="absolute right-4 top-10 flex flex-col items-center">
+                            <div class="text-xs italic">customer<br>requests &#8595;</div>
+                            <div class="bg-gray-300 border border-gray-500 p-2 text-center text-sm my-2">cloud<br>customer<br>interface</div>
+                            <div class="text-xs italic border-l border-dashed border-black pl-1 pb-4 h-16">cloud<br>management<br>commands &#8595;</div>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة - الحوسبة السحابية</h2>
+                    <p class="mb-4" dir="rtl">تتكون بيئات الحوسبة السحابية من أنظمة تشغيل تقليدية، بالإضافة إلى مديري الآلات الافتراضية (VMMs)، بالإضافة إلى أدوات الإدارة السحابية</p>
+                    <ul class="slide-list mb-6" dir="rtl">
+                        <li>يتطلب الاتصال بالإنترنت أمانًا مثل جدران الحماية (firewalls)</li>
+                        <li>تعمل موازنات الحمل (Load balancers) على توزيع حركة المرور عبر تطبيقات متعددة</li>
+                    </ul>
+
+                    <div class="flex flex-col items-center border border-gray-300 bg-white p-4 rounded relative" dir="ltr">
+                        <div class="bg-blue-200 border border-blue-400 rounded-full py-2 px-10 mb-4 z-10 font-bold">الإنترنت</div>
+                        <div class="w-1 h-6 bg-black"></div>
+                        <div class="bg-gray-300 border border-gray-500 py-1 px-8 mb-4">جدار الحماية (firewall)</div>
+                        <div class="w-1 h-6 bg-black"></div>
+                        <div class="bg-gray-300 border border-gray-500 py-1 px-8 mb-4">موازن الحمل (load balancer)</div>
+                        
+                        <!-- Connecting lines -->
+                        <div class="w-3/4 border-t-2 border-black h-4 relative">
+                            <div class="absolute left-0 w-0.5 h-4 bg-black"></div>
+                            <div class="absolute left-1/4 w-0.5 h-4 bg-black"></div>
+                            <div class="absolute right-1/4 w-0.5 h-4 bg-black"></div>
+                            <div class="absolute right-0 w-0.5 h-4 bg-black"></div>
+                        </div>
+
+                        <!-- Cloud area -->
+                        <div class="w-full bg-blue-50 border-2 border-blue-300 rounded-xl p-4 flex justify-between relative" style="border-radius: 50px;">
+                            
+                            <div class="flex space-x-2 w-1/2">
+                                <div class="bg-gray-200 border border-gray-400 h-32 w-1/2 flex flex-col">
+                                    <div class="flex-1 border-b border-gray-400 text-center text-sm p-1 bg-gray-100">آلات<br>افتراضية</div>
+                                    <div class="h-6 bg-blue-100 text-center text-xs pt-1">خوادم</div>
+                                </div>
+                                <div class="bg-gray-200 border border-gray-400 h-32 w-1/2 flex flex-col">
+                                    <div class="flex-1 border-b border-gray-400 text-center text-sm p-1 bg-gray-100">آلات<br>افتراضية</div>
+                                    <div class="h-6 bg-blue-100 text-center text-xs pt-1">خوادم</div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-200 border border-gray-400 h-32 w-1/5 text-center flex items-center justify-center">تخزين</div>
+
+                            <div class="bg-gray-200 border border-gray-400 h-24 w-1/4 text-center text-xs flex items-center justify-center">خدمات<br>الإدارة<br>السحابية</div>
+                        </div>
+
+                        <!-- Side boxes -->
+                        <div class="absolute right-0 top-10 flex flex-col items-center">
+                            <div class="text-xs italic text-right">طلبات العملاء &#8595;</div>
+                            <div class="bg-gray-300 border border-gray-500 p-2 text-center text-xs my-2">واجهة<br>العميل<br>السحابية</div>
+                            <div class="text-xs italic border-l border-dashed border-black pl-1 pb-4 h-16 text-right">أوامر الإدارة &#8595;</div>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What spreads traffic across multiple applications?", options: ["Firewalls", "Load balancers", "Virtual machines", "Storage devices"], ans: 1 },
+                    { type: 'mcq', q: "According to the diagram, what sits between the internet and the load balancer?", options: ["Servers", "Cloud management services", "Firewall", "Storage"], ans: 2 },
+                    { type: 'tf', q: "Internet connectivity requires security like firewalls.", ans: "true" },
+                    { type: 'tf', q: "Cloud computing environments only use new, non-traditional OSes.", ans: "false" },
+                    { type: 'short', q: "Name one component of a cloud computing environment mentioned in the slide text.", ans: "traditional OSes / VMMs / cloud management tools" },
+                    { type: 'short', q: "What receives customer requests according to the diagram?", ans: "cloud customer interface" }
+                ]
+            },
+            {
+                id: 24,
+                titleEn: "Real-Time Embedded Systems",
+                titleAr: "الأنظمة المدمجة في الوقت الفعلي",
+                contentEn: `
+                    <h2 class="slide-title">Computing Environments – Real-Time Embedded Systems</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Real-time embedded systems')} most prevalent form of computers
+                            <ul class="slide-sublist">
+                                <li>Vary considerable, special purpose, limited purpose OS, real-time OS</li>
+                                <li>Use expanding</li>
+                            </ul>
+                        </li>
+                        <li>Many other special computing environments as well
+                            <ul class="slide-sublist"><li>Some have OSes, some perform tasks without an OS</li></ul>
+                        </li>
+                        <li>Real-time OS has well-defined fixed time constraints
+                            <ul class="slide-sublist">
+                                <li>Processing must be done within constraint</li>
+                                <li>Correct operation only if constraints met</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بيئات الحوسبة – الأنظمة المدمجة في الوقت الفعلي</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('Real-time embedded systems')} (الأنظمة المدمجة في الوقت الفعلي) هي الشكل الأكثر انتشارًا لأجهزة الكمبيوتر
+                            <ul class="slide-sublist">
+                                <li>تتنوع بشكل كبير، غرض خاص، نظام تشغيل محدود الغرض، نظام تشغيل في الوقت الفعلي</li>
+                                <li>الاستخدام آخذ في التوسع</li>
+                            </ul>
+                        </li>
+                        <li>العديد من بيئات الحوسبة الخاصة الأخرى أيضًا
+                            <ul class="slide-sublist"><li>بعضها يحتوي على أنظمة تشغيل، والبعض الآخر يؤدي المهام بدون نظام تشغيل</li></ul>
+                        </li>
+                        <li>نظام التشغيل في الوقت الفعلي (Real-time OS) له قيود زمنية ثابتة ومحددة جيدًا
+                            <ul class="slide-sublist">
+                                <li>يجب أن تتم المعالجة ضمن هذا القيد</li>
+                                <li>التشغيل الصحيح يكون فقط في حالة استيفاء القيود</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is described as the most prevalent form of computers?", options: ["Mainframes", "Real-time embedded systems", "Smartphones", "Supercomputers"], ans: 1 },
+                    { type: 'mcq', q: "A Real-time OS has well-defined fixed what?", options: ["Memory limits", "Time constraints", "User interfaces", "Storage capacities"], ans: 1 },
+                    { type: 'tf', q: "All special computing environments perform tasks using an OS.", ans: "false" },
+                    { type: 'tf', q: "In a real-time OS, correct operation only happens if time constraints are met.", ans: "true" },
+                    { type: 'short', q: "Within what must processing be done in a real-time OS?", ans: "constraint" },
+                    { type: 'short', q: "Are real-time embedded systems considered general purpose or special purpose?", ans: "special purpose" }
+                ]
+            },
+            
+            // ================== PART 2 SLIDES ==================
+
+            {
+                id: 26,
+                titleEn: "Outlines (Part 2)",
+                titleAr: "المحتويات (الجزء الثاني)",
+                contentEn: `
+                    <h2 class="slide-title">Outlines:</h2>
+                    <ul class="slide-list">
+                        <li>Introduction.</li>
+                        <li>How to Build Successful Operating System.</li>
+                        <li>Operating System security.</li>
+                        <li>${kw('Security Goals')}.</li>
+                        <li>${kw('Trust Model')}.</li>
+                        <li>${kw('Threat Model')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحتويات:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>مقدمة.</li>
+                        <li>كيفية بناء نظام تشغيل ناجح.</li>
+                        <li>أمان نظام التشغيل.</li>
+                        <li>${kw('Security Goals')} (أهداف الأمان).</li>
+                        <li>${kw('Trust Model')} (نموذج الثقة).</li>
+                        <li>${kw('Threat Model')} (نموذج التهديد).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What model is discussed in this outline?", options: ["Hardware Model", "Threat Model", "Data Model", "Network Model"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is NOT in the outline?", options: ["Security Goals", "Trust Model", "Hardware Management", "Operating System security"], ans: 2 },
+                    { type: 'tf', q: "Security Goals is part of the outline.", ans: "true" },
+                    { type: 'tf', q: "Memory management is listed in this outline.", ans: "false" },
+                    { type: 'short', q: "Name one model listed in the outline.", ans: "Trust Model / Threat Model" },
+                    { type: 'short', q: "What is the third item in the outline?", ans: "Operating System security" }
+                ]
+            },
+            {
+                id: 27,
+                titleEn: "Introduction (OS Security)",
+                titleAr: "مقدمة (أمان نظام التشغيل)",
+                contentEn: `
+                    <h2 class="slide-title">Introduction</h2>
+                    <ul class="slide-list">
+                        <li>Operating systems are the software that provides access to the various hardware resources (e.g., CPU, memory, and other devices that comprise a computer system).</li>
+                        <li>Any program that is run on a computer system has instructions executed by that computer's CPU, but these programs may also require the use of other peripheral resources of these complex systems.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>أنظمة التشغيل هي البرامج التي توفر الوصول إلى موارد الأجهزة المختلفة (مثل وحدة المعالجة المركزية، الذاكرة، والأجهزة الأخرى التي يتكون منها نظام الكمبيوتر).</li>
+                        <li>أي برنامج يتم تشغيله على نظام كمبيوتر يحتوي على تعليمات يتم تنفيذها بواسطة وحدة المعالجة المركزية لذلك الكمبيوتر، ولكن قد تتطلب هذه البرامج أيضًا استخدام الموارد الطرفية الأخرى لهذه الأنظمة المعقدة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What do operating systems provide access to?", options: ["User passwords", "Hardware resources", "Network cables", "Power supplies"], ans: 1 },
+                    { type: 'mcq', q: "What executes the instructions of a program?", options: ["Memory", "CPU", "Hard drive", "Operating System"], ans: 1 },
+                    { type: 'tf', q: "Programs only use the CPU and never require other peripheral resources.", ans: "false" },
+                    { type: 'tf', q: "An Operating System is a hardware component.", ans: "false" },
+                    { type: 'short', q: "Give an example of a hardware resource mentioned.", ans: "CPU / memory" },
+                    { type: 'short', q: "What might programs require besides the CPU?", ans: "peripheral resources" }
+                ]
+            },
+            {
+                id: 28,
+                titleEn: "Processes & History",
+                titleAr: "العمليات والتاريخ",
+                contentEn: `
+                    <h2 class="slide-title">Operating systems run programs in processes</h2>
+                    <ul class="slide-list">
+                        <li>Originally, operating systems only permitted one process to be run at a time (e.g., ${kw('batch systems')}).</li>
+                        <li>but as early as 1960, it became apparent that computer productivity would be greatly enhanced by being able to run multiple processes concurrently.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقوم أنظمة التشغيل بتشغيل البرامج في عمليات (Processes)</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>في الأصل، كانت أنظمة التشغيل تسمح فقط بتشغيل عملية واحدة في كل مرة (مثل، ${kw('batch systems')} - أنظمة الدُفعات).</li>
+                        <li>ولكن في وقت مبكر من عام 1960، أصبح من الواضح أن إنتاجية الكمبيوتر ستتعزز بشكل كبير من خلال القدرة على تشغيل عمليات متعددة بشكل متزامن.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "How did batch systems run processes?", options: ["Multiple at a time", "One at a time", "Only over a network", "Without an OS"], ans: 1 },
+                    { type: 'mcq', q: "When did it become apparent that running multiple processes concurrently would enhance productivity?", options: ["1950", "1960", "1970", "1980"], ans: 1 },
+                    { type: 'tf', q: "Originally, operating systems permitted multiple processes to run at the same time.", ans: "false" },
+                    { type: 'tf', q: "Operating systems run programs in processes.", ans: "true" },
+                    { type: 'short', q: "What runs programs in processes?", ans: "operating systems" },
+                    { type: 'short', q: "What type of system ran one process at a time?", ans: "batch systems" }
+                ]
+            },
+            {
+                id: 29,
+                titleEn: "Concurrency",
+                titleAr: "التزامن",
+                contentEn: `
+                    <h2 class="slide-title">Concurrency</h2>
+                    <ul class="slide-list">
+                        <li>By concurrently, we mean that while only one process uses a computer's CPU at a time, multiple other processes may be in various states of execution at the same time, and the operating system must ensure that these executions are performed effectively.</li>
+                        <li>For example, while the computer waits for a user to enter the password, other processes may be run and access system devices as well, such as the network. These systems were originally called ${kw('timesharing systems')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التزامن (Concurrency)</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>بكلمة التزامن (concurrently)، نعني أنه في حين تستخدم عملية واحدة فقط وحدة المعالجة المركزية للكمبيوتر في كل مرة، فقد تكون هناك عمليات أخرى متعددة في حالات مختلفة من التنفيذ في نفس الوقت، ويجب أن يضمن نظام التشغيل تنفيذ هذه العمليات بشكل فعال.</li>
+                        <li>على سبيل المثال، بينما ينتظر الكمبيوتر أن يُدخل المستخدم كلمة المرور، يمكن تشغيل عمليات أخرى والوصول إلى أجهزة النظام أيضًا، مثل الشبكة. كانت هذه الأنظمة تسمى في الأصل ${kw('timesharing systems')} (أنظمة المشاركة الزمنية).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "How many processes use the CPU at the exact same time in concurrent execution?", options: ["One", "Two", "Unlimited", "Depends on the RAM"], ans: 0 },
+                    { type: 'mcq', q: "Systems where other processes run while waiting for a password are called:", options: ["Batch systems", "Timesharing systems", "Linear systems", "Sequential systems"], ans: 1 },
+                    { type: 'tf', q: "Concurrently means multiple processes use the CPU simultaneously.", ans: "false" },
+                    { type: 'tf', q: "Timesharing systems allow background processes like network access while waiting for user input.", ans: "true" },
+                    { type: 'short', q: "What system is mentioned as an example of concurrency?", ans: "timesharing systems" },
+                    { type: 'short', q: "Who must ensure that concurrent executions are performed effectively?", ans: "operating system" }
+                ]
+            },
+            {
+                id: 30,
+                titleEn: "OS Architecture Diagram",
+                titleAr: "مخطط هيكلية نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">System Architecture</h2>
+                    <div class="flex flex-col items-center justify-center p-4 bg-white rounded shadow border border-gray-200 mt-6 max-w-3xl mx-auto">
+                        <!-- Processes Layer -->
+                        <div class="flex justify-around w-full mb-8">
+                            <div class="flex flex-col items-center">
+                                <div class="font-bold mb-2">Process 1</div>
+                                <div class="bg-blue-100 border border-blue-400 p-2 w-24 text-center rounded">Program<br><hr class="border-blue-400 my-1">Data</div>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="font-bold mb-2">Process 2</div>
+                                <div class="bg-blue-100 border border-blue-400 p-2 w-24 text-center rounded">Program<br><hr class="border-blue-400 my-1">Data</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center font-bold text-2xl px-4">...</div>
+                            <div class="flex flex-col items-center">
+                                <div class="font-bold mb-2">Process n</div>
+                                <div class="bg-blue-100 border border-blue-400 p-2 w-24 text-center rounded">Program<br><hr class="border-blue-400 my-1">Data</div>
+                            </div>
+                        </div>
+
+                        <!-- Arrows down -->
+                        <div class="flex justify-around w-full px-12 mb-2 text-gray-400">
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                        </div>
+
+                        <!-- OS Layer -->
+                        <div class="bg-gray-200 border-2 border-gray-500 w-full p-4 mb-2 rounded text-center relative shadow-inner">
+                            <div class="font-bold text-xl mb-4 text-gray-700">Operating System</div>
+                            <div class="flex justify-around">
+                                <div class="bg-red-100 border border-red-400 p-2 rounded font-semibold w-1/4">Security</div>
+                                <div class="bg-green-100 border border-green-400 p-2 rounded font-semibold w-1/4">Scheduling</div>
+                                <div class="bg-purple-100 border border-purple-400 p-2 rounded font-semibold w-1/3 text-sm flex items-center justify-center">Resource Mechanisms</div>
+                            </div>
+                        </div>
+
+                        <!-- Arrows down -->
+                        <div class="flex justify-around w-full px-8 mb-2 mt-4 text-gray-400">
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                        </div>
+
+                        <!-- Hardware Layer -->
+                        <div class="flex justify-around w-full gap-2">
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">Memory<br>Device</div>
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">Disk<br>Device</div>
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">Network<br>Device</div>
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">Display<br>Device</div>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">هيكلية النظام</h2>
+                    <div class="flex flex-col items-center justify-center p-4 bg-white rounded shadow border border-gray-200 mt-6 max-w-3xl mx-auto" dir="ltr">
+                        <!-- Processes Layer -->
+                        <div class="flex justify-around w-full mb-8">
+                            <div class="flex flex-col items-center">
+                                <div class="font-bold mb-2">العملية 1</div>
+                                <div class="bg-blue-100 border border-blue-400 p-2 w-24 text-center rounded">البرنامج<br><hr class="border-blue-400 my-1">البيانات</div>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="font-bold mb-2">العملية 2</div>
+                                <div class="bg-blue-100 border border-blue-400 p-2 w-24 text-center rounded">البرنامج<br><hr class="border-blue-400 my-1">البيانات</div>
+                            </div>
+                            <div class="flex flex-col items-center justify-center font-bold text-2xl px-4">...</div>
+                            <div class="flex flex-col items-center">
+                                <div class="font-bold mb-2">العملية n</div>
+                                <div class="bg-blue-100 border border-blue-400 p-2 w-24 text-center rounded">البرنامج<br><hr class="border-blue-400 my-1">البيانات</div>
+                            </div>
+                        </div>
+
+                        <!-- Arrows down -->
+                        <div class="flex justify-around w-full px-12 mb-2 text-gray-400">
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                        </div>
+
+                        <!-- OS Layer -->
+                        <div class="bg-gray-200 border-2 border-gray-500 w-full p-4 mb-2 rounded text-center relative shadow-inner">
+                            <div class="font-bold text-xl mb-4 text-gray-700">نظام التشغيل (Operating System)</div>
+                            <div class="flex justify-around text-sm">
+                                <div class="bg-red-100 border border-red-400 p-2 rounded font-semibold w-1/4">الأمان<br>(Security)</div>
+                                <div class="bg-green-100 border border-green-400 p-2 rounded font-semibold w-1/4">الجدولة<br>(Scheduling)</div>
+                                <div class="bg-purple-100 border border-purple-400 p-2 rounded font-semibold w-1/3 flex items-center justify-center">آليات الموارد<br>(Resource Mechanisms)</div>
+                            </div>
+                        </div>
+
+                        <!-- Arrows down -->
+                        <div class="flex justify-around w-full px-8 mb-2 mt-4 text-gray-400">
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                            <i class="fas fa-arrow-down text-2xl"></i>
+                        </div>
+
+                        <!-- Hardware Layer -->
+                        <div class="flex justify-around w-full gap-2">
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">جهاز<br>الذاكرة</div>
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">جهاز<br>القرص</div>
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">جهاز<br>الشبكة</div>
+                            <div class="bg-gray-100 border border-gray-400 p-2 w-24 text-center rounded text-sm font-bold shadow">جهاز<br>العرض</div>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is located directly between Processes and Devices?", options: ["Hardware", "Operating System", "Programs", "Data"], ans: 1 },
+                    { type: 'mcq', q: "Which OS mechanism is explicitly shown in the diagram?", options: ["Compiling", "Scheduling", "Virtualization", "Database"], ans: 1 },
+                    { type: 'tf', q: "Data is part of the process block.", ans: "true" },
+                    { type: 'tf', q: "Display is an Operating System mechanism.", ans: "false" },
+                    { type: 'short', q: "Name one Operating System mechanism shown.", ans: "Security / Scheduling / Resource Mechanisms" },
+                    { type: 'short', q: "Name one hardware device shown.", ans: "Memory / Disk / Network / Display Device" }
+                ]
+            },
+            {
+                id: 31,
+                titleEn: "Build Successful Operating System (Task 1)",
+                titleAr: "بناء نظام تشغيل ناجح (المهمة 1)",
+                contentEn: `
+                    <h2 class="slide-title">Build Successful Operating System</h2>
+                    <p class="mb-4 text-lg">To build any successful operating system, we identify three major tasks:</p>
+                    <ul class="slide-list">
+                        <li><strong>First:</strong> the operating system must provide various mechanisms that enable high performance use of computer resources.
+                            <ul class="slide-sublist mt-2">
+                                <li>Operating systems must provide efficient ${kw('resource mechanisms')}, such as file systems, memory management systems, network protocol stacks, etc., that define how processes use the hardware resources.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">بناء نظام تشغيل ناجح</h2>
+                    <p class="mb-4 text-lg" dir="rtl">لبناء أي نظام تشغيل ناجح، نحدد ثلاث مهام رئيسية:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>أولاً:</strong> يجب أن يوفر نظام التشغيل آليات مختلفة تتيح استخدام موارد الكمبيوتر بأداء عالٍ.
+                            <ul class="slide-sublist mt-2">
+                                <li>يجب أن توفر أنظمة التشغيل ${kw('resource mechanisms')} (آليات موارد) فعالة، مثل أنظمة الملفات، وأنظمة إدارة الذاكرة، ومكدسات بروتوكولات الشبكة، وما إلى ذلك، والتي تحدد كيفية استخدام العمليات لموارد الأجهزة.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the first task for building a successful OS?", options: ["Ensure good graphics", "Enable high performance use of resources", "Connect to the internet", "Prevent all errors"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is an example of a resource mechanism?", options: ["File systems", "Monitor displays", "Keyboards", "User accounts"], ans: 0 },
+                    { type: 'tf', q: "Resource mechanisms define how hardware uses processes.", ans: "false" },
+                    { type: 'tf', q: "Memory management systems are considered resource mechanisms.", ans: "true" },
+                    { type: 'short', q: "What defines how processes use hardware resources?", ans: "resource mechanisms" },
+                    { type: 'short', q: "Name one resource mechanism mentioned.", ans: "file systems / memory management systems / network protocol stacks" }
+                ]
+            },
+            {
+                id: 32,
+                titleEn: "Build Successful OS (Task 2)",
+                titleAr: "بناء نظام تشغيل ناجح (المهمة 2)",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li><strong>Second:</strong> it is the operating system's responsibility to switch among the processes fairly, such that the user experiences good performance from each process in concert with access to the computer's devices.
+                            <ul class="slide-sublist mt-2">
+                                <li>This second problem is one of ${kw('scheduling')} access to computer resources.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>ثانياً:</strong> تقع على عاتق نظام التشغيل مسؤولية التبديل بين العمليات بإنصاف، بحيث يختبر المستخدم أداءً جيدًا من كل عملية بالتزامن مع الوصول إلى أجهزة الكمبيوتر.
+                            <ul class="slide-sublist mt-2">
+                                <li>هذه المشكلة الثانية هي مشكلة ${kw('scheduling')} (جدولة) الوصول إلى موارد الكمبيوتر.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the second major task in building a successful OS?", options: ["Storing data", "Switching among processes fairly", "Providing a graphical interface", "Encrypting passwords"], ans: 1 },
+                    { type: 'mcq', q: "The problem of switching fairly is known as:", options: ["Formatting", "Virtualization", "Scheduling", "Multitasking"], ans: 2 },
+                    { type: 'tf', q: "The OS is responsible for switching among processes fairly.", ans: "true" },
+                    { type: 'tf', q: "Scheduling applies exclusively to network protocols.", ans: "false" },
+                    { type: 'short', q: "What ensures a user experiences good performance from each process?", ans: "switching among processes fairly / scheduling" },
+                    { type: 'short', q: "What is the specific term for organizing access to computer resources?", ans: "scheduling" }
+                ]
+            },
+            {
+                id: 33,
+                titleEn: "Build Successful OS (Task 3)",
+                titleAr: "بناء نظام تشغيل ناجح (المهمة 3)",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li><strong>Third:</strong> access to resources should be controlled, such that one process cannot inadvertently or maliciously impact the execution of another.
+                            <ul class="slide-sublist mt-2">
+                                <li>This third problem is the problem of ensuring the security of all processes run on the system.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>ثالثاً:</strong> يجب التحكم في الوصول إلى الموارد، بحيث لا يمكن لعملية واحدة أن تؤثر -عن غير قصد أو بشكل ضار- على تنفيذ عملية أخرى.
+                            <ul class="slide-sublist mt-2">
+                                <li>هذه المشكلة الثالثة هي مشكلة ضمان أمان (security) جميع العمليات التي يتم تشغيلها على النظام.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the third major task?", options: ["Access controlled", "Maximum speed", "File creation", "Process termination"], ans: 0 },
+                    { type: 'mcq', q: "Ensuring one process cannot impact another is primarily a problem of:", options: ["Hardware failure", "Security", "Network lag", "Memory leaks"], ans: 1 },
+                    { type: 'tf', q: "Processes should be allowed to maliciously impact each other for testing.", ans: "false" },
+                    { type: 'tf', q: "Access to resources should be controlled.", ans: "true" },
+                    { type: 'short', q: "What must be ensured for all processes run on the system?", ans: "security" },
+                    { type: 'short', q: "What should be controlled to prevent malicious impact?", ans: "access to resources" }
+                ]
+            },
+            {
+                id: 34,
+                titleEn: "Operating System security",
+                titleAr: "أمان نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Operating System security</h2>
+                    <ul class="slide-list">
+                        <li>Security becomes an issue because processes in modern computer systems interact in a variety of ways, and the sharing of data among users is a fundamental use of computer systems.</li>
+                        <li>A major use of computer systems is to share information with other users. With the ubiquity of Internet-scale sharing mechanisms, such as e-mail, the web, and instant messaging, users may share anything with anyone in the world.</li>
+                        <li>The ease with which malware can be conveyed and the variety of ways that users and their processes may be tricked into running malware present modern operating system developers with significant challenges in ensuring the security of their system's execution.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">أمان نظام التشغيل</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يصبح الأمان مشكلة لأن العمليات في أنظمة الكمبيوتر الحديثة تتفاعل بطرق متنوعة، وتعد مشاركة البيانات بين المستخدمين استخدامًا أساسيًا لأنظمة الكمبيوتر.</li>
+                        <li>الاستخدام الرئيسي لأنظمة الكمبيوتر هو مشاركة المعلومات مع المستخدمين الآخرين. مع انتشار آليات المشاركة على نطاق الإنترنت (Internet-scale)، مثل البريد الإلكتروني والويب والمراسلة الفورية، يمكن للمستخدمين مشاركة أي شيء مع أي شخص في العالم.</li>
+                        <li>السهولة التي يمكن بها نقل البرامج الضارة (malware) ومجموعة متنوعة من الطرق التي قد يتم بها خداع المستخدمين وعملياتهم لتشغيل البرامج الضارة، تمثل تحديات كبيرة لمطوري أنظمة التشغيل الحديثة لضمان أمان تنفيذ أنظمتهم.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is a fundamental use of computer systems that causes security issues?", options: ["Running hardware", "Sharing of data", "Calculating math", "Cooling the CPU"], ans: 1 },
+                    { type: 'mcq', q: "What presents significant challenges to developers?", options: ["Malware ease", "Screen resolution", "Keyboard layouts", "Power management"], ans: 0 },
+                    { type: 'tf', q: "Processes in modern computer systems rarely interact.", ans: "false" },
+                    { type: 'tf', q: "Internet-scale sharing mechanisms include e-mail and the web.", ans: "true" },
+                    { type: 'short', q: "Name one Internet-scale sharing mechanism mentioned.", ans: "e-mail / web / instant messaging" },
+                    { type: 'short', q: "What can users be tricked into running?", ans: "malware" }
+                ]
+            },
+            {
+                id: 35,
+                titleEn: "OS Security Challenges",
+                titleAr: "تحديات أمان نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>The challenge in developing operating systems security is to design security mechanisms that protect process execution and their generated data in an environment with such complex interactions.</li>
+                        <li>the current state of operating systems security takes two forms:
+                            <ul class="slide-sublist mt-2">
+                                <li>(1) ${kw('constrained systems')} that can enforce security goals with a high degree of assurance.</li>
+                                <li>(2) ${kw('general-purpose systems')} that can enforce limited security goals with a low to medium degree of assurance.</li>
+                            </ul>
+                        </li>
+                        <li>Such systems present several challenges to security practitioners, such as insecure interfaces, dependence of security on arbitrary software, complex interaction with untrusted parties anywhere in the world, etc.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يكمن التحدي في تطوير أمان أنظمة التشغيل في تصميم آليات أمان تحمي تنفيذ العمليات والبيانات الناتجة عنها في بيئة ذات تفاعلات معقدة.</li>
+                        <li>تأخذ الحالة الحالية لأمان أنظمة التشغيل شكلين:
+                            <ul class="slide-sublist mt-2">
+                                <li>(1) ${kw('constrained systems')} (أنظمة مقيدة) يمكنها فرض أهداف الأمان بدرجة عالية من الضمان.</li>
+                                <li>(2) ${kw('general-purpose systems')} (أنظمة للأغراض العامة) يمكنها فرض أهداف أمان محدودة بدرجة ضمان منخفضة إلى متوسطة.</li>
+                            </ul>
+                        </li>
+                        <li>تقدم مثل هذه الأنظمة العديد من التحديات لممارسي الأمن، مثل الواجهات غير الآمنة، واعتماد الأمان على برامج عشوائية، والتفاعل المعقد مع أطراف غير موثوق بها في أي مكان في العالم، إلخ.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which systems enforce security with high assurance?", options: ["General-purpose systems", "Constrained systems", "Legacy systems", "Open systems"], ans: 1 },
+                    { type: 'mcq', q: "What degree of assurance do general-purpose systems have?", options: ["High", "Very high", "Low to medium", "None"], ans: 2 },
+                    { type: 'tf', q: "Constrained systems have a low degree of assurance.", ans: "false" },
+                    { type: 'tf', q: "Insecure interfaces are a challenge to security practitioners.", ans: "true" },
+                    { type: 'short', q: "Name one challenge presented by these systems.", ans: "insecure interfaces / dependence of security on arbitrary software / complex interaction" },
+                    { type: 'short', q: "Which system type provides limited security goals?", ans: "general-purpose systems" }
+                ]
+            },
+            {
+                id: 36,
+                titleEn: "Secure Operating Systems",
+                titleAr: "أنظمة التشغيل الآمنة",
+                contentEn: `
+                    <h2 class="slide-title">SECURE OPERATING SYSTEMS</h2>
+                    <ul class="slide-list">
+                        <li>A ${kw('secure operating system')} provides security mechanisms that ensure that the system's security goals are enforced despite the threats faced by the system.</li>
+                        <li>These security mechanisms are designed to provide such a guarantee in the context of the resource and scheduling mechanisms.</li>
+                        <li>${kw('security goals')} define the requirements of secure operation for a system for any processes that it may execute. The security mechanisms must ensure these goals regardless of the possible ways that the system may be misused (i.e., is threatened) by attackers.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">أنظمة التشغيل الآمنة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يوفر الـ ${kw('secure operating system')} (نظام التشغيل الآمن) آليات أمان تضمن فرض أهداف أمان النظام على الرغم من التهديدات التي يواجهها النظام.</li>
+                        <li>تم تصميم آليات الأمان هذه لتوفير مثل هذا الضمان في سياق آليات الموارد والجدولة.</li>
+                        <li>تحدد ${kw('security goals')} (أهداف الأمان) متطلبات التشغيل الآمن للنظام لأي عمليات قد ينفذها. يجب أن تضمن آليات الأمان هذه الأهداف بغض النظر عن الطرق الممكنة التي قد يساء بها استخدام النظام (أي تعرضه للتهديد) من قبل المهاجمين.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does a secure OS ensure is enforced?", options: ["User passwords", "Hardware limits", "Security goals", "Software licenses"], ans: 2 },
+                    { type: 'mcq', q: "Security mechanisms are designed in the context of what?", options: ["Hardware and software", "Resource and scheduling mechanisms", "Network and internet", "Viruses and malware"], ans: 1 },
+                    { type: 'tf', q: "Secure OS mechanisms ignore resource mechanisms entirely.", ans: "false" },
+                    { type: 'tf', q: "Security goals define the requirements of secure operation.", ans: "true" },
+                    { type: 'short', q: "What defines the requirements of secure operation?", ans: "security goals" },
+                    { type: 'short', q: "What must a secure OS enforce despite threats?", ans: "security goals" }
+                ]
+            },
+            {
+                id: 37,
+                titleEn: "Secure OS (Ideal vs Reality)",
+                titleAr: "نظام التشغيل الآمن (المثالية مقابل الواقع)",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>The term "secure operating system" is both considered an ideal and an oxymoron. Systems that provide a high degree of assurance in enforcement have been called secure systems, or even more frequently "trusted" systems.</li>
+                        <li>However, it is also true that no system of modern complexity is completely secure.</li>
+                        <li>The difficulty of preventing errors in programming and the challenges of trying to remove such errors means that no system as complex as an operating system can be completely secure.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يعتبر مصطلح "نظام التشغيل الآمن" مثاليًا وتناقضًا لفظيًا (oxymoron) في نفس الوقت. الأنظمة التي توفر درجة عالية من الضمان في الفرض تسمى أنظمة آمنة، أو بشكل أكثر شيوعًا أنظمة "موثوقة" (trusted systems).</li>
+                        <li>ومع ذلك، من الصحيح أيضًا أنه لا يوجد نظام ذو تعقيد حديث آمن تمامًا.</li>
+                        <li>صعوبة منع الأخطاء في البرمجة وتحديات محاولة إزالة مثل هذه الأخطاء تعني أنه لا يمكن لأي نظام معقد مثل نظام التشغيل أن يكون آمنًا تمامًا.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "The term 'secure operating system' is considered an ideal and an:", options: ["Absolute truth", "Oxymoron", "Easy goal", "Requirement"], ans: 1 },
+                    { type: 'mcq', q: "Systems that provide a high degree of assurance are frequently called:", options: ["Fast systems", "Trusted systems", "Closed systems", "Batch systems"], ans: 1 },
+                    { type: 'tf', q: "Modern complex systems are always completely secure.", ans: "false" },
+                    { type: 'tf', q: "Errors in programming make complete security impossible for complex OS.", ans: "true" },
+                    { type: 'short', q: "What makes it difficult for an OS to be completely secure?", ans: "errors in programming / complexity" },
+                    { type: 'short', q: "What is another name frequently used for systems providing high assurance?", ans: "trusted systems" }
+                ]
+            },
+            {
+                id: 38,
+                titleEn: "Security Goals Details",
+                titleAr: "تفاصيل أهداف الأمان",
+                contentEn: `
+                    <h2 class="slide-title">SECURITY GOALS</h2>
+                    <ul class="slide-list">
+                        <li>A security goal defines the operations that can be executed by a system while still preventing unauthorized access.</li>
+                        <li>A security goal defines a requirement that the system's design can satisfy (e.g., the way pseudocode can be proven to fulfill the complexity requirement) and that a correct implementation must fulfill (e.g., the way that an implementation can be proven experimentally to observe the complexity).</li>
+                        <li>Security goals describe how the system implements accesses to system resources that satisfy the following: ${kw('secrecy')}, ${kw('integrity')}, and ${kw('availability')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">أهداف الأمان</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يحدد هدف الأمان العمليات التي يمكن تنفيذها بواسطة النظام مع منع الوصول غير المصرح به.</li>
+                        <li>يحدد هدف الأمان متطلبًا يمكن أن يفي به تصميم النظام (على سبيل المثال، الطريقة التي يمكن بها إثبات أن الكود الزائف يلبي متطلبات التعقيد) ويجب أن يفي به التنفيذ الصحيح (على سبيل المثال، الطريقة التي يمكن بها إثبات التنفيذ تجريبيًا لمراقبة التعقيد).</li>
+                        <li>تصف أهداف الأمان كيفية تنفيذ النظام للوصول إلى موارد النظام بما يلبي ما يلي: ${kw('secrecy')} (السرية)، ${kw('integrity')} (النزاهة)، و ${kw('availability')} (التوافر).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What do security goals aim to prevent?", options: ["Authorized access", "Unauthorized access", "System updates", "User logins"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is NOT one of the three main satisfactions of security goals?", options: ["Secrecy", "Integrity", "Extensibility", "Availability"], ans: 2 },
+                    { type: 'tf', q: "Security goals define requirements that the system's design must satisfy.", ans: "true" },
+                    { type: 'tf', q: "Integrity is one of the three primary security goals.", ans: "true" },
+                    { type: 'short', q: "Name the three core elements that security goals satisfy.", ans: "secrecy, integrity, availability" },
+                    { type: 'short', q: "What do security goals prevent regarding access?", ans: "unauthorized access" }
+                ]
+            },
+            {
+                id: 39,
+                titleEn: "Subjects, Objects, and CIA",
+                titleAr: "المواضيع والكائنات والثالوث الأمني",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>A system access is traditionally stated in terms of which ${kw('subjects')} (e.g., processes and users) can perform which operations (e.g., read and write) on which ${kw('objects')} (e.g., files and sockets).</li>
+                        <li><strong>Secrecy</strong> requirements limit the objects that individual subjects can read because objects may contain secrets that not all subjects are permitted to know.</li>
+                        <li><strong>Integrity</strong> requirements limit the objects that subjects can write because objects may contain information that other subjects depend on for their correct operation. Some subjects may not be trusted to modify those objects.</li>
+                        <li><strong>Availability</strong> requirements limit the system resources (e.g., storage and CPU) that subjects may consume because they may exhaust these resources.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يتم تحديد وصول النظام تقليديًا من حيث أي الـ ${kw('subjects')} (الأشخاص/الموضوعات مثل العمليات والمستخدمين) يمكنهم تنفيذ أي عمليات (مثل القراءة والكتابة) على أي ${kw('objects')} (كائنات مثل الملفات والمقابس).</li>
+                        <li>متطلبات <strong>السرية (Secrecy)</strong> تحد من الكائنات التي يمكن للمواضيع الفردية قراءتها لأن الكائنات قد تحتوي على أسرار لا يُسمح لجميع المواضيع بمعرفتها.</li>
+                        <li>متطلبات <strong>النزاهة (Integrity)</strong> تحد من الكائنات التي يمكن للمواضيع الكتابة عليها لأن الكائنات قد تحتوي على معلومات تعتمد عليها مواضيع أخرى لعملها الصحيح. قد لا يتم الوثوق ببعض المواضيع لتعديل تلك الكائنات.</li>
+                        <li>متطلبات <strong>التوافر (Availability)</strong> تحد من موارد النظام (مثل التخزين ووحدة المعالجة المركزية) التي قد تستهلكها المواضيع لأنها قد تستنفد هذه الموارد.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which requirement limits what subjects can read?", options: ["Integrity", "Availability", "Secrecy", "Authenticity"], ans: 2 },
+                    { type: 'mcq', q: "Which requirement limits what subjects can write?", options: ["Secrecy", "Integrity", "Availability", "Privacy"], ans: 1 },
+                    { type: 'tf', q: "Users are examples of objects.", ans: "false" },
+                    { type: 'tf', q: "Availability requirements limit the system resources subjects may consume.", ans: "true" },
+                    { type: 'short', q: "What requirement limits the CPU a subject may consume?", ans: "Availability" },
+                    { type: 'short', q: "Give an example of a subject.", ans: "processes / users" }
+                ]
+            },
+            {
+                id: 40,
+                titleEn: "Trust Model",
+                titleAr: "نموذج الثقة",
+                contentEn: `
+                    <h2 class="slide-title">TRUST MODEL</h2>
+                    <ul class="slide-list">
+                        <li>A system's ${kw('trust model')} defines the set of software and data upon which the system depends for correct enforcement of system security goals. For an operating system, its trust model is synonymous with the system's trusted computing base (${kw('TCB')}).</li>
+                        <li>Ideally, a system TCB should consist of the minimal amount of software necessary to enforce the security goals correctly.</li>
+                        <li>The software that must be trusted includes the software that defines the security goals and the software that enforces the security goals (i.e., the operating system's security mechanism).</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نموذج الثقة (TRUST MODEL)</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يحدد ${kw('trust model')} (نموذج الثقة) للنظام مجموعة البرامج والبيانات التي يعتمد عليها النظام لفرض أهداف أمان النظام بشكل صحيح. بالنسبة لنظام التشغيل، فإن نموذج الثقة الخاص به مرادف لقاعدة الحوسبة الموثوقة للنظام (${kw('TCB')}).</li>
+                        <li>من الناحية المثالية، يجب أن تتكون TCB الخاصة بالنظام من الحد الأدنى من البرامج اللازمة لفرض أهداف الأمان بشكل صحيح.</li>
+                        <li>تتضمن البرامج التي يجب الوثوق بها البرامج التي تحدد أهداف الأمان والبرامج التي تفرض أهداف الأمان (أي آلية أمان نظام التشغيل).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "For an OS, the trust model is synonymous with what acronym?", options: ["CPU", "TCB", "LAN", "VMM"], ans: 1 },
+                    { type: 'mcq', q: "Ideally, the TCB should consist of what amount of software?", options: ["Maximum", "All software", "Minimal", "None"], ans: 2 },
+                    { type: 'tf', q: "TCB stands for Trusted Computing Base.", ans: "true" },
+                    { type: 'tf', q: "The TCB includes software that tries to break the security goals.", ans: "false" },
+                    { type: 'short', q: "What does TCB stand for?", ans: "Trusted Computing Base" },
+                    { type: 'short', q: "What defines the set of software depended upon for correct enforcement?", ans: "trust model" }
+                ]
+            },
+            {
+                id: 41,
+                titleEn: "Trust Outside OS",
+                titleAr: "الثقة خارج نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>Variety of software running outside the operating system must be trusted.</li>
+                        <li>For example, the operating system depends on a variety of programs to authenticate the identity of users (e.g., login and SSH).</li>
+                        <li>Such programs must be trusted because correct enforcement of security goals depends on correct identification of users.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يجب الوثوق بمجموعة متنوعة من البرامج التي تعمل خارج نظام التشغيل.</li>
+                        <li>على سبيل المثال، يعتمد نظام التشغيل على مجموعة متنوعة من البرامج لمصادقة هوية المستخدمين (مثل تسجيل الدخول و SSH).</li>
+                        <li>يجب الوثوق بمثل هذه البرامج لأن الفرض الصحيح لأهداف الأمان يعتمد على التحديد الصحيح للمستخدمين.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What kind of programs must be trusted to verify who is logging in?", options: ["Word processors", "Authentication programs", "Web browsers", "Video games"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is given as an example of an authentication program?", options: ["Excel", "SSH", "Paint", "Calculator"], ans: 1 },
+                    { type: 'tf', q: "Software outside the OS never needs to be trusted.", ans: "false" },
+                    { type: 'tf', q: "The OS depends on programs to authenticate the identity of users.", ans: "true" },
+                    { type: 'short', q: "Name a program used to authenticate identity mentioned in the slide.", ans: "login / SSH" },
+                    { type: 'short', q: "What must be correctly identified for security goals to be enforced?", ans: "users" }
+                ]
+            },
+            {
+                id: 42,
+                titleEn: "Threat Model",
+                titleAr: "نموذج التهديد",
+                contentEn: `
+                    <h2 class="slide-title">THREAT MODEL</h2>
+                    <ul class="slide-list">
+                        <li>A ${kw('threat model')} defines a set of operations that an attacker may use to compromise a system.</li>
+                        <li>In threat model, we assume a powerful attacker who is capable of injecting operations from the network and may be in control of some of the running software on the system (i.e., outside the trusted computing base).</li>
+                        <li>We presume that the attacker is actively working to violate the system security goals.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نموذج التهديد (THREAT MODEL)</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يحدد ${kw('threat model')} (نموذج التهديد) مجموعة من العمليات التي قد يستخدمها المهاجم لاختراق النظام.</li>
+                        <li>في نموذج التهديد، نفترض وجود مهاجم قوي قادر على حقن عمليات من الشبكة وقد يكون مسيطراً على بعض البرامج قيد التشغيل على النظام (أي خارج قاعدة الحوسبة الموثوقة).</li>
+                        <li>نحن نفترض أن المهاجم يعمل بنشاط لانتهاك أهداف أمان النظام.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What defines operations an attacker may use to compromise a system?", options: ["Trust model", "Security goals", "Threat model", "Resource allocator"], ans: 2 },
+                    { type: 'mcq', q: "Where might a powerful attacker inject operations from?", options: ["Only the keyboard", "The network", "The ROM", "The display"], ans: 1 },
+                    { type: 'tf', q: "The threat model typically assumes a very weak attacker.", ans: "false" },
+                    { type: 'tf', q: "The attacker is presumed to be actively working to violate security goals.", ans: "true" },
+                    { type: 'short', q: "What model assumes the attacker can inject operations from the network?", ans: "Threat model" },
+                    { type: 'short', q: "What is the attacker actively working to violate?", ans: "system security goals" }
+                ]
+            },
+            {
+                id: 43,
+                titleEn: "Commercial OS Weakness",
+                titleAr: "ضعف أنظمة التشغيل التجارية",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>If an attacker can only access the system via the network, then the attacker may try to send any operation to any processes that provide network access.</li>
+                        <li>This threat model exposes a fundamental weakness in commercial operating systems (e.g., UNIX and Windows); they assume that all software running on behalf of a subject is trusted by that subject.</li>
+                        <li>For example, a subject may run a word processor and an email client, and in commercial systems these processes are trusted to behave as the user would. However, in this threat model, both of processes may be under the control of an attacker (e.g., via a document macro virus or via a malicious script or email attachment).</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>إذا تمكن المهاجم من الوصول إلى النظام فقط عبر الشبكة، فقد يحاول المهاجم إرسال أي عملية إلى أي عمليات توفر الوصول إلى الشبكة.</li>
+                        <li>يكشف نموذج التهديد هذا عن ضعف أساسي في أنظمة التشغيل التجارية (مثل UNIX و Windows)؛ فهم يفترضون أن جميع البرامج التي تعمل نيابة عن موضوع (subject) موثوق بها من قبل هذا الموضوع.</li>
+                        <li>على سبيل المثال، قد يقوم موضوع بتشغيل معالج نصوص وعميل بريد إلكتروني، وفي الأنظمة التجارية يوثق بهذه العمليات لتتصرف كما يفعل المستخدم. ومع ذلك، في نموذج التهديد هذا، قد تكون كلتا العمليتين تحت سيطرة المهاجم (على سبيل المثال، عبر فيروس ماكرو في مستند أو عبر برنامج نصي ضار أو مرفق بريد إلكتروني).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What do commercial OS often assume about software running for a subject?", options: ["It is malicious", "It is trusted", "It is broken", "It needs updating"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following are examples of commercial operating systems?", options: ["Linux only", "UNIX and Windows", "Android and iOS", "Custom mainframes"], ans: 1 },
+                    { type: 'tf', q: "Commercial systems assume user processes might be malicious by default.", ans: "false" },
+                    { type: 'tf', q: "A document macro virus can place a word processor under the control of an attacker.", ans: "true" },
+                    { type: 'short', q: "Name one commercial OS mentioned.", ans: "UNIX / Windows" },
+                    { type: 'short', q: "What is a fundamental weakness of commercial OS?", ans: "assuming software is trusted" }
+                ]
+            },
+            {
+                id: 44,
+                titleEn: "Protecting the TCB",
+                titleAr: "حماية قاعدة الحوسبة الموثوقة",
+                contentEn: `
+                    <h2 class="slide-title">Cont..</h2>
+                    <ul class="slide-list">
+                        <li>The task of a secure operating system developer is to protect the TCB from the types of Threats.</li>
+                        <li>For example, secure operating system can prevent a user process with access to secret data from leaking that data, by limiting the interactions of that process. However, protecting the TCB is more difficult because it interacts with a variety of untrusted processes.</li>
+                        <li>The secure operating system developer must ensure that all the components of the trusted computing base prevent such threats correctly.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">يتبع..</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تتمثل مهمة مطور نظام التشغيل الآمن في حماية TCB من أنواع التهديدات.</li>
+                        <li>على سبيل المثال، يمكن لنظام التشغيل الآمن أن يمنع عملية مستخدم لديها وصول إلى بيانات سرية من تسريب تلك البيانات، وذلك عن طريق الحد من تفاعلات تلك العملية. ومع ذلك، فإن حماية TCB أكثر صعوبة لأنها تتفاعل مع مجموعة متنوعة من العمليات غير الموثوقة.</li>
+                        <li>يجب على مطور نظام التشغيل الآمن التأكد من أن جميع مكونات قاعدة الحوسبة الموثوقة تمنع مثل هذه التهديدات بشكل صحيح.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the developer's task regarding the TCB?", options: ["Delete it", "Protect it from threats", "Make it open source", "Increase its size"], ans: 1 },
+                    { type: 'mcq', q: "Why is protecting the TCB difficult?", options: ["It is too small", "It interacts with untrusted processes", "It has no power", "It doesn't use the network"], ans: 1 },
+                    { type: 'tf', q: "The TCB never interacts with untrusted processes.", ans: "false" },
+                    { type: 'tf', q: "A secure OS limits interactions of processes to prevent leaking data.", ans: "true" },
+                    { type: 'short', q: "What must the developer protect the TCB from?", ans: "Threats" },
+                    { type: 'short', q: "What limits the leakage of secret data by a process?", ans: "limiting interactions" }
+                ]
+            },
+            {
+                id: 45,
+                titleEn: "The End",
+                titleAr: "النهاية",
+                contentEn: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="Al-Baha University Logo" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10">The End</h1>
+                    </div>
+                `,
+                contentAr: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="شعار جامعة الباحة" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10 font-cairo">النهاية</h1>
+                    </div>
+                `,
+                quiz: []
+            }
+        ];
+
+        // --- 2. STATE & LOGIC ---
+        let currentSlideIndex = 0;
+        let isArabic = false;
+
+        const slideNav = document.getElementById('slide-nav');
+        const slideContent = document.getElementById('slide-content');
+        const langToggleBtn = document.getElementById('lang-toggle');
+        const langText = document.getElementById('lang-text');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const quizBtn = document.getElementById('quiz-btn');
+
+        // Initialize App
+        function init() {
+            buildNavigation();
+            renderSlide(0);
+        }
+
+        // Build Sidebar Navigation
+        function buildNavigation() {
+            slideNav.innerHTML = '';
+            slides.forEach((slide, index) => {
+                const li = document.createElement('li');
+                li.className = `px-6 py-3 cursor-pointer border-l-4 transition-colors duration-200 ${index === currentSlideIndex ? 'border-blue-500 bg-gray-700 text-white' : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-white'}`;
+                
+                // Add a small divider before part 2 starts
+                if (slide.id === 26) {
+                    const divider = document.createElement('div');
+                    divider.className = "px-6 py-2 bg-gray-900 text-xs font-bold text-gray-500 uppercase tracking-wider";
+                    divider.innerText = isArabic ? "الجزء الثاني" : "Part 2";
+                    slideNav.appendChild(divider);
+                }
+
+                li.innerHTML = `<span class="mr-2 opacity-50">${slide.id.toString().padStart(2, '0')}</span> ${isArabic ? slide.titleAr : slide.titleEn}`;
+                li.onclick = () => {
+                    currentSlideIndex = index;
+                    renderSlide(index);
+                    buildNavigation(); // Update active state
+                };
+                slideNav.appendChild(li);
+            });
+        }
+
+        // Render specific slide
+        function renderSlide(index) {
+            const slide = slides[index];
+            const content = isArabic ? slide.contentAr : slide.contentEn;
+            
+            // Footer HTML structure
+            const footer = `
+                <div class="mt-auto pt-8 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500 ${isArabic ? 'flex-row-reverse' : ''}">
+                    <div class="font-bold text-blue-800">BU <br> <span class="font-normal text-xs text-black">${isArabic ? 'جامعة الباحة' : 'Al-Baha University'}</span></div>
+                    <div class="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">${slide.id}</div>
+                </div>
+            `;
+
+            slideContent.innerHTML = content + footer;
+
+            // Handle Quiz Button visibility
+            if(slide.quiz && slide.quiz.length > 0) {
+                quizBtn.style.display = 'flex';
+            } else {
+                quizBtn.style.display = 'none';
+            }
+        }
+
+        // Translation Toggle
+        langToggleBtn.onclick = () => {
+            isArabic = !isArabic;
+            document.documentElement.lang = isArabic ? 'ar' : 'en';
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            langText.innerText = isArabic ? 'English' : 'ترجمة للعربية';
+            
+            // Update sidebar direction/layout roughly
+            if(isArabic) {
+                sidebar.classList.remove('border-r');
+                sidebar.classList.add('border-l');
+            } else {
+                sidebar.classList.remove('border-l');
+                sidebar.classList.add('border-r');
+            }
+
+            buildNavigation();
+            renderSlide(currentSlideIndex);
+        };
+
+        // Sidebar Toggle
+        toggleSidebarBtn.onclick = () => {
+            sidebar.classList.toggle('w-0');
+            sidebar.classList.toggle('w-1/4');
+            sidebar.classList.toggle('px-0');
+        };
+
+        // --- 3. MODALS (Keywords & Quiz) ---
+
+        function showKeyword(word) {
+            const data = dictionary[word];
+            if(!data) return;
+
+            document.getElementById('kw-title').innerText = word;
+            document.getElementById('kw-en').innerText = data.en;
+            document.getElementById('kw-ar').innerText = data.ar;
+            
+            document.getElementById('keyword-modal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if(modalId === 'quiz-modal') {
+                document.getElementById('quiz-results').classList.add('hidden');
+                document.getElementById('quiz-results').innerHTML = '';
+            }
+        }
+
+        quizBtn.onclick = () => {
+            const slide = slides[currentSlideIndex];
+            if(!slide || !slide.quiz || slide.quiz.length === 0) return;
+
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            document.getElementById('quiz-results').classList.add('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                let html = `<div class="quiz-question" id="q-block-${i}">
+                    <p class="font-bold text-lg mb-2">${i + 1}. ${q.q}</p>`;
+
+                if(q.type === 'mcq') {
+                    q.options.forEach((opt, optIndex) => {
+                        html += `<label class="block cursor-pointer p-2 hover:bg-blue-50 rounded">
+                            <input type="radio" name="q${i}" value="${optIndex}" class="mr-2"> ${opt}
+                        </label>`;
+                    });
+                } else if(q.type === 'tf') {
+                    html += `
+                        <label class="inline-block cursor-pointer p-2 mr-4 hover:bg-blue-50 rounded"><input type="radio" name="q${i}" value="true" class="mr-1"> True</label>
+                        <label class="inline-block cursor-pointer p-2 hover:bg-blue-50 rounded"><input type="radio" name="q${i}" value="false" class="mr-1"> False</label>
+                    `;
+                } else if(q.type === 'short') {
+                    html += `<input type="text" name="q${i}" class="w-full border border-gray-300 p-2 rounded mt-1 focus:outline-none focus:border-blue-500" placeholder="Type your answer...">`;
+                }
+                
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+
+            document.getElementById('quiz-modal').style.display = 'flex';
+        };
+
+        function evaluateQuiz() {
+            const slide = slides[currentSlideIndex];
+            let score = 0;
+            const resultsDiv = document.getElementById('quiz-results');
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                const block = document.getElementById(`q-block-${i}`);
+                let isCorrect = false;
+                let userAnswer = '';
+                let correctAnswerStr = '';
+
+                if(q.type === 'mcq') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.options[q.ans];
+                    if(selected) {
+                        userAnswer = q.options[parseInt(selected.value)];
+                        if(parseInt(selected.value) === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'tf') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.ans.charAt(0).toUpperCase() + q.ans.slice(1);
+                    if(selected) {
+                        userAnswer = selected.value === "true" ? "True" : "False";
+                        if(selected.value === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'short') {
+                    const input = document.querySelector(`input[name="q${i}"]`);
+                    correctAnswerStr = q.ans;
+                    if(input && input.value.trim() !== '') {
+                        userAnswer = input.value.trim();
+                        // Simple validation for short answer
+                        if(userAnswer.length > 2) {
+                             isCorrect = true; 
+                        }
+                    }
+                }
+
+                if(isCorrect) score++;
+
+                const feedback = document.createElement('div');
+                feedback.className = 'mt-2 p-3 rounded ' + (isCorrect ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300');
+                feedback.innerHTML = `
+                    <p class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">
+                        <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
+                        Q${i+1}: ${isCorrect ? 'Correct!' : 'Incorrect.'}
+                    </p>
+                    ${!isCorrect ? `<p class="text-sm mt-1 text-gray-700"><b>Correct Answer:</b> ${correctAnswerStr}</p>` : ''}
+                `;
+                block.appendChild(feedback);
+            });
+
+            resultsDiv.innerHTML = `<div class="bg-indigo-100 border-l-4 border-indigo-500 p-4 rounded text-center">
+                <p class="text-2xl font-bold text-indigo-800">Your Score: ${score} / 6</p>
+            </div>`;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const kwModal = document.getElementById('keyword-modal');
+            const qzModal = document.getElementById('quiz-modal');
+            if (event.target == kwModal) {
+                closeModal('keyword-modal');
+            }
+            if (event.target == qzModal) {
+                closeModal('quiz-modal');
+            }
+        }
+
+        // Start
+        window.onload = init;
+
+    </script>
+</body>
+</html>
