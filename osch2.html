@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operating Systems Hardening - Al-Baha University</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        :lang(ar) {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .slide-container {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-top: 8px solid #1a56db; /* Blue accent */
+            border-bottom: 8px solid #10b981; /* Green accent */
+            min-height: 500px;
+            position: relative;
+        }
+
+        .keyword {
+            background-color: #fef08a;
+            color: #b45309;
+            padding: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-bottom: 2px dashed #b45309;
+        }
+
+        .keyword:hover {
+            background-color: #fde047;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close-btn:hover { color: #111827; }
+
+        .diagram-box {
+            border: 2px solid #3b82f6;
+            background-color: #eff6ff;
+            text-align: center;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .quiz-question {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .correct-answer { color: #16a34a; font-weight: bold; }
+        .wrong-answer { color: #dc2626; font-weight: bold; }
+
+        /* Slide specific typography */
+        .slide-title { color: #1e3a8a; font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .slide-list { list-style-type: none; padding-left: 1.5rem; }
+        .slide-list > li { margin-bottom: 1rem; font-size: 1.25rem; position: relative;}
+        .slide-list > li::before { content: '■'; color: #3b82f6; position: absolute; left: -1.5rem; top: 0.2rem; font-size: 0.8rem;}
+        .slide-sublist { list-style-type: circle; padding-left: 2rem; margin-top: 0.5rem;}
+        .slide-sublist > li { font-size: 1.1rem; margin-bottom: 0.5rem; color: #4b5563;}
+
+        .circle-diagram {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.8rem;
+            padding: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: absolute;
+            background-color: rgba(147, 197, 253, 0.8); /* blue-300 with opacity */
+        }
+        .circle-diagram.gray {
+            background-color: rgba(209, 213, 219, 0.8); /* gray-300 with opacity */
+        }
+    </style>
+</head>
+<body class="flex h-screen text-gray-800">
+
+    <!-- Sidebar -->
+    <aside class="w-1/4 bg-gray-900 text-white flex flex-col h-full overflow-hidden shadow-xl z-10 transition-all duration-300" id="sidebar">
+        <div class="p-6 border-b border-gray-700 bg-gray-800">
+            <h1 class="text-xl font-bold text-blue-400 mb-2">Operating System Security</h1>
+            <p class="text-sm text-gray-400">Chapter 2: Operating Systems Hardening</p>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="slide-list-container">
+            <ul id="slide-nav" class="py-2">
+                <!-- Navigation items injected via JS -->
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto transition-all duration-300" id="main-content">
+        <!-- Top Toolbar -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+            <button id="toggle-sidebar" class="text-gray-500 hover:text-blue-600 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex gap-4">
+                <button id="lang-toggle" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-language"></i> <span id="lang-text">ترجمة للعربية</span>
+                </button>
+                <button id="quiz-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-question-circle"></i> <span>Take Quiz</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Slide Area -->
+        <div class="flex-1 p-8 flex justify-center items-start overflow-y-auto">
+            <div class="slide-container w-full max-w-4xl p-10 flex flex-col" id="slide-content">
+                <!-- Slide content injected here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Keyword Modal -->
+    <div id="keyword-modal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('keyword-modal')"></i>
+            <h2 id="kw-title" class="text-2xl font-bold text-blue-800 mb-4 pb-2 border-b"></h2>
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 text-left">
+                <p class="text-sm font-bold text-blue-600 uppercase mb-1">English Definition:</p>
+                <p id="kw-en" class="text-lg"></p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-right" dir="rtl">
+                <p class="text-sm font-bold text-green-600 mb-1">الشرح بالعربية:</p>
+                <p id="kw-ar" class="text-lg font-cairo"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal-overlay">
+        <div class="modal-content w-full max-w-3xl">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('quiz-modal')"></i>
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6 border-b pb-2"><i class="fas fa-pencil-alt mr-2"></i> Slide Quiz</h2>
+            <div id="quiz-container" class="space-y-6">
+                <!-- Quiz forms injected here -->
+            </div>
+            <div class="mt-8 flex justify-end">
+                <button onclick="evaluateQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition">Submit Answers</button>
+            </div>
+            <div id="quiz-results" class="mt-6 hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA STRUCTURE (Translations & Keywords) ---
+        const dictionary = {
+            "OS hardening": { en: "The process of implementing security measures and patching for operating systems to strengthen them against cyberattacks.", ar: "عملية تنفيذ تدابير الأمان وتصحيح أنظمة التشغيل لتقويتها ضد الهجمات الإلكترونية." },
+            "attack surface": { en: "The total sum of vulnerabilities that can be exploited in a system.", ar: "المجموع الكلي لنقاط الضعف التي يمكن استغلالها في النظام." },
+            "malware": { en: "Malicious software designed to disrupt, damage, or gain unauthorized access to a computer system.", ar: "برامج ضارة مصممة لتعطيل أو إتلاف أو الوصول غير المصرح به إلى نظام الكمبيوتر." },
+            "vulnerabilities": { en: "Weaknesses or flaws in a software system that can be exploited by an attacker.", ar: "نقاط الضعف أو العيوب في نظام برمجي والتي يمكن للمهاجم استغلالها." },
+            "Firewalls": { en: "Network security systems that monitor and control incoming and outgoing network traffic based on predetermined security rules.", ar: "أنظمة أمان الشبكة التي تراقب وتتحكم في حركة مرور الشبكة الواردة والصادرة بناءً على قواعد أمان محددة مسبقًا." },
+            "IDS": { en: "Intrusion Detection System: A device or software application that monitors a network or systems for malicious activity or policy violations.", ar: "نظام كشف التسلل: جهاز أو تطبيق برمجي يراقب شبكة أو أنظمة بحثًا عن نشاط ضار أو انتهاكات للسياسة." },
+            "IPS": { en: "Intrusion Prevention System: A network security/threat prevention technology that examines network traffic flows to detect and prevent vulnerability exploits.", ar: "نظام منع التسلل: تقنية أمان الشبكة / منع التهديدات التي تفحص تدفقات حركة مرور الشبكة لاكتشاف ومنع استغلال نقاط الضعف." },
+            "patching": { en: "Applying updates to software to correct bugs, vulnerabilities, or improve functionality.", ar: "تطبيق تحديثات على البرامج لتصحيح الأخطاء أو نقاط الضعف أو تحسين الوظائف." },
+            "BIOS": { en: "Basic Input/Output System: Firmware used to perform hardware initialization during the booting process.", ar: "نظام الإدخال والإخراج الأساسي: البرامج الثابتة المستخدمة لإجراء تهيئة الأجهزة أثناء عملية التمهيد." },
+            "cryptographic file system": { en: "A file system that transparently encrypts data stored on it, securing it against unauthorized physical access.", ar: "نظام ملفات يقوم بتشفير البيانات المخزنة عليه بشفافية، لتأمينها ضد الوصول المادي غير المصرح به." },
+            "elevated privileges": { en: "Higher levels of access granted to specific users, allowing them to perform administrative tasks.", ar: "مستويات أعلى من الوصول تُمنح لمستخدمين محددين، مما يتيح لهم أداء مهام إدارية." },
+            "white-list": { en: "A security practice that allows only pre-approved programs to run on a system.", ar: "ممارسة أمنية تسمح فقط للبرامج المعتمدة مسبقًا بالعمل على النظام." },
+            "Encryption": { en: "The process of encoding a message or information in such a way that only authorized parties can access it.", ar: "عملية تشفير رسالة أو معلومات بطريقة لا يمكن إلا للأطراف المصرح لها الوصول إليها." },
+            "Logging": { en: "The systematic recording of events that occur within an organization's systems and networks.", ar: "التسجيل المنهجي للأحداث التي تقع داخل أنظمة وشبكات المؤسسة." },
+            "Backup": { en: "The process of making copies of data to allow the recovery of lost or corrupted data over short time periods.", ar: "عملية عمل نسخ من البيانات للسماح باستعادة البيانات المفقودة أو التالفة خلال فترات زمنية قصيرة." },
+            "Archive": { en: "The process of retaining copies of data over extended periods of time for legal and operational requirements.", ar: "عملية الاحتفاظ بنسخ من البيانات لفترات زمنية طويلة للمتطلبات القانونية والتشغيلية." }
+        };
+
+        function kw(word, key) {
+            return `<span class="keyword" onclick="showKeyword('${key || word}')">${word}</span>`;
+        }
+
+        // Slides array (starting from slide 2 as per instructions)
+        const slides = [
+            {
+                id: 2,
+                titleEn: "Outlines",
+                titleAr: "المحتويات",
+                contentEn: `
+                    <h2 class="slide-title">Outlines:</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Operating System Hardening', 'OS hardening')}</li>
+                        <li>System Security Planning</li>
+                        <li>Operating System Security</li>
+                        <li>Installing and ${kw('Patching', 'patching')}</li>
+                        <li>Operating System Configuration
+                            <ul class="slide-sublist">
+                                <li>Removing unnecessary services, applications, and protocols</li>
+                                <li>Configuring users, groups, and permissions</li>
+                                <li>Configuring resource controls</li>
+                            </ul>
+                        </li>
+                        <li>Install Additional Security Controls</li>
+                        <li>Test the System Security</li>
+                        <li>Securing Critical Contents</li>
+                        <li>Application Configuration</li>
+                        <li>${kw('Encryption', 'Encryption')} Technology</li>
+                        <li>Security Maintenance</li>
+                        <li>${kw('Logging', 'Logging')}</li>
+                        <li>Data ${kw('Backup', 'Backup')} and ${kw('Archive', 'Archive')}</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحتويات:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('تقوية نظام التشغيل', 'OS hardening')}</li>
+                        <li>تخطيط أمن النظام</li>
+                        <li>أمان نظام التشغيل</li>
+                        <li>التثبيت و ${kw('التصحيح', 'patching')}</li>
+                        <li>تكوين نظام التشغيل
+                            <ul class="slide-sublist">
+                                <li>إزالة الخدمات والتطبيقات والبروتوكولات غير الضرورية</li>
+                                <li>تكوين المستخدمين والمجموعات والأذونات</li>
+                                <li>تكوين ضوابط الموارد</li>
+                            </ul>
+                        </li>
+                        <li>تثبيت ضوابط أمان إضافية</li>
+                        <li>اختبار أمان النظام</li>
+                        <li>تأمين المحتويات الحرجة</li>
+                        <li>تكوين التطبيق</li>
+                        <li>تقنية ${kw('التشفير', 'Encryption')}</li>
+                        <li>صيانة الأمان</li>
+                        <li>${kw('التسجيل', 'Logging')}</li>
+                        <li>النسخ ${kw('الاحتياطي', 'Backup')} والأرشفة (${kw('Archive', 'Archive')}) للبيانات</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of the following is part of Operating System Configuration according to the outline?", options: ["Data Backup", "Encryption Technology", "Configuring users, groups, and permissions", "Logging"], ans: 2 },
+                    { type: 'mcq', q: "What is listed immediately after 'Test the System Security'?", options: ["Application Configuration", "Securing Critical Contents", "Security Maintenance", "Installing and Patching"], ans: 1 },
+                    { type: 'tf', q: "System Security Planning is listed in the outlines.", ans: "true" },
+                    { type: 'tf', q: "Network routing algorithms are discussed in this chapter.", ans: "false" },
+                    { type: 'short', q: "What kind of controls are configured under Operating System Configuration?", ans: "resource controls" },
+                    { type: 'short', q: "Name one topic related to data mentioned at the end of the outline.", ans: "Data Backup and Archive / Logging" }
+                ]
+            },
+            {
+                id: 3,
+                titleEn: "Operating System Hardening",
+                titleAr: "تقوية نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Hardening</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Operating system (OS) hardening', 'OS hardening')} is the process of implementing security measures and patching for operating systems, such as Windows, Linux, or Apple OS X, to strengthen them against cyberattacks.</li>
+                        <li class="mt-4">The goal is to protect sensitive computing systems, reducing the system's ${kw('attack surface', 'attack surface')}, in order to lower the risk of data breaches, unauthorized access, systems hacking, or ${kw('malware', 'malware')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقوية نظام التشغيل</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('تقوية نظام التشغيل (OS hardening)', 'OS hardening')} هي عملية تنفيذ تدابير الأمان وتصحيح أنظمة التشغيل، مثل Windows أو Linux أو Apple OS X، لتقويتها ضد الهجمات الإلكترونية.</li>
+                        <li class="mt-4">الهدف هو حماية أنظمة الحوسبة الحساسة، وتقليل ${kw('سطح الهجوم (attack surface)', 'attack surface')} للنظام، من أجل تقليل مخاطر خروقات البيانات، والوصول غير المصرح به، واختراق الأنظمة، أو ${kw('البرامج الضارة (malware)', 'malware')}.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does OS hardening aim to reduce?", options: ["Processing speed", "The system's attack surface", "Memory allocation", "Network bandwidth"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is NOT listed as a risk OS hardening lowers?", options: ["Data breaches", "Hardware aging", "Unauthorized access", "Malware"], ans: 1 },
+                    { type: 'tf', q: "OS hardening is the process of removing security measures.", ans: "false" },
+                    { type: 'tf', q: "Windows and Linux are examples of operating systems that can be hardened.", ans: "true" },
+                    { type: 'short', q: "What kind of software is implemented to strengthen systems against cyberattacks?", ans: "patching / security measures" },
+                    { type: 'short', q: "What type of computing systems is the goal to protect?", ans: "sensitive computing systems" }
+                ]
+            },
+            {
+                id: 4,
+                titleEn: "Operating System Hardening (Cont.)",
+                titleAr: "تقوية نظام التشغيل (يتبع)",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Hardening</h2>
+                    <ul class="slide-list">
+                        <li>Computer client and server systems are central components of the IT infrastructure for most organizations, may hold critical data and applications, and are a necessary tool for the function of an organization.</li>
+                        <li class="mt-4">Accordingly, we need to be aware of the expected presence of ${kw('vulnerabilities', 'vulnerabilities')} in operating systems and applications as distributed, and the existence of worms scanning for such vulnerabilities at high rates.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقوية نظام التشغيل</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تعد أنظمة عملاء وخوادم الكمبيوتر مكونات مركزية للبنية التحتية لتكنولوجيا المعلومات لمعظم المؤسسات، وقد تحتوي على بيانات وتطبيقات مهمة، وهي أداة ضرورية لعمل المؤسسة.</li>
+                        <li class="mt-4">وبناءً على ذلك، يجب أن نكون على دراية بالوجود المتوقع لـ ${kw('نقاط الضعف (vulnerabilities)', 'vulnerabilities')} في أنظمة التشغيل والتطبيقات كما يتم توزيعها، ووجود ديدان (worms) تبحث عن نقاط الضعف هذه بمعدلات عالية.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What are central components of IT infrastructure?", options: ["Printers", "Computer client and server systems", "Mice and keyboards", "External monitors"], ans: 1 },
+                    { type: 'mcq', q: "What scans for vulnerabilities at high rates?", options: ["Worms", "Antivirus software", "Firewalls", "Users"], ans: 0 },
+                    { type: 'tf', q: "Computer systems are a necessary tool for the function of an organization.", ans: "true" },
+                    { type: 'tf', q: "Operating systems as distributed never have vulnerabilities.", ans: "false" },
+                    { type: 'short', q: "What might computer client and server systems hold?", ans: "critical data and applications" },
+                    { type: 'short', q: "What must we be aware of the expected presence of in OSs?", ans: "vulnerabilities" }
+                ]
+            },
+            {
+                id: 5,
+                titleEn: "Operating System Hardening (Cont.)",
+                titleAr: "تقوية نظام التشغيل (يتبع)",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Hardening</h2>
+                    <ul class="slide-list">
+                        <li>Thus, a system can be compromised during the installation process before it can install the latest patches or implement other hardening measures.</li>
+                        <li class="mt-4">Hence, building and deploying a system should be a planned process designed to counter such a threat and maintain security during its operational lifetime.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقوية نظام التشغيل</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>وبالتالي، يمكن اختراق النظام أثناء عملية التثبيت قبل أن يتمكن من تثبيت أحدث التصحيحات أو تنفيذ إجراءات التقوية الأخرى.</li>
+                        <li class="mt-4">ومن ثم، يجب أن يكون بناء ونشر النظام عملية مخططة ومصممة لمواجهة مثل هذا التهديد والحفاظ على الأمن خلال فترة تشغيله.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "When can a system be compromised before patches are installed?", options: ["During shutdown", "During the installation process", "After 5 years of use", "While printing"], ans: 1 },
+                    { type: 'mcq', q: "Building and deploying a system should be what kind of process?", options: ["A random process", "A rushed process", "A planned process", "An automated blind process"], ans: 2 },
+                    { type: 'tf', q: "A system is completely safe during its initial installation process.", ans: "false" },
+                    { type: 'tf', q: "Deploying a system needs to be designed to counter threats.", ans: "true" },
+                    { type: 'short', q: "What should maintain security during a system's operational lifetime?", ans: "planned process (building and deploying)" },
+                    { type: 'short', q: "What might a system fail to install before it gets compromised during setup?", ans: "latest patches / hardening measures" }
+                ]
+            },
+            {
+                id: 6,
+                titleEn: "Operating System Hardening Process",
+                titleAr: "عملية تقوية نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Hardening</h2>
+                    <p class="mb-2 text-xl font-bold">Process must:</p>
+                    <ul class="slide-list">
+                        <li>Assess risks and plan the system deployment.</li>
+                        <li>Secure the underlying operating system and then the key applications.</li>
+                        <li>Ensure any critical content is secured.</li>
+                        <li>Ensure appropriate network protection mechanisms are used 
+                            <br><span class="text-sm text-gray-600">(${kw('Firewalls', 'Firewalls')}, Intrusion Detection Systems (${kw('IDS', 'IDS')}), and Intrusion Prevention Systems (${kw('IPS', 'IPS')})) .</span>
+                        </li>
+                        <li>Ensure appropriate processes are used to maintain security.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقوية نظام التشغيل</h2>
+                    <p class="mb-2 text-xl font-bold" dir="rtl">يجب أن تقوم العملية بما يلي:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تقييم المخاطر وتخطيط نشر النظام.</li>
+                        <li>تأمين نظام التشغيل الأساسي ثم التطبيقات الرئيسية.</li>
+                        <li>التأكد من تأمين أي محتوى حرج.</li>
+                        <li>التأكد من استخدام آليات حماية الشبكة المناسبة 
+                            <br><span class="text-sm text-gray-600">(جدران الحماية (${kw('Firewalls', 'Firewalls')})، وأنظمة كشف التسلل (${kw('IDS', 'IDS')})، وأنظمة منع التسلل (${kw('IPS', 'IPS')})).</span>
+                        </li>
+                        <li>التأكد من استخدام العمليات المناسبة للحفاظ على الأمن.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What should be secured after the underlying operating system?", options: ["The hardware", "The key applications", "The user's desk", "The power supply"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is a network protection mechanism mentioned?", options: ["USB Drives", "Keyboards", "Intrusion Detection Systems (IDS)", "Monitors"], ans: 2 },
+                    { type: 'tf', q: "Assessing risks is part of the hardening process.", ans: "true" },
+                    { type: 'tf', q: "IPS stands for Internet Protocol System.", ans: "false" },
+                    { type: 'short', q: "What does IDS stand for?", ans: "Intrusion Detection Systems" },
+                    { type: 'short', q: "What must be done to critical content?", ans: "ensure it is secured" }
+                ]
+            },
+            {
+                id: 7,
+                titleEn: "System Security Planning",
+                titleAr: "تخطيط أمن النظام",
+                contentEn: `
+                    <h2 class="slide-title">System Security Planning</h2>
+                    
+                    <div class="relative w-full h-80 flex items-center justify-center mt-8">
+                        <div class="circle-diagram" style="top: 0; left: 25%;">Plan needs to identify appropriate personnel and training to install and manage the system</div>
+                        <div class="circle-diagram gray" style="top: 0; right: 25%;">Planning should include a wide security assessment of the organization</div>
+                        
+                        <div class="absolute font-bold text-center z-10 w-48 p-2 bg-white bg-opacity-90 rounded">The first step in deploying a new system is planning</div>
+                        
+                        <div class="circle-diagram gray" style="bottom: 0; left: 25%;">Aim is to maximize security while minimizing costs</div>
+                        <div class="circle-diagram" style="bottom: 0; right: 25%;">Planning process needs to determine security requirements for the system, applications, data, and users</div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تخطيط أمن النظام</h2>
+                    
+                    <div class="relative w-full h-80 flex items-center justify-center mt-8" dir="rtl">
+                        <div class="circle-diagram" style="top: 0; right: 25%;">تحتاج الخطة إلى تحديد الموظفين والتدريب المناسبين لتثبيت وإدارة النظام</div>
+                        <div class="circle-diagram gray" style="top: 0; left: 25%;">يجب أن يشمل التخطيط تقييماً أمنياً واسعاً للمؤسسة</div>
+                        
+                        <div class="absolute font-bold text-center z-10 w-48 p-2 bg-white bg-opacity-90 rounded">الخطوة الأولى في نشر نظام جديد هي التخطيط</div>
+                        
+                        <div class="circle-diagram gray" style="bottom: 0; right: 25%;">الهدف هو زيادة الأمان إلى أقصى حد مع تقليل التكاليف</div>
+                        <div class="circle-diagram" style="bottom: 0; left: 25%;">تحتاج عملية التخطيط إلى تحديد المتطلبات الأمنية للنظام والتطبيقات والبيانات والمستخدمين</div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the first step in deploying a new system?", options: ["Coding", "Planning", "Testing", "Buying hardware"], ans: 1 },
+                    { type: 'mcq', q: "The aim of planning is to maximize security while minimizing what?", options: ["Performance", "Training", "Costs", "Data"], ans: 2 },
+                    { type: 'tf', q: "Planning should include a narrow, specific security assessment only.", ans: "false" },
+                    { type: 'tf', q: "The plan needs to identify appropriate personnel and training.", ans: "true" },
+                    { type: 'short', q: "What does the planning process need to determine for the system, applications, data, and users?", ans: "security requirements" },
+                    { type: 'short', q: "What is minimized while maximizing security?", ans: "costs" }
+                ]
+            },
+            {
+                id: 8,
+                titleEn: "System Security Planning Process",
+                titleAr: "عملية تخطيط أمن النظام",
+                contentEn: `
+                    <h2 class="slide-title">System Security Planning Process</h2>
+                    <div class="grid grid-cols-3 gap-4 mt-6">
+                        <div class="bg-blue-50 border border-blue-300 p-4 rounded text-sm text-center shadow-sm hover:bg-blue-100">The purpose of the system, the type of information stored, the applications and services provided, and their security requirements</div>
+                        <div class="bg-blue-50 border border-blue-300 p-4 rounded text-sm text-center shadow-sm hover:bg-blue-100">Who will administer the system, and how they will manage the system (via local or remote access)</div>
+                        <div class="bg-blue-50 border border-blue-300 p-4 rounded text-sm text-center shadow-sm hover:bg-blue-100">Any additional security measures required on the system, including the use of host firewalls, anti-virus or other malware protection mechanisms, and logging</div>
+                        <div class="bg-gray-50 border border-gray-300 p-4 rounded text-sm text-center shadow-sm hover:bg-gray-100">The categories of users of the system, the privileges they have, and the types of information they can access</div>
+                        <div class="bg-gray-50 border border-gray-300 p-4 rounded text-sm text-center shadow-sm hover:bg-gray-100">What access the system has to information stored on other hosts, such as file or database servers, and how this is managed</div>
+                        <div class="flex flex-col gap-4">
+                            <div class="bg-indigo-50 border border-indigo-300 p-4 rounded text-sm text-center shadow-sm hover:bg-indigo-100 h-1/2">How the users are authenticated</div>
+                            <div class="bg-indigo-50 border border-indigo-300 p-4 rounded text-sm text-center shadow-sm hover:bg-indigo-100 h-1/2">How access to the information stored on the system is managed</div>
+                        </div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">عملية تخطيط أمن النظام</h2>
+                    <div class="grid grid-cols-3 gap-4 mt-6" dir="rtl">
+                        <div class="bg-blue-50 border border-blue-300 p-4 rounded text-sm text-center shadow-sm hover:bg-blue-100">الغرض من النظام، ونوع المعلومات المخزنة، والتطبيقات والخدمات المقدمة، ومتطلبات الأمان الخاصة بها</div>
+                        <div class="bg-blue-50 border border-blue-300 p-4 rounded text-sm text-center shadow-sm hover:bg-blue-100">مَن سيدير النظام، وكيف سيديرون النظام (عبر الوصول المحلي أو عن بُعد)</div>
+                        <div class="bg-blue-50 border border-blue-300 p-4 rounded text-sm text-center shadow-sm hover:bg-blue-100">أي تدابير أمنية إضافية مطلوبة على النظام، بما في ذلك استخدام جدران حماية المضيف، وبرامج مكافحة الفيروسات أو آليات الحماية من البرامج الضارة الأخرى، والتسجيل</div>
+                        <div class="bg-gray-50 border border-gray-300 p-4 rounded text-sm text-center shadow-sm hover:bg-gray-100">فئات مستخدمي النظام، والامتيازات التي يتمتعون بها، وأنواع المعلومات التي يمكنهم الوصول إليها</div>
+                        <div class="bg-gray-50 border border-gray-300 p-4 rounded text-sm text-center shadow-sm hover:bg-gray-100">ما هو الوصول الذي يمتلكه النظام للمعلومات المخزنة على مضيفين آخرين، مثل خوادم الملفات أو قواعد البيانات، وكيف تتم إدارة ذلك</div>
+                        <div class="flex flex-col gap-4">
+                            <div class="bg-indigo-50 border border-indigo-300 p-4 rounded text-sm text-center shadow-sm hover:bg-indigo-100 h-1/2">كيف تتم مصادقة المستخدمين</div>
+                            <div class="bg-indigo-50 border border-indigo-300 p-4 rounded text-sm text-center shadow-sm hover:bg-indigo-100 h-1/2">كيف تتم إدارة الوصول إلى المعلومات المخزنة على النظام</div>
+                        </div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What needs to be decided regarding system administration?", options: ["Only their names", "Who will administer and how they will manage it", "Their salary", "Their office location"], ans: 1 },
+                    { type: 'mcq', q: "Which is an example of an additional security measure?", options: ["Mouse pad", "Host firewalls and anti-virus", "Faster CPU", "Larger monitor"], ans: 1 },
+                    { type: 'tf', q: "The planning process considers how users are authenticated.", ans: "true" },
+                    { type: 'tf', q: "Access to information on other hosts is irrelevant to the planning process.", ans: "false" },
+                    { type: 'short', q: "What must be defined for categories of users?", ans: "privileges / information they can access" },
+                    { type: 'short', q: "Besides local access, how else might administrators manage the system?", ans: "remote access" }
+                ]
+            },
+            {
+                id: 9,
+                titleEn: "Operating System Security",
+                titleAr: "أمان نظام التشغيل",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Security</h2>
+                    <ul class="slide-list">
+                        <li>The first critical step in securing a system is to secure the base operating system upon which all other applications and services rely.</li>
+                        <li class="mt-2">Unfortunately, the default configuration for many operating systems often maximizes ease of use and functionality, rather than security.</li>
+                        <li class="mt-2">While the details of how to secure each specific operating system differ, the broad approach is similar.</li>
+                        <li class="mt-2">This common approach (security configuration guides and checklists) should be always informed by the specific needs of each organization and their systems.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">أمان نظام التشغيل</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تتمثل الخطوة الحاسمة الأولى في تأمين النظام في تأمين نظام التشغيل الأساسي الذي تعتمد عليه جميع التطبيقات والخدمات الأخرى.</li>
+                        <li class="mt-2">لسوء الحظ، غالبًا ما يؤدي التكوين الافتراضي للعديد من أنظمة التشغيل إلى زيادة سهولة الاستخدام والوظائف، بدلاً من الأمان.</li>
+                        <li class="mt-2">في حين تختلف تفاصيل كيفية تأمين كل نظام تشغيل معين، فإن النهج العام متشابه.</li>
+                        <li class="mt-2">هذا النهج المشترك (أدلة وقوائم التحقق الخاصة بتكوين الأمان) يجب أن يكون دائمًا مستنيرًا بالاحتياجات الخاصة لكل مؤسسة وأنظمتها.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the first critical step in securing a system?", options: ["Installing applications", "Securing the base operating system", "Setting up a printer", "Creating user accounts"], ans: 1 },
+                    { type: 'mcq', q: "Default configurations for many OSs often maximize what?", options: ["Security", "Ease of use and functionality", "Encryption speed", "Disk space"], ans: 1 },
+                    { type: 'tf', q: "The default configuration of an OS is usually perfectly secure.", ans: "false" },
+                    { type: 'tf', q: "The broad approach to securing different operating systems is similar.", ans: "true" },
+                    { type: 'short', q: "What should inform the common approach (guides/checklists)?", ans: "specific needs of each organization" },
+                    { type: 'short', q: "What do all other applications and services rely upon?", ans: "the base operating system" }
+                ]
+            },
+            {
+                id: 10,
+                titleEn: "Operating System Security (Basic Steps)",
+                titleAr: "أمان نظام التشغيل (الخطوات الأساسية)",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Security</h2>
+                    <p class="mb-2 font-bold text-lg">Basic steps:</p>
+                    <ul class="slide-list">
+                        <li>Install and patch the operating system.</li>
+                        <li>Harden and configure the operating system to adequately address the identified security needs of the system by:
+                            <ul class="slide-sublist mt-1">
+                                <li>Removing unnecessary services, applications, and protocols</li>
+                                <li>Configuring users, groups, and permissions</li>
+                                <li>Configuring resource controls</li>
+                            </ul>
+                        </li>
+                        <li>Install and configure additional security controls, such as anti-virus, host-based firewalls, and intrusion detection system (IDS).</li>
+                        <li>Test the security of the basic operating system to ensure that the steps taken adequately address its security needs.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">أمان نظام التشغيل</h2>
+                    <p class="mb-2 font-bold text-lg" dir="rtl">الخطوات الأساسية:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تثبيت وتصحيح نظام التشغيل.</li>
+                        <li>تقوية وتكوين نظام التشغيل لتلبية الاحتياجات الأمنية المحددة للنظام بشكل مناسب من خلال:
+                            <ul class="slide-sublist mt-1">
+                                <li>إزالة الخدمات والتطبيقات والبروتوكولات غير الضرورية</li>
+                                <li>تكوين المستخدمين والمجموعات والأذونات</li>
+                                <li>تكوين ضوابط الموارد</li>
+                            </ul>
+                        </li>
+                        <li>تثبيت وتكوين ضوابط أمان إضافية، مثل برامج مكافحة الفيروسات وجدران حماية المضيف ونظام كشف التسلل (IDS).</li>
+                        <li>اختبار أمان نظام التشغيل الأساسي للتأكد من أن الخطوات المتخذة تعالج بشكل مناسب احتياجاته الأمنية.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which of these is a method to harden and configure the OS?", options: ["Adding unnecessary services", "Configuring users, groups, and permissions", "Ignoring patches", "Disabling antivirus"], ans: 1 },
+                    { type: 'mcq', q: "What is an example of an additional security control?", options: ["A word processor", "Intrusion detection system (IDS)", "A web browser", "A display driver"], ans: 1 },
+                    { type: 'tf', q: "You should keep unnecessary protocols to improve security.", ans: "false" },
+                    { type: 'tf', q: "Testing the security of the basic OS is one of the basic steps.", ans: "true" },
+                    { type: 'short', q: "What is the first basic step mentioned for OS security?", ans: "Install and patch the operating system" },
+                    { type: 'short', q: "Why do we test the security of the basic operating system?", ans: "ensure that steps adequately address security needs" }
+                ]
+            },
+            {
+                id: 11,
+                titleEn: "Initial Setup and Patching",
+                titleAr: "الإعداد الأولي والتصحيح",
+                contentEn: `
+                    <h2 class="slide-title">Initial Setup and Patching</h2>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-blue-500 shadow">System security begins with the installation of the operating system</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-blue-500 shadow">Initial installation should install the minimum necessary for the desired system</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-blue-500 shadow">Overall boot process must also be secured</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-green-500 shadow">The integrity and source of any additional device driver code must be carefully validated</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-green-500 shadow">Critical that the system be kept up to date, with all critical security related patches installed</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-purple-500 shadow">Should stage and validate all patches on the test systems before deploying them in production</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-purple-500 shadow col-span-1">Ideally new systems should be constructed on a protected network</div>
+                        <div class="bg-gray-100 p-4 rounded border-l-4 border-purple-500 shadow col-span-2">Full installation and hardening process should occur before the system is deployed to its intended location</div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">الإعداد الأولي والتصحيح</h2>
+                    <div class="grid grid-cols-3 gap-3" dir="rtl">
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-blue-500 shadow">يبدأ أمن النظام بتثبيت نظام التشغيل</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-blue-500 shadow">يجب أن يثبت التثبيت الأولي الحد الأدنى الضروري للنظام المطلوب</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-blue-500 shadow">يجب أيضًا تأمين عملية التمهيد (boot) الإجمالية</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-green-500 shadow">يجب التحقق بعناية من سلامة ومصدر أي كود تعريف إضافي للأجهزة (device driver)</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-green-500 shadow">من الأهمية بمكان إبقاء النظام محدثًا، مع تثبيت جميع التصحيحات الهامة المتعلقة بالأمان</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-purple-500 shadow">يجب تجهيز والتحقق من جميع التصحيحات على أنظمة الاختبار قبل نشرها في الإنتاج</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-purple-500 shadow col-span-1">من الناحية المثالية، يجب بناء أنظمة جديدة على شبكة محمية</div>
+                        <div class="bg-gray-100 p-4 rounded border-r-4 border-purple-500 shadow col-span-2">يجب أن تتم عملية التثبيت والتقوية الكاملة قبل نشر النظام في موقعه المقصود</div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Where should new systems ideally be constructed?", options: ["On the open internet", "On a protected network", "Without any network", "On user's personal laptops"], ans: 1 },
+                    { type: 'mcq', q: "Where should patches be staged and validated first?", options: ["In production", "On the test systems", "On the router", "On the user's phone"], ans: 1 },
+                    { type: 'tf', q: "System security begins after the system is fully deployed.", ans: "false" },
+                    { type: 'tf', q: "Initial installation should install the maximum features possible.", ans: "false" },
+                    { type: 'short', q: "What must be carefully validated regarding additional device drivers?", ans: "integrity and source" },
+                    { type: 'short', q: "When should the full installation and hardening process occur?", ans: "before the system is deployed" }
+                ]
+            },
+            {
+                id: 12,
+                titleEn: "Installing and Patching (Network)",
+                titleAr: "التثبيت والتصحيح (الشبكة)",
+                contentEn: `
+                    <h2 class="slide-title">Installing and Patching</h2>
+                    <p class="mb-2 font-bold text-lg">Installation:</p>
+                    <ul class="slide-list">
+                        <li>Machines should not connect to network until secured</li>
+                        <li>However removable media may be infected as well</li>
+                        <li>Limited network (firewall) is acceptable, ideally:
+                            <ul class="slide-sublist mt-1">
+                                <li>No inbound connections</li>
+                                <li>Only out to certain key sites</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4">Install only required services and drivers (from trusted sources). Since this executes with full kernel level privileges but is often supplied by a third party. The integrity and source of such driver code must be carefully validated given the high level of trust it has.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التثبيت والتصحيح</h2>
+                    <p class="mb-2 font-bold text-lg" dir="rtl">التثبيت:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يجب ألا تتصل الأجهزة بالشبكة حتى يتم تأمينها</li>
+                        <li>ومع ذلك، قد تكون الوسائط القابلة للإزالة مصابة أيضًا</li>
+                        <li>الشبكة المحدودة (جدار الحماية) مقبولة، ومن الناحية المثالية:
+                            <ul class="slide-sublist mt-1">
+                                <li>لا توجد اتصالات واردة (inbound)</li>
+                                <li>فقط اتصال للخارج (out) لمواقع رئيسية معينة</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4">قم بتثبيت الخدمات وبرامج التشغيل المطلوبة فقط (من مصادر موثوقة). نظرًا لأن هذا يُنفذ بامتيازات مستوى النواة (kernel) الكاملة ولكنه غالبًا ما يتم توفيره بواسطة جهة خارجية. يجب التحقق بعناية من سلامة ومصدر رمز برنامج التشغيل هذا بالنظر إلى المستوى العالي من الثقة الذي يتمتع به.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What kind of network is acceptable during installation?", options: ["Open Wi-Fi", "Limited network (firewall)", "Fully inbound network", "No network ever"], ans: 1 },
+                    { type: 'mcq', q: "Why must driver code be carefully validated?", options: ["It uses too much RAM", "It executes with full kernel level privileges", "It is expensive", "It makes the screen flicker"], ans: 1 },
+                    { type: 'tf', q: "Machines should connect to the open network immediately to download games.", ans: "false" },
+                    { type: 'tf', q: "Removable media used during installation might be infected.", ans: "true" },
+                    { type: 'short', q: "Ideally, should there be any inbound connections on the limited network?", ans: "No" },
+                    { type: 'short', q: "Where do drivers often come from, making them a risk?", ans: "a third party" }
+                ]
+            },
+            {
+                id: 13,
+                titleEn: "Installing and Patching (Auto Updates)",
+                titleAr: "التثبيت والتصحيح (التحديثات التلقائية)",
+                contentEn: `
+                    <h2 class="slide-title">Installing and Patching</h2>
+                    <p class="mb-2 font-bold text-lg">Installation</p>
+                    <ul class="slide-list">
+                        <li>Set up automatic updates (only if update time is not an issue). Nearly, all commonly used systems now provide utilities that can automatically download and install security updates. These tools should be configured and used to minimize the time any system is vulnerable to weaknesses for which patches are available.</li>
+                    </ul>
+                    <div class="flex justify-center mt-6 gap-4">
+                        <div class="border p-2 bg-gray-200 text-center text-sm font-mono rounded">Illustration: Windows Automatic Updates Panel<br>(Automatic recommended)</div>
+                        <div class="border p-2 bg-gray-200 text-center text-sm font-mono rounded">Illustration: Mac Safari Extensions Updates<br>(Install Updates Automatically)</div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التثبيت والتصحيح</h2>
+                    <p class="mb-2 font-bold text-lg" dir="rtl">التثبيت</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>قم بإعداد التحديثات التلقائية (فقط إذا لم يكن وقت التحديث يمثل مشكلة). توفر جميع الأنظمة الشائعة الاستخدام تقريبًا الآن أدوات مساعدة يمكنها تنزيل وتثبيت التحديثات الأمنية تلقائيًا. يجب تكوين هذه الأدوات واستخدامها لتقليل الوقت الذي يكون فيه أي نظام عرضة لنقاط الضعف التي تتوفر لها تصحيحات.</li>
+                    </ul>
+                    <div class="flex justify-center mt-6 gap-4">
+                        <div class="border p-2 bg-gray-200 text-center text-sm font-mono rounded" dir="ltr">Illustration: Windows Automatic Updates Panel<br>(Automatic recommended)</div>
+                        <div class="border p-2 bg-gray-200 text-center text-sm font-mono rounded" dir="ltr">Illustration: Mac Safari Extensions Updates<br>(Install Updates Automatically)</div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What should be set up if update time is not an issue?", options: ["Automatic updates", "New hardware", "Multiple monitors", "Manual compilation"], ans: 0 },
+                    { type: 'mcq', q: "What is the primary benefit of configuring automatic update tools?", options: ["To save electricity", "To minimize the time a system is vulnerable", "To increase CPU clock speed", "To free up disk space"], ans: 1 },
+                    { type: 'tf', q: "Nearly all commonly used systems provide utilities for automatic updates.", ans: "true" },
+                    { type: 'tf', q: "Automatic updates increase the time a system is vulnerable.", ans: "false" },
+                    { type: 'short', q: "What do automatic update utilities download and install?", ans: "security updates" },
+                    { type: 'short', q: "When should you NOT set up automatic updates according to the slide?", ans: "if update time is an issue" }
+                ]
+            },
+            {
+                id: 14,
+                titleEn: "Booting",
+                titleAr: "التمهيد (الإقلاع)",
+                contentEn: `
+                    <h2 class="slide-title">Booting</h2>
+                    <p class="mb-2 font-bold text-lg text-gray-600">Installing and Patching</p>
+                    <ul class="slide-list">
+                        <li>Protect ${kw('BIOS', 'BIOS')} changes with password</li>
+                        <li>Limit which media the system is normally permitted to boot from. This is necessary to prevent an attacker from changing the boot process to boot a system of their choice from external media in order to bypass the normal system access controls on locally stored data.</li>
+                        <li>The use of a ${kw('cryptographic file system', 'cryptographic file system')} may also be used to address this threat.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التمهيد (الإقلاع)</h2>
+                    <p class="mb-2 font-bold text-lg text-gray-600" dir="rtl">التثبيت والتصحيح</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>حماية تغييرات ${kw('BIOS', 'BIOS')} بكلمة مرور</li>
+                        <li>الحد من الوسائط التي يُسمح للنظام عادةً بالتمهيد منها. هذا ضروري لمنع المهاجم من تغيير عملية التمهيد لتمهيد نظام من اختياره من وسائط خارجية من أجل تجاوز ضوابط وصول النظام العادية على البيانات المخزنة محليًا.</li>
+                        <li>يمكن أيضًا استخدام ${kw('نظام ملفات مشفر (cryptographic file system)', 'cryptographic file system')} لمواجهة هذا التهديد.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What changes should be protected with a password?", options: ["Desktop background", "BIOS", "Browser settings", "Mouse speed"], ans: 1 },
+                    { type: 'mcq', q: "Why limit the media a system can boot from?", options: ["To save battery", "To load games faster", "To prevent booting an attacker's OS", "To disable USB ports"], ans: 2 },
+                    { type: 'tf', q: "An attacker might use external media to bypass normal system access controls.", ans: "true" },
+                    { type: 'tf', q: "A cryptographic file system makes local data completely vulnerable to external boots.", ans: "false" },
+                    { type: 'short', q: "What kind of file system can address the threat of unauthorized booting?", ans: "cryptographic file system" },
+                    { type: 'short', q: "What should you limit the system from booting from normally?", ans: "media / external media" }
+                ]
+            },
+            {
+                id: 15,
+                titleEn: "Remove Unnecessary Services",
+                titleAr: "إزالة الخدمات غير الضرورية",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Configuration</h2>
+                    <p class="mb-2 font-bold text-lg text-indigo-700">Remove Unnecessary Services, Applications, and Protocols:</p>
+                    <ul class="slide-list">
+                        <li>Because any of the software packages running on a system may contain software vulnerabilities, if fewer software packages are available to run, then the risk is reduced.</li>
+                        <li>The system planning process should identify what is required for a given system.</li>
+                        <li>Better not to install it at all:
+                            <ul class="slide-sublist mt-2">
+                                <li>Uninstallers sometimes fail to clean all dependency</li>
+                                <li>Disabled software may be enabled by an attacker upon control acquisition</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين نظام التشغيل</h2>
+                    <p class="mb-2 font-bold text-lg text-indigo-700" dir="rtl">إزالة الخدمات والتطبيقات والبروتوكولات غير الضرورية:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>نظرًا لأن أيًا من حزم البرامج التي تعمل على نظام ما قد يحتوي على نقاط ضعف برمجية، فإذا كان عدد حزم البرامج المتاحة للتشغيل أقل، فسيتم تقليل المخاطر.</li>
+                        <li>يجب أن تحدد عملية تخطيط النظام ما هو مطلوب لنظام معين.</li>
+                        <li>من الأفضل عدم التثبيت على الإطلاق:
+                            <ul class="slide-sublist mt-2">
+                                <li>تفشل أدوات إلغاء التثبيت (Uninstallers) أحيانًا في تنظيف جميع التبعيات.</li>
+                                <li>قد يتم تمكين البرامج المعطلة بواسطة المهاجم عند الاستحواذ على التحكم.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Why does having fewer software packages reduce risk?", options: ["They use less power", "Any software might contain vulnerabilities", "They cost less", "They look cleaner"], ans: 1 },
+                    { type: 'mcq', q: "Why is it better not to install unnecessary software at all rather than uninstalling it later?", options: ["Uninstallers take too long", "Uninstallers sometimes fail to clean all dependencies", "Uninstallers always delete the OS", "You can't uninstall software"], ans: 1 },
+                    { type: 'tf', q: "Disabled software is completely safe and can never be re-enabled by an attacker.", ans: "false" },
+                    { type: 'tf', q: "The system planning process should identify what software is required.", ans: "true" },
+                    { type: 'short', q: "What happens to the risk if fewer software packages are available to run?", ans: "the risk is reduced" },
+                    { type: 'short', q: "What might fail to clean all dependencies?", ans: "Uninstallers" }
+                ]
+            },
+            {
+                id: 16,
+                titleEn: "Defaults Configuration",
+                titleAr: "التكوين الافتراضي",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Configuration</h2>
+                    <p class="mb-2 font-bold text-lg text-indigo-700">Remove Unnecessary Services, Applications, Protocols:</p>
+                    <ul class="slide-list">
+                        <li>When performing the initial installation, the supplied defaults should not be used.</li>
+                        <li class="mt-4">Default configuration is set to maximize ease of use and functionality rather than security.</li>
+                        <li class="mt-4">If additional packages are needed later, they can be installed when they are required.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين نظام التشغيل</h2>
+                    <p class="mb-2 font-bold text-lg text-indigo-700" dir="rtl">إزالة الخدمات والتطبيقات والبروتوكولات غير الضرورية:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>عند إجراء التثبيت الأولي، يجب عدم استخدام الإعدادات الافتراضية المرفقة.</li>
+                        <li class="mt-4">تم تعيين التكوين الافتراضي لتحقيق أقصى قدر من سهولة الاستخدام والوظائف بدلاً من الأمان.</li>
+                        <li class="mt-4">إذا كانت هناك حاجة إلى حزم إضافية لاحقًا، فيمكن تثبيتها عند الحاجة إليها.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What should NOT be used during initial installation?", options: ["A mouse", "The supplied defaults", "A monitor", "An admin account"], ans: 1 },
+                    { type: 'mcq', q: "What does default configuration primarily maximize?", options: ["Security and encryption", "Ease of use and functionality", "Hard drive space", "Network speed"], ans: 1 },
+                    { type: 'tf', q: "Default configurations are usually optimized for maximum security.", ans: "false" },
+                    { type: 'tf', q: "Additional packages can be installed later if needed.", ans: "true" },
+                    { type: 'short', q: "What maximizes ease of use rather than security?", ans: "Default configuration" },
+                    { type: 'short', q: "When should additional packages be installed?", ans: "when they are required / later" }
+                ]
+            },
+            {
+                id: 17,
+                titleEn: "Configure Users and Privileges",
+                titleAr: "تكوين المستخدمين والامتيازات",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Configuration</h2>
+                    <p class="mb-2 font-bold text-lg text-green-700">Configure Users, Groups, and Authentication:</p>
+                    <ul class="slide-list">
+                        <li>Not all users with access to a system will have the same access to all data and resources on that system. All modern operating systems implement access controls to data and resources.
+                            <ul class="slide-sublist mt-2">
+                                <li>Admin (ideally only temporary)</li>
+                                <li>Normal</li>
+                                <li>Limited</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4">${kw('Elevated privileges', 'elevated privileges')} should be restricted to only those users that require them, and then only when they are needed to perform a task.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين نظام التشغيل</h2>
+                    <p class="mb-2 font-bold text-lg text-green-700" dir="rtl">تكوين المستخدمين والمجموعات والمصادقة:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>لن يكون لجميع المستخدمين الذين لديهم وصول إلى نظام ما نفس الوصول إلى جميع البيانات والموارد الموجودة على هذا النظام. تنفذ جميع أنظمة التشغيل الحديثة ضوابط الوصول إلى البيانات والموارد.
+                            <ul class="slide-sublist mt-2">
+                                <li>المسؤول Admin (يُفضل أن يكون مؤقتًا فقط)</li>
+                                <li>عادي Normal</li>
+                                <li>محدود Limited</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4">يجب أن تقتصر ${kw('الامتيازات المرتفعة (Elevated privileges)', 'elevated privileges')} على المستخدمين الذين يحتاجون إليها فقط، وبعد ذلك فقط عندما تكون هناك حاجة إليها لأداء مهمة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "How should elevated privileges be handled?", options: ["Given to everyone", "Restricted to those who require them", "Never used", "Sold for money"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is an example of an access level mentioned?", options: ["Super-hacker", "Guest-only", "Admin", "Invisible"], ans: 2 },
+                    { type: 'tf', q: "All users on a system always have the exact same access to all data.", ans: "false" },
+                    { type: 'tf', q: "Ideally, Admin access should only be temporary.", ans: "true" },
+                    { type: 'short', q: "What do all modern operating systems implement to manage data and resources?", ans: "access controls" },
+                    { type: 'short', q: "When should users have elevated privileges?", ans: "only when they are needed to perform a task" }
+                ]
+            },
+            {
+                id: 18,
+                titleEn: "Authentication & Policies",
+                titleAr: "المصادقة والسياسات",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Configuration</h2>
+                    <p class="mb-2 font-bold text-lg text-green-700">Configure Users, Groups, and Authentication:</p>
+                    <ul class="slide-list text-lg">
+                        <li>System planning process should consider:
+                            <ul class="slide-sublist">
+                                <li>Categories of users on the system.</li>
+                                <li>Privileges they have.</li>
+                                <li>Types of information they can access.</li>
+                                <li>How and where they are defined and authenticated.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-2">Default accounts included as part of the system installation should be secured:
+                            <ul class="slide-sublist">
+                                <li>Those that are not required should be either removed or disabled.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-2">Any policy that applies to authentication credentials, and especially to password security, is also configured. This includes details of the required length, complexity, and age allowed for passwords.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين نظام التشغيل</h2>
+                    <p class="mb-2 font-bold text-lg text-green-700" dir="rtl">تكوين المستخدمين والمجموعات والمصادقة:</p>
+                    <ul class="slide-list text-lg" dir="rtl">
+                        <li>يجب أن تراعي عملية تخطيط النظام ما يلي:
+                            <ul class="slide-sublist">
+                                <li>فئات المستخدمين على النظام.</li>
+                                <li>الامتيازات التي يمتلكونها.</li>
+                                <li>أنواع المعلومات التي يمكنهم الوصول إليها.</li>
+                                <li>كيف وأين يتم تعريفهم والمصادقة عليهم.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-2">يجب تأمين الحسابات الافتراضية المضمنة كجزء من تثبيت النظام:
+                            <ul class="slide-sublist">
+                                <li>تلك غير المطلوبة يجب إزالتها أو تعطيلها.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-2">كما يتم تكوين أي سياسة تنطبق على بيانات اعتماد المصادقة، وخاصة أمان كلمة المرور. ويتضمن ذلك تفاصيل الطول المطلوب، والتعقيد، والعمر (مدة الصلاحية) المسموح به لكلمات المرور.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What should happen to default accounts that are NOT required?", options: ["Given admin rights", "Removed or disabled", "Shared online", "Kept active just in case"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is a detail of password policy?", options: ["Font color", "Length, complexity, and age", "Typing speed", "Keyboard layout"], ans: 1 },
+                    { type: 'tf', q: "The system planning process considers how users are authenticated.", ans: "true" },
+                    { type: 'tf', q: "Default accounts included with the installation do not need to be secured.", ans: "false" },
+                    { type: 'short', q: "What should be secured or removed if part of the system installation?", ans: "Default accounts" },
+                    { type: 'short', q: "Name one detail a password policy configures.", ans: "length / complexity / age" }
+                ]
+            },
+            {
+                id: 19,
+                titleEn: "Configure Resource Controls",
+                titleAr: "تكوين ضوابط الموارد",
+                contentEn: `
+                    <h2 class="slide-title">Operating System Configuration</h2>
+                    <p class="mb-2 font-bold text-lg text-red-700">Configure Resource Controls:</p>
+                    <ul class="slide-list">
+                        <li>Once the users and groups are defined, appropriate permissions can be set on data and resources.</li>
+                        <li class="mt-4">Many of the security hardening guides provide lists of recommended changes to the default access configuration.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين نظام التشغيل</h2>
+                    <p class="mb-2 font-bold text-lg text-red-700" dir="rtl">تكوين ضوابط الموارد:</p>
+                    <ul class="slide-list" dir="rtl">
+                        <li>بمجرد تحديد المستخدمين والمجموعات، يمكن تعيين الأذونات المناسبة على البيانات والموارد.</li>
+                        <li class="mt-4">توفر العديد من أدلة تقوية الأمان (security hardening guides) قوائم بالتغييرات الموصى بها لتكوين الوصول الافتراضي.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "When can appropriate permissions be set on data?", options: ["Before OS installation", "Once users and groups are defined", "When the system crashes", "During hardware assembly"], ans: 1 },
+                    { type: 'mcq', q: "Where can you find lists of recommended changes to default access configurations?", options: ["Hardware manuals", "Security hardening guides", "Coding tutorials", "Dictionary"], ans: 1 },
+                    { type: 'tf', q: "Permissions cannot be set on resources, only on users.", ans: "false" },
+                    { type: 'tf', q: "Security hardening guides often recommend changes to default access.", ans: "true" },
+                    { type: 'short', q: "What is set on data and resources after users are defined?", ans: "appropriate permissions" },
+                    { type: 'short', q: "What provides lists of recommended changes?", ans: "security hardening guides" }
+                ]
+            },
+            {
+                id: 20,
+                titleEn: "Install Additional Security Controls",
+                titleAr: "تثبيت ضوابط أمان إضافية",
+                contentEn: `
+                    <h2 class="slide-title">Install Additional Security Controls</h2>
+                    <ul class="slide-list">
+                        <li>Anti-virus software (which as noted addresses a wide range of malware types) is a critical security component on many systems..</li>
+                        <li>Host-based firewalls, IDS, and IPS software also may improve security by limiting remote network access to services on the system.</li>
+                        <li class="mt-4">Firewalls are traditionally configured to limit access by port or protocol, from some or all external systems. This helps in preventing an attacker from installing and accessing their own malware.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تثبيت ضوابط أمان إضافية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تعد برامج مكافحة الفيروسات (والتي كما ذكرنا تعالج نطاقًا واسعًا من أنواع البرامج الضارة) مكونًا أمنيًا حاسمًا في العديد من الأنظمة..</li>
+                        <li>قد تؤدي جدران حماية المضيف، وبرامج IDS و IPS أيضًا إلى تحسين الأمان عن طريق الحد من الوصول عن بُعد عبر الشبكة إلى الخدمات الموجودة على النظام.</li>
+                        <li class="mt-4">تم تكوين جدران الحماية تقليديًا للحد من الوصول عن طريق المنفذ (port) أو البروتوكول، من بعض أو كل الأنظمة الخارجية. هذا يساعد في منع المهاجم من تثبيت والوصول إلى البرامج الضارة الخاصة به.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What software addresses a wide range of malware types?", options: ["Web browsers", "Anti-virus software", "Word processors", "Drivers"], ans: 1 },
+                    { type: 'mcq', q: "How do firewalls traditionally limit access?", options: ["By user mood", "By port or protocol", "By monitor size", "By keyboard type"], ans: 1 },
+                    { type: 'tf', q: "Anti-virus is considered a critical security component.", ans: "true" },
+                    { type: 'tf', q: "Firewalls increase remote access to all services.", ans: "false" },
+                    { type: 'short', q: "What helps prevent an attacker from installing and accessing their own malware?", ans: "Firewalls" },
+                    { type: 'short', q: "Name one software besides firewalls that limits remote network access.", ans: "IDS / IPS" }
+                ]
+            },
+            {
+                id: 21,
+                titleEn: "IDS, IPS and White-lists",
+                titleAr: "IDS و IPS والقوائم البيضاء",
+                contentEn: `
+                    <h2 class="slide-title">Install Additional Security Controls</h2>
+                    <ul class="slide-list text-lg">
+                        <li>${kw('IDS', 'IDS')} and ${kw('IPS', 'IPS')} software may include additional mechanisms such as traffic monitoring, or file integrity checking to identify and even respond to some types of attack.</li>
+                        <li class="mt-6">Another additional control is ${kw('white-list', 'white-list')} applications. This limits the programs that can execute on the system to just those in an explicit list. 
+                            <ul class="slide-sublist mt-2">
+                                <li>Such a tool can prevent an attacker installing and running their own malware.</li>
+                                <li>While this will improve security, it functions best in an environment with a predictable set of applications that users require.</li>
+                                <li>Not all organizations or all systems will be sufficiently predictable to suit this type of control.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تثبيت ضوابط أمان إضافية</h2>
+                    <ul class="slide-list text-lg" dir="rtl">
+                        <li>قد تتضمن برامج ${kw('IDS', 'IDS')} و ${kw('IPS', 'IPS')} آليات إضافية مثل مراقبة حركة المرور، أو التحقق من سلامة الملفات لتحديد بعض أنواع الهجمات بل والاستجابة لها.</li>
+                        <li class="mt-6">عنصر تحكم إضافي آخر هو تطبيقات ${kw('القائمة البيضاء', 'white-list')}. وهذا يقصر البرامج التي يمكن تنفيذها على النظام على تلك الموجودة في قائمة صريحة فقط.
+                            <ul class="slide-sublist mt-2">
+                                <li>مثل هذه الأداة يمكن أن تمنع المهاجم من تثبيت وتشغيل برامجه الضارة.</li>
+                                <li>في حين أن هذا سيؤدي إلى تحسين الأمان، فإنه يعمل بشكل أفضل في بيئة بها مجموعة يمكن التنبؤ بها من التطبيقات التي يطلبها المستخدمون.</li>
+                                <li>لن تكون جميع المؤسسات أو جميع الأنظمة قابلة للتنبؤ بشكل كافٍ لتناسب هذا النوع من التحكم.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does a white-list application do?", options: ["Deletes all files", "Limits executing programs to an explicit list", "Makes the screen white", "Turns off the firewall"], ans: 1 },
+                    { type: 'mcq', q: "In what environment do white-lists function best?", options: ["Predictable environments", "Random environments", "Public Wi-Fi", "Game development"], ans: 0 },
+                    { type: 'tf', q: "IDS and IPS may include traffic monitoring.", ans: "true" },
+                    { type: 'tf', q: "All organizations have perfectly predictable systems suitable for white-lists.", ans: "false" },
+                    { type: 'short', q: "What limits the programs that can execute on the system to an explicit list?", ans: "white-list applications" },
+                    { type: 'short', q: "What kind of checking might IDS/IPS include besides traffic monitoring?", ans: "file integrity checking" }
+                ]
+            },
+            {
+                id: 22,
+                titleEn: "Test the System Security",
+                titleAr: "اختبار أمان النظام",
+                contentEn: `
+                    <h2 class="slide-title">Test the System Security</h2>
+                    <ul class="slide-list">
+                        <li>The final step in the process of initially securing the base operating system is security testing.</li>
+                        <li class="mt-4 font-bold text-xl">Goal:
+                            <ul class="slide-sublist mt-2 font-normal">
+                                <li>Ensure the previous security configuration steps are correctly implemented.</li>
+                                <li>Identify any possible vulnerabilities that must be corrected or managed.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4">Suitable checklists are included in many security hardening guides.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">اختبار أمان النظام</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>الخطوة الأخيرة في عملية تأمين نظام التشغيل الأساسي مبدئيًا هي الاختبار الأمني.</li>
+                        <li class="mt-4 font-bold text-xl">الهدف:
+                            <ul class="slide-sublist mt-2 font-normal">
+                                <li>التأكد من أن خطوات تكوين الأمان السابقة تم تنفيذها بشكل صحيح.</li>
+                                <li>تحديد أي نقاط ضعف محتملة يجب تصحيحها أو إدارتها.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4">يتم تضمين قوائم التحقق المناسبة في العديد من أدلة تقوية الأمان.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the final step in initially securing the base OS?", options: ["Buying a router", "Security testing", "Deleting user accounts", "Installing games"], ans: 1 },
+                    { type: 'mcq', q: "What is a goal of security testing?", options: ["Make the system run faster", "Identify possible vulnerabilities", "Add new users", "Format the hard drive"], ans: 1 },
+                    { type: 'tf', q: "Testing ensures previous security steps are correctly implemented.", ans: "true" },
+                    { type: 'tf', q: "Checklists for testing are never included in security guides.", ans: "false" },
+                    { type: 'short', q: "What must be corrected or managed if found during testing?", ans: "vulnerabilities" },
+                    { type: 'short', q: "Where can you find suitable checklists for testing?", ans: "security hardening guides" }
+                ]
+            },
+            {
+                id: 23,
+                titleEn: "Testing Programs",
+                titleAr: "برامج الاختبار",
+                contentEn: `
+                    <h2 class="slide-title">Test the System Security</h2>
+                    <ul class="slide-list">
+                        <li>There are also programs specifically designed to:
+                            <ul class="slide-sublist mt-2">
+                                <li>Review a system to ensure that a system meets the basic security requirements.</li>
+                                <li>Scan for known vulnerabilities and poor configuration practices.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-6 border-l-4 border-blue-500 pl-4 bg-gray-50 py-2">This should be done following the system's initial hardening and then repeated periodically as part of the security maintenance process.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">اختبار أمان النظام</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>هناك أيضًا برامج مصممة خصيصًا من أجل:
+                            <ul class="slide-sublist mt-2">
+                                <li>مراجعة النظام للتأكد من أن النظام يلبي متطلبات الأمان الأساسية.</li>
+                                <li>البحث عن نقاط الضعف المعروفة وممارسات التكوين السيئة.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-6 border-r-4 border-blue-500 pr-4 bg-gray-50 py-2">يجب القيام بذلك بعد التقوية الأولية للنظام ثم تكراره بشكل دوري كجزء من عملية صيانة الأمان.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What do testing programs scan for?", options: ["Lost files", "Known vulnerabilities", "Hardware upgrades", "Faster networks"], ans: 1 },
+                    { type: 'mcq', q: "When should scanning be repeated?", options: ["Never", "Only when hacked", "Periodically", "Every second"], ans: 2 },
+                    { type: 'tf', q: "There are no programs specifically designed to review a system.", ans: "false" },
+                    { type: 'tf', q: "Scanning is part of the security maintenance process.", ans: "true" },
+                    { type: 'short', q: "What kind of practices do these programs scan for?", ans: "poor configuration practices" },
+                    { type: 'short', q: "How often should security testing be repeated after initial hardening?", ans: "periodically" }
+                ]
+            },
+            {
+                id: 24,
+                titleEn: "Application Configuration",
+                titleAr: "تكوين التطبيق",
+                contentEn: `
+                    <h2 class="slide-title">Application Configuration</h2>
+                    <ul class="slide-list">
+                        <li>Once the base operating system is installed and appropriately secured, the required services and applications must next be installed and configured.</li>
+                        <li class="mt-4">May include:
+                            <ul class="slide-sublist mt-2">
+                                <li>Creating and specifying appropriate data storage areas for application.</li>
+                                <li>Making appropriate changes to the application or service default configuration details.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4 border-l-4 border-red-500 pl-4">Some applications or services may include default data, scripts, or user accounts. These should be reviewed, and only retained if required, and suitably secured.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين التطبيق</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>بمجرد تثبيت نظام التشغيل الأساسي وتأمينه بشكل مناسب، يجب بعد ذلك تثبيت وتكوين الخدمات والتطبيقات المطلوبة.</li>
+                        <li class="mt-4">قد يشمل ذلك:
+                            <ul class="slide-sublist mt-2">
+                                <li>إنشاء وتحديد مناطق تخزين البيانات المناسبة للتطبيق.</li>
+                                <li>إجراء التغييرات المناسبة على تفاصيل التكوين الافتراضي للتطبيق أو الخدمة.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-4 border-r-4 border-red-500 pr-4">قد تتضمن بعض التطبيقات أو الخدمات بيانات أو برامج نصية أو حسابات مستخدمين افتراضية. يجب مراجعة هذه الأمور، والاحتفاظ بها فقط إذا لزم الأمر، وتأمينها بشكل مناسب.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "When should required services and applications be installed?", options: ["Before the OS is installed", "Once the base OS is installed and secured", "Only during emergencies", "Never"], ans: 1 },
+                    { type: 'mcq', q: "What should be done with default data, scripts, or user accounts included in apps?", options: ["Always keep them", "Sell them", "Review and retain only if required", "Upload them online"], ans: 2 },
+                    { type: 'tf', q: "Application configuration may include creating appropriate data storage areas.", ans: "true" },
+                    { type: 'tf', q: "Default application configurations never need to be changed.", ans: "false" },
+                    { type: 'short', q: "What must be created and specified for an application?", ans: "data storage areas" },
+                    { type: 'short', q: "What should you do to the retained default scripts or accounts?", ans: "suitably secured" }
+                ]
+            },
+            {
+                id: 25,
+                titleEn: "Web Servers & Access Rights",
+                titleAr: "خوادم الويب وحقوق الوصول",
+                contentEn: `
+                    <h2 class="slide-title">Application Configuration (Cont.)</h2>
+                    <ul class="slide-list">
+                        <li>A well-known example of this is found with Web servers, which often include several example scripts, quite a few of which are known to be insecure. These should not be used as supplied but removed unless needed and secured.</li>
+                        <li class="mt-4">Careful consideration should be given to the access rights granted to the application.
+                            <ul class="slide-sublist mt-2">
+                                <li>This is of particular concern with remotely accessed services, such as Web and file transfer services.</li>
+                                <li class="text-red-600 font-semibold">The server application should not be granted the right to modify files unless that function is specifically required.</li>
+                                <li>The risk from this form of attack is reduced by ensuring that most of the files can only be read, but not written, by the server.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تكوين التطبيق (يتبع)</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يوجد مثال معروف على ذلك في خوادم الويب، والتي غالبًا ما تتضمن عدة برامج نصية (scripts) كأمثلة، العديد منها معروف بعدم أمانه. يجب عدم استخدامها كما هي ولكن إزالتها ما لم تكن هناك حاجة إليها وتأمينها.</li>
+                        <li class="mt-4">يجب إيلاء اهتمام دقيق لحقوق الوصول الممنوحة للتطبيق.
+                            <ul class="slide-sublist mt-2">
+                                <li>وهذا يمثل مصدر قلق خاص للخدمات التي يتم الوصول إليها عن بُعد، مثل خدمات الويب ونقل الملفات.</li>
+                                <li class="text-red-600 font-semibold">لا ينبغي منح تطبيق الخادم الحق في تعديل الملفات إلا إذا كانت تلك الوظيفة مطلوبة على وجه التحديد.</li>
+                                <li>يتم تقليل المخاطر الناجمة عن هذا الشكل من الهجوم من خلال التأكد من أنه لا يمكن قراءة معظم الملفات إلا، دون كتابتها (تعديلها)، بواسطة الخادم.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Why should example scripts in Web servers be removed?", options: ["They use too much space", "Many are known to be insecure", "They slow down the internet", "They cost extra money"], ans: 1 },
+                    { type: 'mcq', q: "What right should NOT be granted to a server application unless required?", options: ["Read files", "Run algorithms", "Modify files", "Access the CPU"], ans: 2 },
+                    { type: 'tf', q: "Web server example scripts are always 100% secure as supplied.", ans: "false" },
+                    { type: 'tf', q: "To reduce risk, most files should only be readable, not writable, by the server.", ans: "true" },
+                    { type: 'short', q: "What type of services are of particular concern regarding access rights?", ans: "remotely accessed services" },
+                    { type: 'short', q: "Give an example of a remotely accessed service mentioned.", ans: "Web and file transfer services" }
+                ]
+            },
+            {
+                id: 26,
+                titleEn: "Encryption Technology",
+                titleAr: "تقنية التشفير",
+                contentEn: `
+                    <h2 class="slide-title">Encryption Technology</h2>
+                    <ul class="slide-list">
+                        <li>${kw('Encryption', 'Encryption')} is a key-enabling technology that may be used to secure data both in transit and when stored.</li>
+                        <li class="mt-6">If such technologies are required for the system, then they must be configured, and appropriate cryptographic keys must be created, signed, and secured.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">تقنية التشفير</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>${kw('التشفير', 'Encryption')} هي تقنية تمكينية رئيسية يمكن استخدامها لتأمين البيانات أثناء النقل وعند تخزينها.</li>
+                        <li class="mt-6">إذا كانت هذه التقنيات مطلوبة للنظام، فيجب تكوينها، ويجب إنشاء مفاتيح تشفير مناسبة وتوقيعها وتأمينها.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does encryption secure?", options: ["Only printed data", "Data in transit and when stored", "Only deleted data", "Only audio files"], ans: 1 },
+                    { type: 'mcq', q: "What must be created, signed, and secured for encryption?", options: ["Passwords", "Cryptographic keys", "Network cables", "User manuals"], ans: 1 },
+                    { type: 'tf', q: "Encryption only secures data while it is stored, not in transit.", ans: "false" },
+                    { type: 'tf', q: "Encryption is considered a key-enabling technology.", ans: "true" },
+                    { type: 'short', q: "What technology secures data both in transit and stored?", ans: "Encryption" },
+                    { type: 'short', q: "What must happen to cryptographic keys besides being created and signed?", ans: "secured" }
+                ]
+            },
+            {
+                id: 27,
+                titleEn: "Security Maintenance",
+                titleAr: "صيانة الأمان",
+                contentEn: `
+                    <h2 class="slide-title">Security Maintenance</h2>
+                    <ul class="slide-list">
+                        <li>Process of maintaining security is continuous.</li>
+                        <li>This results from the constantly changing environment, the discovery of new vulnerabilities, and hence exposure to new threats.</li>
+                        <li class="mt-4">Security maintenance includes:
+                            <ul class="slide-sublist mt-2">
+                                <li>Monitoring and analyzing logging information.</li>
+                                <li>Performing regular backups.</li>
+                                <li>Recovering from security compromises.</li>
+                                <li>Regularly testing system security.</li>
+                                <li>Using appropriate software maintenance processes to patch and update all critical software, and to monitor and revise configuration as needed.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">صيانة الأمان</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>عملية الحفاظ على الأمان هي عملية مستمرة.</li>
+                        <li>ينتج هذا عن البيئة المتغيرة باستمرار، واكتشاف نقاط ضعف جديدة، وبالتالي التعرض لتهديدات جديدة.</li>
+                        <li class="mt-4">تشمل صيانة الأمان ما يلي:
+                            <ul class="slide-sublist mt-2">
+                                <li>مراقبة وتحليل معلومات التسجيل.</li>
+                                <li>إجراء نسخ احتياطية منتظمة.</li>
+                                <li>التعافي من الاختراقات الأمنية.</li>
+                                <li>اختبار أمان النظام بانتظام.</li>
+                                <li>استخدام عمليات صيانة البرامج المناسبة لتصحيح وتحديث كافة البرامج الهامة، ومراقبة التكوين ومراجعته حسب الحاجة.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Why is security maintenance continuous?", options: ["Because hardware breaks daily", "Because the environment changes and new vulnerabilities are discovered", "Because users forget passwords", "Because it is cheap"], ans: 1 },
+                    { type: 'mcq', q: "Which of the following is part of security maintenance?", options: ["Buying new desks", "Monitoring and analyzing logging info", "Marketing the system", "Ignoring patches"], ans: 1 },
+                    { type: 'tf', q: "Security maintenance is a one-time process.", ans: "false" },
+                    { type: 'tf', q: "Performing regular backups is a part of security maintenance.", ans: "true" },
+                    { type: 'short', q: "What must be done to all critical software during maintenance?", ans: "patch and update" },
+                    { type: 'short', q: "What should you recover from as part of maintenance?", ans: "security compromises" }
+                ]
+            },
+            {
+                id: 28,
+                titleEn: "Logging",
+                titleAr: "التسجيل",
+                contentEn: `
+                    <h2 class="slide-title">Logging</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">Can only inform you about bad things that have already happened</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">In the event of a system breach or failure, system administrators can more quickly identify what happened</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm border-l-4 border-blue-500">Key is to ensure you capture the correct data and then appropriately monitor and analyze this data</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">Information can be generated by the system, network and applications</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">Range of data acquired should be determined during the system planning stage</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm border-l-4 border-red-500">Generates significant volumes of information and it is important that sufficient space is allocated for them</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm font-bold text-center col-span-2">Automated analysis is preferred</div>
+                    </div>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">التسجيل (Logging)</h2>
+                    <div class="grid grid-cols-2 gap-4" dir="rtl">
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">يمكنه فقط إخبارك عن الأشياء السيئة التي حدثت بالفعل</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">في حالة حدوث خرق أو فشل في النظام، يمكن لمسؤولي النظام تحديد ما حدث بسرعة أكبر</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm border-r-4 border-blue-500">المفتاح هو التأكد من التقاط البيانات الصحيحة ثم مراقبة وتحليل هذه البيانات بشكل مناسب</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">يمكن إنشاء المعلومات بواسطة النظام والشبكة والتطبيقات</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm">يجب تحديد نطاق البيانات المكتسبة خلال مرحلة تخطيط النظام</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm border-r-4 border-red-500">يُولد أحجاماً كبيرة من المعلومات ومن المهم تخصيص مساحة كافية لها</div>
+                        <div class="bg-gray-50 border p-4 rounded shadow-sm text-sm font-bold text-center col-span-2">التحليل الآلي (Automated analysis) هو المفضل</div>
+                    </div>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Logging can inform you about bad things that:", options: ["Might happen tomorrow", "Are happening to other networks", "Have already happened", "Will never happen"], ans: 2 },
+                    { type: 'mcq', q: "What kind of analysis is preferred for logging?", options: ["Manual reading", "Ignoring it", "Automated analysis", "Outsourcing it"], ans: 2 },
+                    { type: 'tf', q: "Logging prevents bad things from happening before they start.", ans: "false" },
+                    { type: 'tf', q: "Logging generates significant volumes of information.", ans: "true" },
+                    { type: 'short', q: "When should the range of data acquired be determined?", ans: "during the system planning stage" },
+                    { type: 'short', q: "What is the key to logging besides capturing the correct data?", ans: "appropriately monitor and analyze this data" }
+                ]
+            },
+            {
+                id: 29,
+                titleEn: "Data Backup and Archive",
+                titleAr: "النسخ الاحتياطي والأرشفة للبيانات",
+                contentEn: `
+                    <h2 class="slide-title">Data Backup and Archive</h2>
+                    <p class="mb-4 text-sm font-semibold">Performing regular backups of data is a critical control that assists with maintaining the integrity of the system and user data. May be legal or operational requirements for the retention of data.</p>
+                    
+                    <div class="flex justify-between gap-4 mb-4">
+                        <div class="w-1/2 bg-blue-50 border border-blue-300 p-4 rounded">
+                            <h3 class="font-bold text-blue-800 mb-2">${kw('Backup', 'Backup')}</h3>
+                            <p class="text-sm">The process of making copies of data at regular intervals, allowing the recovery of lost or corrupted data over relatively short time periods of a few hours to some weeks.</p>
+                        </div>
+                        <div class="w-1/2 bg-green-50 border border-green-300 p-4 rounded">
+                            <h3 class="font-bold text-green-800 mb-2">${kw('Archive', 'Archive')}</h3>
+                            <p class="text-sm">The process of retaining copies of data over extended periods of time, being months or years, in order to meet legal and operational requirements to access past data.</p>
+                        </div>
+                    </div>
+                    
+                    <ul class="slide-list text-sm">
+                        <li>Needs and policy relating to backup and archive should be determined during the system planning stage.</li>
+                        <li>Whether the backup copies are kept online or offline.</li>
+                        <li>Stored locally or transported to a remote site.</li>
+                        <li>Trade-offs include ease of implementation and cost versus greater security and robustness against different threats.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">النسخ الاحتياطي والأرشفة للبيانات</h2>
+                    <p class="mb-4 text-sm font-semibold" dir="rtl">يعد إجراء نسخ احتياطي منتظم للبيانات عنصر تحكم حاسم يساعد في الحفاظ على سلامة النظام وبيانات المستخدم. قد تكون هناك متطلبات قانونية أو تشغيلية للاحتفاظ بالبيانات.</p>
+                    
+                    <div class="flex justify-between gap-4 mb-4" dir="rtl">
+                        <div class="w-1/2 bg-blue-50 border border-blue-300 p-4 rounded">
+                            <h3 class="font-bold text-blue-800 mb-2">${kw('النسخ الاحتياطي (Backup)', 'Backup')}</h3>
+                            <p class="text-sm">عملية عمل نسخ من البيانات على فترات منتظمة، مما يسمح باستعادة البيانات المفقودة أو التالفة على مدى فترات زمنية قصيرة نسبيًا تتراوح من بضع ساعات إلى بضعة أسابيع.</p>
+                        </div>
+                        <div class="w-1/2 bg-green-50 border border-green-300 p-4 rounded">
+                            <h3 class="font-bold text-green-800 mb-2">${kw('الأرشفة (Archive)', 'Archive')}</h3>
+                            <p class="text-sm">عملية الاحتفاظ بنسخ من البيانات لفترات زمنية طويلة، وهي أشهر أو سنوات، من أجل تلبية المتطلبات القانونية والتشغيلية للوصول إلى البيانات السابقة.</p>
+                        </div>
+                    </div>
+                    
+                    <ul class="slide-list text-sm" dir="rtl">
+                        <li>يجب تحديد الاحتياجات والسياسة المتعلقة بالنسخ الاحتياطي والأرشفة أثناء مرحلة تخطيط النظام.</li>
+                        <li>سواء تم الاحتفاظ بالنسخ الاحتياطية متصلة بالشبكة (online) أو غير متصلة (offline).</li>
+                        <li>يتم تخزينها محليًا أو نقلها إلى موقع بعيد.</li>
+                        <li>تشمل المفاضلات (Trade-offs) سهولة التنفيذ والتكلفة مقابل أمان أكبر وقوة ضد التهديدات المختلفة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which process is for short time periods of a few hours to some weeks?", options: ["Archive", "Logging", "Backup", "Formatting"], ans: 2 },
+                    { type: 'mcq', q: "Which process is for retaining data for months or years?", options: ["Backup", "Archive", "Patching", "Testing"], ans: 1 },
+                    { type: 'tf', q: "There are never legal requirements for the retention of data.", ans: "false" },
+                    { type: 'tf', q: "Backups can be kept online or offline.", ans: "true" },
+                    { type: 'short', q: "When should backup and archive policies be determined?", ans: "during the system planning stage" },
+                    { type: 'short', q: "Name a trade-off mentioned regarding backup storage.", ans: "ease of implementation and cost versus greater security" }
+                ]
+            },
+            {
+                id: 30,
+                titleEn: "The End",
+                titleAr: "النهاية",
+                contentEn: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="Al-Baha University Logo" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10">The End</h1>
+                    </div>
+                `,
+                contentAr: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="شعار جامعة الباحة" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10 font-cairo">النهاية</h1>
+                    </div>
+                `,
+                quiz: []
+            }
+        ];
+
+        // --- 2. STATE & LOGIC ---
+        let currentSlideIndex = 0;
+        let isArabic = false;
+
+        const slideNav = document.getElementById('slide-nav');
+        const slideContent = document.getElementById('slide-content');
+        const langToggleBtn = document.getElementById('lang-toggle');
+        const langText = document.getElementById('lang-text');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const quizBtn = document.getElementById('quiz-btn');
+
+        // Initialize App
+        function init() {
+            buildNavigation();
+            renderSlide(0);
+        }
+
+        // Build Sidebar Navigation
+        function buildNavigation() {
+            slideNav.innerHTML = '';
+            slides.forEach((slide, index) => {
+                // skip rendering the last slide in navigation if desired, but we render all here
+                const li = document.createElement('li');
+                li.className = `px-6 py-3 cursor-pointer border-l-4 transition-colors duration-200 ${index === currentSlideIndex ? 'border-blue-500 bg-gray-700 text-white' : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-white'}`;
+                li.innerHTML = `<span class="mr-2 opacity-50">${slide.id.toString().padStart(2, '0')}</span> ${isArabic ? slide.titleAr : slide.titleEn}`;
+                li.onclick = () => {
+                    currentSlideIndex = index;
+                    renderSlide(index);
+                    buildNavigation(); // Update active state
+                };
+                slideNav.appendChild(li);
+            });
+        }
+
+        // Render specific slide
+        function renderSlide(index) {
+            const slide = slides[index];
+            const content = isArabic ? slide.contentAr : slide.contentEn;
+            
+            // Footer HTML structure
+            const footer = `
+                <div class="mt-auto pt-8 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500 ${isArabic ? 'flex-row-reverse' : ''}">
+                    <div class="font-bold text-blue-800">BU <br> <span class="font-normal text-xs text-black">${isArabic ? 'جامعة الباحة' : 'Al-Baha University'}</span></div>
+                    <div class="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">${slide.id}</div>
+                </div>
+            `;
+
+            slideContent.innerHTML = content + footer;
+
+            // Handle Quiz Button visibility
+            if(slide.quiz && slide.quiz.length > 0) {
+                quizBtn.style.display = 'flex';
+            } else {
+                quizBtn.style.display = 'none';
+            }
+        }
+
+        // Translation Toggle
+        langToggleBtn.onclick = () => {
+            isArabic = !isArabic;
+            document.documentElement.lang = isArabic ? 'ar' : 'en';
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            langText.innerText = isArabic ? 'English' : 'ترجمة للعربية';
+            
+            // Update sidebar direction/layout roughly
+            if(isArabic) {
+                sidebar.classList.remove('border-r');
+                sidebar.classList.add('border-l');
+            } else {
+                sidebar.classList.remove('border-l');
+                sidebar.classList.add('border-r');
+            }
+
+            buildNavigation();
+            renderSlide(currentSlideIndex);
+        };
+
+        // Sidebar Toggle
+        toggleSidebarBtn.onclick = () => {
+            sidebar.classList.toggle('w-0');
+            sidebar.classList.toggle('w-1/4');
+            sidebar.classList.toggle('px-0');
+        };
+
+        // --- 3. MODALS (Keywords & Quiz) ---
+
+        function showKeyword(wordKey) {
+            const data = dictionary[wordKey];
+            if(!data) return;
+
+            document.getElementById('kw-title').innerText = wordKey;
+            document.getElementById('kw-en').innerText = data.en;
+            document.getElementById('kw-ar').innerText = data.ar;
+            
+            document.getElementById('keyword-modal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if(modalId === 'quiz-modal') {
+                document.getElementById('quiz-results').classList.add('hidden');
+                document.getElementById('quiz-results').innerHTML = '';
+            }
+        }
+
+        quizBtn.onclick = () => {
+            const slide = slides[currentSlideIndex];
+            if(!slide || !slide.quiz || slide.quiz.length === 0) return;
+
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            document.getElementById('quiz-results').classList.add('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                let html = `<div class="quiz-question" id="q-block-${i}">
+                    <p class="font-bold text-lg mb-2" dir="ltr">${i + 1}. ${q.q}</p>`;
+
+                if(q.type === 'mcq') {
+                    q.options.forEach((opt, optIndex) => {
+                        html += `<label class="block cursor-pointer p-2 hover:bg-blue-50 rounded" dir="ltr">
+                            <input type="radio" name="q${i}" value="${optIndex}" class="mr-2"> ${opt}
+                        </label>`;
+                    });
+                } else if(q.type === 'tf') {
+                    html += `
+                        <label class="inline-block cursor-pointer p-2 mr-4 hover:bg-blue-50 rounded" dir="ltr"><input type="radio" name="q${i}" value="true" class="mr-1"> True</label>
+                        <label class="inline-block cursor-pointer p-2 hover:bg-blue-50 rounded" dir="ltr"><input type="radio" name="q${i}" value="false" class="mr-1"> False</label>
+                    `;
+                } else if(q.type === 'short') {
+                    html += `<input type="text" name="q${i}" class="w-full border border-gray-300 p-2 rounded mt-1 focus:outline-none focus:border-blue-500" placeholder="Type your answer..." dir="ltr">`;
+                }
+                
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+
+            document.getElementById('quiz-modal').style.display = 'flex';
+        };
+
+        function evaluateQuiz() {
+            const slide = slides[currentSlideIndex];
+            let score = 0;
+            const resultsDiv = document.getElementById('quiz-results');
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                const block = document.getElementById(`q-block-${i}`);
+                let isCorrect = false;
+                let userAnswer = '';
+                let correctAnswerStr = '';
+
+                if(q.type === 'mcq') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.options[q.ans];
+                    if(selected) {
+                        userAnswer = q.options[parseInt(selected.value)];
+                        if(parseInt(selected.value) === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'tf') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.ans.charAt(0).toUpperCase() + q.ans.slice(1);
+                    if(selected) {
+                        userAnswer = selected.value === "true" ? "True" : "False";
+                        if(selected.value === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'short') {
+                    const input = document.querySelector(`input[name="q${i}"]`);
+                    correctAnswerStr = q.ans;
+                    if(input && input.value.trim() !== '') {
+                        userAnswer = input.value.trim();
+                        if(userAnswer.length > 2) {
+                             isCorrect = true; 
+                        }
+                    }
+                }
+
+                if(isCorrect) score++;
+
+                const feedback = document.createElement('div');
+                feedback.className = 'mt-2 p-3 rounded ' + (isCorrect ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300');
+                feedback.innerHTML = `
+                    <p class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">
+                        <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
+                        Q${i+1}: ${isCorrect ? 'Correct!' : 'Incorrect.'}
+                    </p>
+                    ${!isCorrect ? `<p class="text-sm mt-1 text-gray-700"><b>Correct Answer:</b> ${correctAnswerStr}</p>` : ''}
+                `;
+                block.appendChild(feedback);
+            });
+
+            resultsDiv.innerHTML = `<div class="bg-indigo-100 border-l-4 border-indigo-500 p-4 rounded text-center">
+                <p class="text-2xl font-bold text-indigo-800">Your Score: ${score} / 6</p>
+            </div>`;
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const kwModal = document.getElementById('keyword-modal');
+            const qzModal = document.getElementById('quiz-modal');
+            if (event.target == kwModal) {
+                closeModal('keyword-modal');
+            }
+            if (event.target == qzModal) {
+                closeModal('quiz-modal');
+            }
+        }
+
+        // Start
+        window.onload = init;
+
+    </script>
+</body>
+</html>
