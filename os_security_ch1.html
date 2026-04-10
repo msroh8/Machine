@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OS Security - Chapter 1</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;background:#f0f4f8;display:flex;min-height:100vh}
+  
+  #sidebar{width:280px;min-width:280px;background:#1a237e;color:#fff;padding:0;overflow-y:auto;position:sticky;top:0;height:100vh}
+  #sidebar h2{background:#0d1757;padding:18px 16px;font-size:15px;letter-spacing:.5px;border-bottom:1px solid #3949ab}
+  .nav-item{padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid #3949ab22;transition:background .2s;line-height:1.4}
+  .nav-item:hover{background:#283593}
+  .nav-item.active{background:#3949ab;border-left:4px solid #ff5252}
+  
+  #main{flex:1;padding:24px;overflow-y:auto}
+  
+  .slide-card{background:#fff;border-radius:10px;padding:28px 32px;max-width:860px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .slide-title{color:#c62828;font-size:22px;font-weight:700;margin-bottom:20px;padding-bottom:10px;border-bottom:3px solid #1a237e}
+  
+  .content-block{margin-bottom:14px;font-size:15px;line-height:1.7;color:#212121}
+  .bullet{padding-left:18px;position:relative;margin-bottom:8px}
+  .bullet::before{content:"•";position:absolute;left:0;color:#1a237e;font-weight:700}
+  .sub-bullet{padding-left:32px;position:relative;margin-bottom:6px;font-size:14px;color:#424242}
+  .sub-bullet::before{content:"–";position:absolute;left:16px;color:#666}
+  .sub2-bullet{padding-left:48px;position:relative;margin-bottom:5px;font-size:13.5px;color:#555}
+  .sub2-bullet::before{content:"•";position:absolute;left:32px;color:#1565c0}
+  
+  .keyword{color:#1565c0;font-weight:700;cursor:pointer;border-bottom:2px dotted #1565c0;transition:color .2s}
+  .keyword:hover{color:#c62828}
+  .keyword-red{color:#c62828;font-weight:700;cursor:pointer;border-bottom:2px dotted #c62828}
+  .keyword-red:hover{color:#1565c0}
+  
+  .translate-btn{background:#1a237e;color:#fff;border:none;padding:8px 20px;border-radius:6px;cursor:pointer;font-size:13px;margin:16px 0 8px;transition:background .2s}
+  .translate-btn:hover{background:#283593}
+  .translate-btn.active{background:#c62828}
+  
+  .quiz-btn{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;padding:9px 20px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:20px;font-weight:600;transition:all .2s}
+  .quiz-btn:hover{background:#c8e6c9}
+  
+  .diagram-box{background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:20px;margin:16px 0;text-align:center}
+  .layer-box{padding:12px 20px;margin:4px auto;border-radius:6px;max-width:420px;font-size:14px}
+  .layer-user{background:#bbdefb;border:1px solid #90caf9;color:#0d47a1}
+  .layer-app{background:#ddd;border:1px solid #bbb;color:#333}
+  .layer-os{background:#b3e5fc;border:1px solid #81d4fa;color:#01579b}
+  .layer-hw{background:#ddd;border:1px solid #bbb;color:#333}
+  .arrow-v{font-size:20px;color:#666;line-height:1}
+  
+  .memory-diagram{display:flex;flex-direction:column;align-items:center;margin:16px 0}
+  .mem-block{width:200px;padding:14px;text-align:center;font-size:13px;border:1px solid #90caf9}
+  .mem-os{background:#cfd8dc;color:#37474f}
+  .mem-p{background:#bbdefb;color:#0d47a1}
+  
+  .vm-diagram{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+  .vm-col{background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:12px;min-width:130px;text-align:center}
+  .vm-proc{background:#bbdefb;padding:6px;margin-bottom:4px;font-size:12px;border-radius:4px;color:#0d47a1}
+  .vm-kern{background:#b0bec5;padding:6px;margin:4px 0;font-size:12px;border-radius:4px;color:#263238}
+  .vm-label{font-size:11px;color:#666;margin-top:4px}
+  .vmm-bar{background:#b3e5fc;padding:10px;border-radius:6px;text-align:center;font-size:13px;color:#01579b;margin-top:8px;width:100%}
+  .hw-bar{background:#cfd8dc;padding:10px;border-radius:6px;text-align:center;font-size:13px;color:#263238;width:100%}
+  
+  .network-types{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .net-badge{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700}
+  
+  .cloud-types{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .cloud-card{padding:10px 14px;border-radius:8px;font-size:13px;flex:1;min-width:130px}
+  
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:20px}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:12px;padding:28px;max-width:520px;width:100%;position:relative;max-height:85vh;overflow-y:auto}
+  .modal h3{color:#1a237e;font-size:17px;margin-bottom:12px;padding-right:28px}
+  .modal-ar{direction:rtl;text-align:right}
+  .modal-ar h3{color:#c62828}
+  .modal p{font-size:14px;line-height:1.7;color:#333;margin-bottom:10px}
+  .close-btn{position:absolute;top:12px;right:14px;background:none;border:none;font-size:20px;cursor:pointer;color:#666;line-height:1}
+  .close-btn:hover{color:#c62828}
+  
+  .quiz-modal{max-width:600px}
+  .q-section{margin-bottom:20px;padding:14px;background:#f8f9fa;border-radius:8px;border-left:4px solid #1a237e}
+  .q-type{font-size:11px;font-weight:700;color:#1a237e;text-transform:uppercase;margin-bottom:6px}
+  .q-text{font-size:14px;font-weight:600;color:#212121;margin-bottom:10px}
+  .q-options label{display:block;padding:7px 10px;margin:4px 0;border-radius:5px;cursor:pointer;font-size:13px;border:1px solid #e0e0e0;transition:background .15s}
+  .q-options label:hover{background:#e8eaf6}
+  .q-options input{margin-right:8px}
+  .q-input{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:5px;font-size:13px;margin-top:6px}
+  .check-btn{background:#1a237e;color:#fff;border:none;padding:9px 22px;border-radius:6px;cursor:pointer;font-size:13px;margin-top:14px;font-weight:600}
+  .check-btn:hover{background:#283593}
+  .feedback{margin-top:10px;padding:8px 12px;border-radius:5px;font-size:13px;display:none}
+  .feedback.correct{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;display:block}
+  .feedback.wrong{background:#ffebee;color:#c62828;border:1px solid #ef9a9a;display:block}
+  
+  #lang-indicator{background:#ff5252;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px;vertical-align:middle}
+  
+  .ar-text{display:none;direction:rtl;text-align:right;font-size:14px;line-height:1.8;color:#37474f;background:#fff8e1;padding:10px 14px;border-radius:6px;border-right:4px solid #f9a825;margin-top:8px}
+  .ar-text.show{display:block}
+  
+  .slide-controls{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+
+  @media(max-width:700px){
+    body{flex-direction:column}
+    #sidebar{width:100%;height:auto;position:relative}
+    #main{padding:14px}
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h2>&#9776; OS Security — Ch.01</h2>
+  <div class="nav-item active" onclick="showSlide(0)">Computer System Structure</div>
+  <div class="nav-item" onclick="showSlide(1)">What is an Operating System?</div>
+  <div class="nav-item" onclick="showSlide(2)">Computer Startup</div>
+  <div class="nav-item" onclick="showSlide(3)">OS Operations</div>
+  <div class="nav-item" onclick="showSlide(4)">Multiprogramming &amp; Multitasking</div>
+  <div class="nav-item" onclick="showSlide(5)">Memory Layout</div>
+  <div class="nav-item" onclick="showSlide(6)">Process Management</div>
+  <div class="nav-item" onclick="showSlide(7)">Memory Management</div>
+  <div class="nav-item" onclick="showSlide(8)">File-system Management</div>
+  <div class="nav-item" onclick="showSlide(9)">Mass-Storage Management</div>
+  <div class="nav-item" onclick="showSlide(10)">Virtualization</div>
+  <div class="nav-item" onclick="showSlide(11)">Distributed Systems</div>
+  <div class="nav-item" onclick="showSlide(12)">Client-Server Computing</div>
+  <div class="nav-item" onclick="showSlide(13)">Peer-to-Peer</div>
+  <div class="nav-item" onclick="showSlide(14)">Cloud Computing</div>
+  <div class="nav-item" onclick="showSlide(15)">Real-Time Embedded Systems</div>
+</div>
+
+<div id="main">
+  <div id="slide-container"></div>
+</div>
+
+<!-- Keyword explanation modal -->
+<div class="overlay" id="kw-overlay" onclick="closeKw(event)">
+  <div class="modal" id="kw-modal">
+    <button class="close-btn" onclick="closeOverlay('kw-overlay')">&#10005;</button>
+    <h3 id="kw-title"></h3>
+    <p id="kw-en"></p>
+    <div class="modal-ar" id="kw-ar-wrap"><p id="kw-ar"></p></div>
+  </div>
+</div>
+
+<!-- Quiz modal -->
+<div class="overlay" id="quiz-overlay" onclick="closeKw(event)">
+  <div class="modal quiz-modal" id="quiz-modal">
+    <button class="close-btn" onclick="closeOverlay('quiz-overlay')">&#10005;</button>
+    <h3 id="quiz-title" style="color:#c62828;margin-bottom:16px"></h3>
+    <div id="quiz-body"></div>
+  </div>
+</div>
+
+<script>
+const keywords = {
+  "Hardware":{"en":"Hardware refers to the physical components of a computer system — the CPU (processor that executes instructions), memory (RAM that stores active data), and I/O devices (keyboard, display, disk drives). It forms the foundation layer of the computer system.","ar":"الأجهزة هي المكونات المادية الملموسة للكمبيوتر — المعالج (CPU) الذي ينفذ التعليمات، والذاكرة (RAM) التي تخزن البيانات النشطة، وأجهزة الإدخال/الإخراج (لوحة المفاتيح، الشاشة، محركات الأقراص). وهي تشكل الطبقة الأساسية للنظام."},
+  "Operating System":{"en":"An operating system (OS) is the master control program that sits between the hardware and user applications. It manages all hardware resources and provides a clean, consistent interface for programs to use them, preventing conflicts and errors.","ar":"نظام التشغيل هو البرنامج الرئيسي الذي يقع بين الأجهزة وتطبيقات المستخدم. يدير جميع موارد الأجهزة ويوفر واجهة متسقة للبرامج لاستخدامها، مع منع التعارضات والأخطاء."},
+  "Application Programs":{"en":"Application programs are software that uses the OS resources to solve user problems. Examples: word processors, web browsers, compilers, database systems, and video games. They define how system resources are used.","ar":"البرامج التطبيقية هي برامج تستخدم موارد نظام التشغيل لحل مشاكل المستخدم. أمثلة: معالجات الكلمات، متصفحات الويب، المترجمات، أنظمة قواعد البيانات، وألعاب الفيديو."},
+  "Resource Allocator":{"en":"As a resource allocator, the OS manages and distributes all system resources: CPU time (scheduling), memory space (allocation), file-storage space, and I/O device access. It ensures fair and efficient use among competing processes.","ar":"بوصفه موزعاً للموارد، يدير نظام التشغيل ويوزع جميع موارد النظام: وقت المعالج، مساحة الذاكرة، مساحة تخزين الملفات، والوصول إلى أجهزة الإدخال/الإخراج، لضمان الاستخدام العادل والكفء."},
+  "Control Program":{"en":"As a control program, the OS prevents errors and improper use by controlling program execution. It watches for illegal memory accesses, division by zero, infinite loops, and unauthorized operations, stepping in when violations occur.","ar":"بوصفه برنامج تحكم، يمنع نظام التشغيل الأخطاء والاستخدام غير الصحيح عن طريق التحكم في تنفيذ البرامج. يراقب الوصول غير المشروع للذاكرة، القسمة على صفر، الحلقات اللانهائية، والعمليات غير المصرح بها."},
+  "Bootstrap":{"en":"The bootstrap program (firmware) is the very first code that runs when a computer powers on. Stored in ROM/EPROM, it initializes hardware components, runs POST (Power-On Self Test), locates the OS on storage, loads it into memory, and transfers control to it.","ar":"برنامج الإقلاع (البرامج الثابتة) هو أول كود يعمل عند تشغيل الكمبيوتر. مخزن في ROM/EPROM، يهيئ مكونات الأجهزة، يجد نظام التشغيل على وحدة التخزين، يحمّله في الذاكرة، وينقل التحكم إليه."},
+  "Firmware":{"en":"Firmware is software permanently stored in read-only memory (ROM or EPROM) on a chip. Unlike regular software, it cannot be easily changed. It includes the bootstrap/BIOS code that initializes hardware before the OS loads.","ar":"البرامج الثابتة هي برامج مخزنة بشكل دائم في ذاكرة القراءة فقط (ROM أو EPROM). تتضمن كود الإقلاع/BIOS الذي يهيئ الأجهزة قبل تحميل نظام التشغيل."},
+  "Kernel":{"en":"The kernel is the core of the operating system — the part that always stays loaded in memory. It handles the most critical tasks: process scheduling, memory management, interrupt handling, and device driver management. All other OS services are built around it.","ar":"النواة هي جوهر نظام التشغيل — الجزء الذي يبقى دائماً محملاً في الذاكرة. تتعامل مع المهام الحرجة: جدولة العمليات، إدارة الذاكرة، معالجة المقاطعات، وإدارة برامج تشغيل الأجهزة."},
+  "System Daemons":{"en":"Daemons (or services) are background processes that start with the OS and run continuously to provide services. Examples: network daemon (handles connections), print spooler (manages printing), log daemon (records system events). They run outside the kernel but are part of the OS environment.","ar":"العفاريت (الخدمات) هي عمليات خلفية تبدأ مع نظام التشغيل وتعمل باستمرار لتقديم الخدمات. أمثلة: عفريت الشبكة، التخزين المؤقت للطباعة، عفريت السجلات. تعمل خارج النواة لكنها جزء من بيئة نظام التشغيل."},
+  "Interrupt":{"en":"An interrupt is a signal that causes the CPU to stop its current task and handle an urgent event. Hardware interrupts come from devices (e.g., keyboard press, disk I/O complete). Software interrupts (traps/exceptions) come from programs — either errors (divide by zero) or intentional system calls.","ar":"المقاطعة هي إشارة تجعل المعالج يتوقف عن مهمته الحالية للتعامل مع حدث عاجل. المقاطعات الصلبة تأتي من الأجهزة (ضغط مفتاح، اكتمال قراءة القرص). المقاطعات البرمجية تأتي من البرامج — إما أخطاء أو استدعاءات نظام متعمدة."},
+  "System Call":{"en":"A system call is the mechanism by which a user program requests a service from the OS kernel. Since user programs cannot directly access hardware, they use system calls (e.g., open(), read(), write(), fork()) to ask the kernel to perform privileged operations on their behalf.","ar":"استدعاء النظام هو الآلية التي يطلب بها برنامج المستخدم خدمة من نواة نظام التشغيل. نظراً لأن برامج المستخدم لا يمكنها الوصول المباشر للأجهزة، تستخدم استدعاءات النظام لطلب العمليات ذات الامتياز."},
+  "Multiprogramming":{"en":"Multiprogramming keeps multiple jobs (programs) loaded in memory simultaneously. When one job waits for I/O, the CPU switches to another job instead of sitting idle. This maximizes CPU utilization by ensuring the CPU always has something productive to execute.","ar":"تعدد البرمجة يبقي عدة وظائف محملة في الذاكرة في آن واحد. عندما تنتظر وظيفة ما إدخالاً/إخراجاً، يتحول المعالج لوظيفة أخرى بدلاً من الانتظار. هذا يُعظّم استخدام المعالج بضمان أن يكون لديه دائماً ما ينفذه."},
+  "Multitasking":{"en":"Multitasking (timesharing) switches the CPU between jobs so rapidly (milliseconds) that each user feels they have a dedicated computer. Response time is under 1 second. Multiple users can interact with their programs simultaneously — this is interactive computing.","ar":"تعدد المهام (المشاركة الزمنية) يبدّل المعالج بين الوظائف بسرعة كبيرة (ميلي ثانية) حتى يشعر كل مستخدم بأن لديه كمبيوتر مخصص له. وقت الاستجابة أقل من ثانية واحدة."},
+  "Job Scheduling":{"en":"Job scheduling is the OS process of deciding which job (among those loaded in memory) gets to run on the CPU next. The scheduler considers factors like job priority, CPU burst time, and fairness to maximize throughput and minimize waiting time.","ar":"جدولة الوظائف هي عملية نظام التشغيل لتحديد أي وظيفة (من بين تلك المحملة في الذاكرة) ستعمل على المعالج بعد ذلك. يأخذ المجدول في الاعتبار عوامل مثل الأولوية ووقت الاندفاع."},
+  "CPU Scheduling":{"en":"CPU scheduling determines which ready process gets CPU time when multiple processes are waiting. Algorithms include FCFS (First Come First Served), SJF (Shortest Job First), Round Robin (equal time slices), and Priority Scheduling. Goal: maximize CPU use and minimize response time.","ar":"جدولة المعالج تحدد أي عملية جاهزة ستحصل على وقت المعالج عندما تنتظر عمليات متعددة. الخوارزميات تشمل: الأول يُخدَّم أولاً، أقصر وظيفة أولاً، الدوري، والجدولة ذات الأولوية."},
+  "Virtual Memory":{"en":"Virtual memory allows a process to execute even when it's not entirely in physical RAM. The OS uses disk space (swap space) as an extension of memory, moving pages in/out as needed. This allows running programs larger than available RAM and improves multiprogramming.","ar":"الذاكرة الافتراضية تسمح للعملية بالتنفيذ حتى عندما لا تكون بالكامل في الذاكرة الفعلية. يستخدم نظام التشغيل مساحة القرص كامتداد للذاكرة، محركاً الصفحات داخلاً وخارجاً حسب الحاجة."},
+  "Swapping":{"en":"Swapping is moving an entire process from main memory to disk (swap space) when memory is full, and bringing it back when needed. It allows more processes to exist than can fit in RAM, supporting greater multiprogramming degree at the cost of extra I/O time.","ar":"التبديل هو نقل عملية كاملة من الذاكرة الرئيسية إلى القرص عندما تمتلئ الذاكرة، وإعادتها عند الحاجة. يتيح وجود عمليات أكثر مما يتسع له الذاكرة العشوائية."},
+  "Process":{"en":"A process is a program in execution — an active entity with its own memory space, CPU registers, and state. Unlike a program (passive file on disk), a process is alive: it has a current instruction, stack, heap, and resources. The OS creates, schedules, and terminates processes.","ar":"العملية هي برنامج قيد التنفيذ — كيان نشط بمساحة ذاكرة خاصة به ومسجلات معالج وحالة. على عكس البرنامج (ملف سلبي على القرص)، العملية حية: لها تعليمة حالية، ومكدس، وكومة، وموارد."},
+  "Program Counter":{"en":"The program counter (PC) is a CPU register that holds the memory address of the next instruction to be executed. In a single-threaded process there is one PC. In a multi-threaded process, each thread has its own PC, allowing threads to execute different code paths simultaneously.","ar":"عداد البرنامج هو مسجل في المعالج يحتفظ بعنوان الذاكرة للتعليمة التالية التي ستُنفَّذ. في العملية أحادية الخيط يوجد عداد واحد. في العملية متعددة الخيوط، كل خيط له عداده الخاص."},
+  "Virtualization":{"en":"Virtualization allows one physical computer to run multiple virtual machines (VMs), each with its own OS. The Virtual Machine Manager (VMM/hypervisor) creates and manages VMs, providing each with virtual hardware. VMs are isolated — a crash in one doesn't affect others.","ar":"الافتراضية تسمح لكمبيوتر مادي واحد بتشغيل آلات افتراضية متعددة، كل منها بنظام تشغيل خاص. مدير الآلة الافتراضية ينشئ هذه الآلات ويديرها، موفراً لكل منها أجهزة افتراضية."},
+  "VMM":{"en":"The Virtual Machine Manager (VMM), also called a hypervisor, is software that creates and manages virtual machines. It sits between the hardware and guest OSes, providing each VM with virtual CPU, memory, and I/O devices. Examples: VMware, VirtualBox, Hyper-V, KVM.","ar":"مدير الآلة الافتراضية (VMM) أو المشرف على الافتراضية، هو برنامج ينشئ الآلات الافتراضية ويديرها. يجلس بين الأجهزة وأنظمة التشغيل الضيفة، موفراً لكل آلة معالجاً وذاكرة وأجهزة إدخال/إخراج افتراضية."},
+  "Emulation":{"en":"Emulation simulates one CPU architecture on a different one (e.g., running PowerPC software on Intel x86). The emulator translates each instruction from the source architecture to the target. It is slower than native execution or virtualization because every instruction needs translation.","ar":"المحاكاة تُحاكي بنية معالج على بنية مختلفة (مثل تشغيل برامج PowerPC على Intel x86). المحاكي يترجم كل تعليمة من البنية المصدر إلى الهدف. أبطأ من التنفيذ الأصلي أو الافتراضية."},
+  "Distributed System":{"en":"A distributed system is a collection of networked computers that communicate and coordinate to appear as one unified system to users. Each machine runs its own OS but they work together through message passing over the network (TCP/IP).","ar":"النظام الموزع هو مجموعة من الأجهزة المتشبكة التي تتواصل وتتنسق لتظهر كنظام موحد للمستخدمين. كل جهاز يشغّل نظام تشغيله الخاص لكنها تعمل معاً عبر تمرير الرسائل على الشبكة."},
+  "LAN":{"en":"Local Area Network — connects computers within a limited geographic area (building, campus). High speed (100Mbps–10Gbps), low latency. Common protocols: Ethernet, Wi-Fi. Managed by the organization that owns it.","ar":"الشبكة المحلية — تربط أجهزة الكمبيوتر داخل منطقة جغرافية محدودة (مبنى، حرم جامعي). سرعة عالية وتأخير منخفض. بروتوكولات شائعة: إيثرنت، واي-فاي."},
+  "WAN":{"en":"Wide Area Network — spans large geographic areas (cities, countries, continents). Lower speed than LAN, higher latency. The Internet is the largest WAN. Uses routers to connect multiple LANs across long distances.","ar":"الشبكة الواسعة النطاق — تمتد عبر مناطق جغرافية كبيرة (مدن، دول، قارات). سرعة أقل من الشبكة المحلية وتأخير أعلى. الإنترنت هو أكبر شبكة واسعة النطاق."},
+  "Cloud Computing":{"en":"Cloud computing delivers computing resources (servers, storage, databases, networking, software) over the Internet on-demand, with pay-as-you-go pricing. It's built on virtualization technology and eliminates the need for organizations to own/manage physical infrastructure.","ar":"الحوسبة السحابية توفر موارد الحوسبة (خوادم، تخزين، قواعد بيانات، شبكات، برمجيات) عبر الإنترنت عند الطلب بتسعير الدفع حسب الاستخدام. مبنية على تقنية الافتراضية."},
+  "SaaS":{"en":"Software as a Service — users access applications over the Internet without installing them locally. Examples: Gmail, Google Docs, Microsoft 365, Salesforce. The provider manages everything (infrastructure, OS, application). User just uses a browser.","ar":"البرمجيات كخدمة — يصل المستخدمون إلى التطبيقات عبر الإنترنت دون تثبيتها محلياً. أمثلة: Gmail، Google Docs، Microsoft 365. المزود يدير كل شيء."},
+  "PaaS":{"en":"Platform as a Service — provides a ready-to-use development platform (OS + middleware + runtime) over the Internet. Developers build and deploy applications without managing underlying infrastructure. Examples: Heroku, Google App Engine, Azure App Service.","ar":"المنصة كخدمة — توفر منصة تطوير جاهزة (نظام تشغيل + برامج وسيطة + بيئة تشغيل) عبر الإنترنت. المطورون يبنون وينشرون التطبيقات دون إدارة البنية التحتية. أمثلة: Heroku، Google App Engine."},
+  "IaaS":{"en":"Infrastructure as a Service — provides virtualized computing infrastructure (VMs, storage, networks) over the Internet. Users manage OS and applications; provider manages hardware. Examples: Amazon EC2, Google Compute Engine, Microsoft Azure VMs.","ar":"البنية التحتية كخدمة — توفر بنية تحتية حوسبة افتراضية (آلات افتراضية، تخزين، شبكات) عبر الإنترنت. المستخدمون يديرون نظام التشغيل والتطبيقات؛ المزود يدير الأجهزة."},
+  "Real-Time OS":{"en":"A real-time OS guarantees that critical tasks complete within strict, predefined time deadlines. Hard RTOS: missing a deadline = system failure (aircraft control, pacemakers). Soft RTOS: missed deadlines degrade performance (streaming video). They prioritize timing predictability over throughput.","ar":"نظام التشغيل الفوري يضمن إكمال المهام الحرجة ضمن مواعيد نهائية زمنية محددة مسبقاً. الصارم: تجاوز الموعد = فشل النظام (التحكم في الطائرات، أجهزة ضبط النبض). المرن: التأخير يُدهور الأداء."},
+  "File System":{"en":"The file system organizes data on storage devices into a logical hierarchy of files and directories. It abstracts physical disk sectors into human-readable files. The OS manages creation, deletion, access control, and mapping of files to physical storage locations.","ar":"نظام الملفات ينظم البيانات على أجهزة التخزين في تسلسل هرمي منطقي من الملفات والمجلدات. يحول القطاعات المادية للقرص إلى ملفات مقروءة. نظام التشغيل يدير إنشاء الملفات وحذفها والتحكم في الوصول إليها."},
+  "P2P":{"en":"Peer-to-Peer networks have no dedicated servers — every node acts as both client and server. Nodes discover each other via central lookup services or broadcast discovery protocols. Examples: BitTorrent (file sharing), Skype (VoIP), Bitcoin (cryptocurrency). Highly scalable and fault-tolerant.","ar":"شبكات النظير إلى النظير ليس لها خوادم مخصصة — كل عقدة تعمل كعميل وخادم في آن واحد. العقد تكتشف بعضها عبر خدمات البحث المركزية أو بروتوكولات الاكتشاف. أمثلة: BitTorrent، Skype."}
+};
+
+const slides = [
+  {
+    title:"Computer System Structure",
+    arTitle:"هيكل نظام الكمبيوتر",
+    content:`<div class="content-block">
+      <div class="bullet">Computer system can be divided into four components:</div>
+      <div class="sub-bullet"><span class="keyword" onclick="showKw('Hardware')">Hardware</span> — provides basic computing resources</div>
+      <div class="sub2-bullet">CPU, memory, I/O devices</div>
+      <div class="sub-bullet"><span class="keyword" onclick="showKw('Operating System')">Operating System</span></div>
+      <div class="sub2-bullet">Controls and coordinates use of hardware among various applications and users</div>
+      <div class="sub-bullet"><span class="keyword" onclick="showKw('Application Programs')">Application programs</span> — define the ways in which the system resources are used</div>
+      <div class="sub2-bullet">Word processors, compilers, web browsers, database systems, video games</div>
+      <div class="sub-bullet">Users — People, machines, other computers</div>
+    </div>
+    <div class="diagram-box">
+      <div style="font-size:13px;color:#666;margin-bottom:10px;font-style:italic">Abstract View of Components</div>
+      <div class="layer-box layer-user">user</div>
+      <div class="arrow-v">&#8597;</div>
+      <div class="layer-box layer-app">application programs<br><span style="font-size:11px">(compilers, web browsers, development kits, etc.)</span></div>
+      <div class="arrow-v">&#8597;</div>
+      <div class="layer-box layer-os">operating system</div>
+      <div class="arrow-v">&#8597;</div>
+      <div class="layer-box layer-hw">computer hardware<br><span style="font-size:11px">(CPU, memory, I/O devices, etc.)</span></div>
+    </div>`,
+    arContent:`<div class="bullet">يمكن تقسيم نظام الكمبيوتر إلى أربعة مكونات:</div>
+    <div class="sub-bullet">الأجهزة — توفر الموارد الحوسبية الأساسية (المعالج، الذاكرة، أجهزة الإدخال/الإخراج)</div>
+    <div class="sub-bullet">نظام التشغيل — يتحكم ويُنسّق استخدام الأجهزة بين التطبيقات والمستخدمين المختلفين</div>
+    <div class="sub-bullet">البرامج التطبيقية — تحدد طرق استخدام موارد النظام لحل مشاكل المستخدمين</div>
+    <div class="sub-bullet">المستخدمون — أشخاص أو آلات أو أجهزة كمبيوتر أخرى</div>`,
+    quiz:[
+      {type:"mcq",q:"Which component of a computer system controls and coordinates hardware use?",opts:["Hardware","Application programs","Operating System","Users"],ans:2},
+      {type:"mcq",q:"Which of the following is an example of an application program?",opts:["CPU","RAM","Web browser","Operating system kernel"],ans:2},
+      {type:"tf",q:"The operating system is a passive entity that only stores programs on disk.",ans:false},
+      {type:"tf",q:"Hardware provides the basic computing resources including CPU, memory, and I/O devices.",ans:true},
+      {type:"short",q:"Name the four main components of a computer system structure.","ans":"Hardware, Operating System, Application Programs, Users"},
+      {type:"short",q:"What does the operating system do between users and hardware?","ans":"It acts as intermediary / controls and coordinates hardware use among applications and users"}
+    ]
+  },
+  {
+    title:"What is an Operating System?",
+    arTitle:"ما هو نظام التشغيل؟",
+    content:`<div class="content-block">
+      <div class="bullet">A program that acts as an intermediary between a user of a computer and the computer hardware.</div>
+      <div class="bullet">Operating system goals:</div>
+      <div class="sub-bullet">Execute user programs and make solving user problems easier</div>
+      <div class="sub-bullet">Make the computer system convenient to use</div>
+      <div class="sub-bullet">Use the computer hardware in an efficient manner</div>
+      <div class="bullet">OS is a <span class="keyword-red" onclick="showKw('Resource Allocator')">resource allocator</span>:</div>
+      <div class="sub-bullet">Manages all resources: CPU time, memory space, file-storage space, I/O</div>
+      <div class="bullet">OS is a <span class="keyword-red" onclick="showKw('Control Program')">control program</span>:</div>
+      <div class="sub-bullet">Controls execution of programs to prevent errors and improper use of the computer</div>
+    </div>`,
+    arContent:`<div class="bullet">برنامج يعمل كوسيط بين مستخدم الكمبيوتر والأجهزة</div>
+    <div class="bullet">أهداف نظام التشغيل: تنفيذ برامج المستخدم، تسهيل استخدام الكمبيوتر، الاستخدام الكفء للأجهزة</div>
+    <div class="bullet">نظام التشغيل كموزّع للموارد: يدير وقت المعالج، مساحة الذاكرة، مساحة التخزين، الإدخال/الإخراج</div>
+    <div class="bullet">نظام التشغيل كبرنامج تحكم: يتحكم في تنفيذ البرامج لمنع الأخطاء والاستخدام غير الصحيح</div>`,
+    quiz:[
+      {type:"mcq",q:"The OS manages CPU time, memory space, and I/O as a:",opts:["Control program","Resource allocator","Bootstrap loader","Application"],ans:1},
+      {type:"mcq",q:"Which OS goal involves preventing errors during program execution?",opts:["Making system convenient","Efficient hardware use","Control program","Resource allocation"],ans:2},
+      {type:"tf",q:"An operating system acts as an intermediary between the user and the computer hardware.",ans:true},
+      {type:"tf",q:"The OS does not manage file-storage space.",ans:false},
+      {type:"short",q:"What are the two main roles of an OS in terms of resource and control?","ans":"Resource allocator and Control program"},
+      {type:"short",q:"List two goals of an operating system.","ans":"Execute user programs / make computer convenient to use / efficient hardware use"}
+    ]
+  },
+  {
+    title:"Computer Startup",
+    arTitle:"إقلاع الكمبيوتر",
+    content:`<div class="content-block">
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Bootstrap')">Bootstrap program</span> is loaded at power-up or reboot</div>
+      <div class="sub-bullet">Typically stored in ROM or EPROM, generally known as <span class="keyword" onclick="showKw('Firmware')">firmware</span></div>
+      <div class="sub-bullet">Initializes all aspects of system</div>
+      <div class="sub-bullet">Loads operating system <span class="keyword" onclick="showKw('Kernel')">kernel</span> and starts execution</div>
+    </div>
+    <div class="diagram-box">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:#1a237e">Boot Sequence</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+        <div style="background:#fff9c4;border:1px solid #f9a825;border-radius:6px;padding:8px 24px;font-size:13px">Power ON</div>
+        <div style="color:#888">&#8595;</div>
+        <div style="background:#bbdefb;border:1px solid #90caf9;border-radius:6px;padding:8px 24px;font-size:13px">Bootstrap (Firmware/ROM)</div>
+        <div style="color:#888">&#8595;</div>
+        <div style="background:#c8e6c9;border:1px solid #a5d6a7;border-radius:6px;padding:8px 24px;font-size:13px">Initialize Hardware</div>
+        <div style="color:#888">&#8595;</div>
+        <div style="background:#f8bbd0;border:1px solid #f48fb1;border-radius:6px;padding:8px 24px;font-size:13px">Load OS Kernel into Memory</div>
+        <div style="color:#888">&#8595;</div>
+        <div style="background:#e1bee7;border:1px solid #ce93d8;border-radius:6px;padding:8px 24px;font-size:13px">Start Execution</div>
+      </div>
+    </div>`,
+    arContent:`<div class="bullet">برنامج الإقلاع يُحمَّل عند تشغيل الكمبيوتر أو إعادة تشغيله</div>
+    <div class="bullet">يُخزن عادةً في ROM أو EPROM ويُعرف بالبرامج الثابتة (Firmware)</div>
+    <div class="bullet">يهيئ جميع جوانب النظام</div>
+    <div class="bullet">يحمّل نواة نظام التشغيل في الذاكرة ويبدأ التنفيذ</div>`,
+    quiz:[
+      {type:"mcq",q:"Where is the bootstrap program typically stored?",opts:["Hard disk","RAM","ROM or EPROM","CPU cache"],ans:2},
+      {type:"mcq",q:"Another name for software stored in ROM/EPROM is:",opts:["Application","Firmware","Kernel","Daemon"],ans:1},
+      {type:"tf",q:"The bootstrap program loads the OS kernel and starts its execution.",ans:true},
+      {type:"tf",q:"The bootstrap program is stored in RAM and is lost when the computer shuts down.",ans:false},
+      {type:"short",q:"What does the bootstrap program do when a computer is powered on?","ans":"Initializes the system, loads OS kernel into memory, and starts execution"},
+      {type:"short",q:"What term describes software permanently stored in ROM chips?","ans":"Firmware"}
+    ]
+  },
+  {
+    title:"Operating-System Operations",
+    arTitle:"عمليات نظام التشغيل",
+    content:`<div class="content-block">
+      <div class="bullet">Bootstrap program — simple code to initialize the system, load the <span class="keyword" onclick="showKw('Kernel')">kernel</span></div>
+      <div class="bullet">Kernel loads</div>
+      <div class="bullet">Starts <span class="keyword-red" onclick="showKw('System Daemons')">system daemons</span> (services provided outside of the kernel)</div>
+      <div class="bullet">Kernel <span class="keyword" onclick="showKw('Interrupt')">interrupt</span> driven (hardware and software)</div>
+      <div class="sub-bullet">Hardware interrupt by one of the devices</div>
+      <div class="sub-bullet">Software interrupt (<span class="keyword-red">exception</span> or <span class="keyword-red">trap</span>):</div>
+      <div class="sub2-bullet">Software error (e.g., division by zero)</div>
+      <div class="sub2-bullet">Request for operating system service — <span class="keyword" onclick="showKw('System Call')">system call</span></div>
+      <div class="sub2-bullet">Other process problems: infinite loop, processes modifying each other or the operating system</div>
+    </div>`,
+    arContent:`<div class="bullet">برنامج الإقلاع يهيئ النظام ويحمّل النواة</div>
+    <div class="bullet">تحميل النواة، ثم بدء عمل عفاريت النظام (الخدمات)</div>
+    <div class="bullet">النواة مدفوعة بالمقاطعات: مقاطعات صلبة من الأجهزة، ومقاطعات برمجية (استثناءات وأفخاخ)</div>
+    <div class="bullet">أمثلة على المقاطعات البرمجية: القسمة على صفر، استدعاء النظام، الحلقات اللانهائية</div>`,
+    quiz:[
+      {type:"mcq",q:"A software interrupt caused by a programming error (e.g., division by zero) is called:",opts:["Hardware interrupt","Exception or trap","System call","Daemon"],ans:1},
+      {type:"mcq",q:"System daemons are services provided:",opts:["Inside the kernel","By the hardware","Outside of the kernel","By user applications"],ans:2},
+      {type:"tf",q:"The OS kernel is interrupt-driven, responding to both hardware and software interrupts.",ans:true},
+      {type:"tf",q:"A system call is a hardware interrupt generated by a device.",ans:false},
+      {type:"short",q:"What is the difference between a hardware interrupt and a software interrupt?","ans":"Hardware interrupt is generated by a device; software interrupt (trap/exception) is generated by a program error or system call"},
+      {type:"short",q:"Give two examples of software interrupts (exceptions/traps).","ans":"Division by zero, system call request, infinite loop, process modifying another process"}
+    ]
+  },
+  {
+    title:"Multiprogramming and Multitasking",
+    arTitle:"تعدد البرمجة وتعدد المهام",
+    content:`<div class="content-block">
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Multiprogramming')">Multiprogramming</span> (Batch system) needed for efficiency</div>
+      <div class="sub-bullet">Single user cannot keep CPU and I/O devices busy at all times</div>
+      <div class="sub-bullet">Multiprogramming organizes jobs (code and data) so CPU always has one to execute</div>
+      <div class="sub-bullet">A subset of total jobs in system is kept in memory</div>
+      <div class="sub-bullet">One job selected and run via <span class="keyword" onclick="showKw('Job Scheduling')">job scheduling</span></div>
+      <div class="sub-bullet">When it has to wait (for I/O), OS switches to another job</div>
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Multitasking')">Timesharing (multitasking)</span> — logical extension of multiprogramming</div>
+      <div class="sub-bullet">CPU switches jobs so frequently that users can interact with each job</div>
+      <div class="sub-bullet"><span class="keyword" onclick="showKw('CPU Scheduling')">Response time</span> should be &lt; 1 second</div>
+      <div class="sub-bullet">Each user has at least one program executing in memory &#8658; <strong>process</strong></div>
+      <div class="sub-bullet">If several jobs ready &#8658; <strong>CPU scheduling</strong></div>
+      <div class="sub-bullet">If processes don't fit in memory &#8658; <span class="keyword" onclick="showKw('Swapping')">swapping</span></div>
+      <div class="sub-bullet"><span class="keyword" onclick="showKw('Virtual Memory')">Virtual memory</span> allows execution of processes not completely in memory</div>
+    </div>`,
+    arContent:`<div class="bullet">تعدد البرمجة يُبقي عدة وظائف في الذاكرة ويبدّل بينها عند الانتظار — يُعظّم استخدام المعالج</div>
+    <div class="bullet">الجدولة الزمنية (تعدد المهام) تبدّل المعالج بسرعة كبيرة بين الوظائف — وقت الاستجابة أقل من ثانية</div>
+    <div class="bullet">التبديل: نقل العمليات من الذاكرة للقرص عند امتلاء الذاكرة</div>
+    <div class="bullet">الذاكرة الافتراضية: تنفيذ عمليات لا توجد بالكامل في الذاكرة الفعلية</div>`,
+    quiz:[
+      {type:"mcq",q:"In multiprogramming, when a job has to wait for I/O, the OS:",opts:["Terminates the job","Switches to another job","Waits with the job","Sends an interrupt"],ans:1},
+      {type:"mcq",q:"Timesharing requires response time of:",opts:["< 1 minute","< 1 second","< 10 seconds","Exactly 1 second"],ans:1},
+      {type:"tf",q:"Multiprogramming allows only one job to be loaded in memory at a time.",ans:false},
+      {type:"tf",q:"Virtual memory allows execution of processes not completely loaded in physical memory.",ans:true},
+      {type:"short",q:"What is the difference between multiprogramming and multitasking (timesharing)?","ans":"Multiprogramming keeps multiple jobs in memory switching when one waits for I/O; multitasking switches so fast users can interact, creating interactive computing"},
+      {type:"short",q:"What happens when processes do not fit in main memory?","ans":"Swapping moves them in and out of memory / Virtual memory is used"}
+    ]
+  },
+  {
+    title:"Memory Layout for Multiprogrammed System",
+    arTitle:"تخطيط الذاكرة في أنظمة تعدد البرمجة",
+    content:`<div class="content-block">
+      <div class="bullet">Multiple processes reside in memory simultaneously</div>
+      <div class="bullet">Operating system occupies a fixed area (usually high memory addresses)</div>
+      <div class="bullet">Each <span class="keyword" onclick="showKw('Process')">process</span> gets its own memory partition</div>
+      <div class="bullet">OS manages boundaries between partitions to prevent unauthorized access</div>
+    </div>
+    <div class="memory-diagram">
+      <div style="font-size:12px;color:#666;margin-bottom:6px">max &#9660;</div>
+      <div class="mem-block mem-os">Operating System</div>
+      <div class="mem-block mem-p">Process 1</div>
+      <div class="mem-block mem-p">Process 2</div>
+      <div class="mem-block mem-p">Process 3</div>
+      <div class="mem-block mem-p">Process 4</div>
+      <div style="font-size:12px;color:#666;margin-top:6px">0 &#9650;</div>
+    </div>`,
+    arContent:`<div class="bullet">تقيم عمليات متعددة في الذاكرة في آن واحد</div>
+    <div class="bullet">نظام التشغيل يشغل منطقة ثابتة (عادةً في عناوين الذاكرة العليا)</div>
+    <div class="bullet">كل عملية تحصل على قسم ذاكرة خاص بها</div>
+    <div class="bullet">نظام التشغيل يدير الحدود بين الأقسام لمنع الوصول غير المصرح به</div>`,
+    quiz:[
+      {type:"mcq",q:"In a multiprogrammed memory layout, where does the operating system typically reside?",opts:["At address 0","In the middle","At maximum address (high memory)","On the hard disk"],ans:2},
+      {type:"mcq",q:"Why does the OS manage memory partition boundaries?",opts:["To speed up the CPU","To prevent unauthorized access between processes","To increase disk space","To load firmware"],ans:1},
+      {type:"tf",q:"In a multiprogrammed system, only one process is kept in memory at a time.",ans:false},
+      {type:"tf",q:"Each process in a multiprogrammed system has its own memory partition.",ans:true},
+      {type:"short",q:"Why must the OS manage boundaries between memory partitions?","ans":"To prevent one process from accessing or corrupting another process's memory"},
+      {type:"short",q:"What is shown at the top of the memory layout diagram (max address)?","ans":"The operating system"}
+    ]
+  },
+  {
+    title:"Process Management",
+    arTitle:"إدارة العمليات",
+    content:`<div class="content-block">
+      <div class="bullet">A <span class="keyword-red" onclick="showKw('Process')">process</span> is a program in execution. It is a unit of work within the system. Program is a <em>passive entity</em>, process is an <em>active entity</em>.</div>
+      <div class="bullet">Process needs resources to accomplish its task: CPU, memory, I/O, files, initialization data</div>
+      <div class="bullet">Process termination requires reclaim of any reusable resources</div>
+      <div class="bullet">Single-threaded process has one <span class="keyword" onclick="showKw('Program Counter')">program counter</span> specifying location of next instruction</div>
+      <div class="sub-bullet">Process executes instructions sequentially, one at a time, until completion</div>
+      <div class="bullet">Multi-threaded process has one program counter per thread</div>
+      <div class="bullet">Typically, system has many processes running concurrently on one or more CPUs</div>
+      <div class="sub-bullet">Concurrency by multiplexing the CPUs among the processes / threads</div>
+    </div>`,
+    arContent:`<div class="bullet">العملية هي برنامج قيد التنفيذ — كيان نشط (البرنامج كيان سلبي)</div>
+    <div class="bullet">العملية تحتاج موارد: المعالج، الذاكرة، الإدخال/الإخراج، الملفات، بيانات التهيئة</div>
+    <div class="bullet">عند انتهاء العملية يجب استرداد الموارد القابلة لإعادة الاستخدام</div>
+    <div class="bullet">العملية أحادية الخيط: عداد برنامج واحد. متعددة الخيوط: عداد برنامج لكل خيط</div>
+    <div class="bullet">التزامن يتم بتبديل المعالج بين العمليات والخيوط</div>`,
+    quiz:[
+      {type:"mcq",q:"A program becomes a process when it is:",opts:["Stored on disk","Loaded into memory and executing","Written by a programmer","Compiled"],ans:1},
+      {type:"mcq",q:"How many program counters does a multi-threaded process have?",opts:["One total","One per process","One per thread","None"],ans:2},
+      {type:"tf",q:"A program is an active entity while a process is a passive entity.",ans:false},
+      {type:"tf",q:"When a process terminates, the OS must reclaim its reusable resources.",ans:true},
+      {type:"short",q:"What is the difference between a program and a process?","ans":"A program is a passive entity (stored on disk); a process is an active entity (program in execution)"},
+      {type:"short",q:"What resources does a process need to accomplish its task?","ans":"CPU, memory, I/O devices, files, and initialization data"}
+    ]
+  },
+  {
+    title:"Memory Management",
+    arTitle:"إدارة الذاكرة",
+    content:`<div class="content-block">
+      <div class="bullet">To execute a program, all (or part) of the instructions must be in memory</div>
+      <div class="bullet">All (or part) of the data that is needed by the program must be in memory</div>
+      <div class="bullet">Memory management determines what is in memory and when</div>
+      <div class="sub-bullet">Optimizing CPU utilization and computer response to users</div>
+      <div class="bullet">Memory management activities:</div>
+      <div class="sub-bullet">Keeping track of which parts of memory are currently being used and by whom</div>
+      <div class="sub-bullet">Deciding which processes (or parts thereof) and data to move into and out of memory</div>
+      <div class="sub-bullet">Allocating and deallocating memory space as needed</div>
+    </div>`,
+    arContent:`<div class="bullet">لتنفيذ برنامج، يجب أن تكون التعليمات والبيانات اللازمة في الذاكرة (كلياً أو جزئياً)</div>
+    <div class="bullet">إدارة الذاكرة تحدد ما يوجد في الذاكرة ومتى — لتحسين استخدام المعالج</div>
+    <div class="bullet">أنشطة الإدارة: تتبع استخدام الذاكرة، تحديد ما ينتقل داخلاً وخارجاً، تخصيص وتحرير مساحة الذاكرة</div>`,
+    quiz:[
+      {type:"mcq",q:"Which OS activity involves deciding which processes to move into or out of memory?",opts:["CPU scheduling","Memory management","File system management","Disk scheduling"],ans:1},
+      {type:"mcq",q:"Memory management aims to optimize:",opts:["Disk speed","Network bandwidth","CPU utilization and computer response","File size"],ans:2},
+      {type:"tf",q:"For a program to execute, all of its instructions must always be completely in memory.",ans:false},
+      {type:"tf",q:"Memory management includes allocating and deallocating memory space as needed.",ans:true},
+      {type:"short",q:"List three memory management activities performed by the OS.","ans":"Tracking memory usage, deciding which processes to move in/out of memory, allocating and deallocating memory space"},
+      {type:"short",q:"Why must program instructions be in memory before execution?","ans":"Because the CPU can only execute instructions that are in main memory (RAM)"}
+    ]
+  },
+  {
+    title:"File-system Management",
+    arTitle:"إدارة نظام الملفات",
+    content:`<div class="content-block">
+      <div class="bullet">OS provides uniform, logical view of information storage</div>
+      <div class="sub-bullet">Abstracts physical properties to logical storage unit — <span class="keyword-red" onclick="showKw('File System')">file</span></div>
+      <div class="sub-bullet">Each medium is controlled by device (disk drive, tape drive)</div>
+      <div class="sub2-bullet">Varying properties: access speed, capacity, data-transfer rate, access method (sequential or random)</div>
+      <div class="bullet">File-System management:</div>
+      <div class="sub-bullet">Files usually organized into directories</div>
+      <div class="sub-bullet">Access control on most systems to determine who can access what</div>
+      <div class="sub-bullet">OS activities include:</div>
+      <div class="sub2-bullet">Creating and deleting files and directories</div>
+      <div class="sub2-bullet">Primitives to manipulate files and directories</div>
+      <div class="sub2-bullet">Mapping files onto secondary storage</div>
+      <div class="sub2-bullet">Backup files onto stable (non-volatile) storage media</div>
+    </div>`,
+    arContent:`<div class="bullet">نظام التشغيل يوفر رؤية منطقية موحدة لتخزين المعلومات — يحوّل الخصائص المادية إلى وحدة تخزين منطقية (ملف)</div>
+    <div class="bullet">الملفات مُنظَّمة في مجلدات، مع التحكم في الوصول لتحديد من يمكنه الوصول لماذا</div>
+    <div class="bullet">أنشطة نظام التشغيل: إنشاء وحذف الملفات والمجلدات، تعيين الملفات على التخزين الثانوي، النسخ الاحتياطي</div>`,
+    quiz:[
+      {type:"mcq",q:"The OS abstracts physical storage properties into a logical storage unit called a:",opts:["Process","File","Kernel","Daemon"],ans:1},
+      {type:"mcq",q:"Which file-system activity ensures data is preserved on non-volatile media?",opts:["Creating files","Access control","Backup","CPU scheduling"],ans:2},
+      {type:"tf",q:"The OS file system provides access control to determine who can access what files.",ans:true},
+      {type:"tf",q:"File-system management only includes creating and deleting files — nothing else.",ans:false},
+      {type:"short",q:"What does the OS do to physical storage properties to create a file-system?","ans":"It abstracts physical properties into a logical storage unit called a file"},
+      {type:"short",q:"Name two OS activities related to file-system management.","ans":"Creating/deleting files and directories, access control, mapping files to secondary storage, backup"}
+    ]
+  },
+  {
+    title:"Mass-Storage Management",
+    arTitle:"إدارة التخزين الضخم",
+    content:`<div class="content-block">
+      <div class="bullet">Usually disks used to store data that does not fit in main memory or data that must be kept for a "long" period of time</div>
+      <div class="bullet">Proper management is of central importance</div>
+      <div class="bullet">Entire speed of computer operation hinges on disk subsystem and its algorithms</div>
+      <div class="bullet">OS activities:</div>
+      <div class="sub-bullet">Free-space management</div>
+      <div class="sub-bullet">Storage allocation</div>
+      <div class="sub-bullet">Disk scheduling</div>
+      <div class="sub-bullet">Partitioning</div>
+      <div class="sub-bullet">Protection</div>
+      <div class="bullet">Some storage need not be fast</div>
+      <div class="sub-bullet">Tertiary storage includes optical storage, magnetic tape</div>
+      <div class="sub-bullet">Still must be managed — by OS or applications</div>
+    </div>`,
+    arContent:`<div class="bullet">تُستخدم الأقراص لتخزين البيانات التي لا تتسع في الذاكرة الرئيسية أو التي يجب الاحتفاظ بها لفترة طويلة</div>
+    <div class="bullet">سرعة تشغيل الكمبيوتر تعتمد كلياً على نظام القرص وخوارزمياته</div>
+    <div class="bullet">أنشطة نظام التشغيل: إدارة المساحة الحرة، تخصيص التخزين، جدولة القرص، التقسيم، الحماية</div>
+    <div class="bullet">التخزين الثلاثي (التخزين الضوئي، الشريط المغناطيسي) لا يحتاج سرعة عالية لكن يجب إدارته</div>`,
+    quiz:[
+      {type:"mcq",q:"Which OS activity involves ordering disk read/write requests to minimize seek time?",opts:["Free-space management","Disk scheduling","Partitioning","Backup"],ans:1},
+      {type:"mcq",q:"Tertiary storage examples include:",opts:["RAM and CPU cache","SSD and NVMe","Optical storage and magnetic tape","ROM and EPROM"],ans:2},
+      {type:"tf",q:"The speed of computer operation depends heavily on the disk subsystem and its algorithms.",ans:true},
+      {type:"tf",q:"Tertiary storage does not need to be managed since it is rarely used.",ans:false},
+      {type:"short",q:"List three mass-storage management activities performed by the OS.","ans":"Free-space management, storage allocation, disk scheduling, partitioning, protection"},
+      {type:"short",q:"Why is mass-storage management important for computer performance?","ans":"Because the entire speed of computer operation hinges on the disk subsystem and its algorithms"}
+    ]
+  },
+  {
+    title:"Virtualization",
+    arTitle:"الافتراضية",
+    content:`<div class="content-block">
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Virtualization')">Virtualization</span> allows operating systems to run applications within other OSes</div>
+      <div class="bullet"><span class="keyword" onclick="showKw('Emulation')">Emulation</span> used when source CPU type different from target type (PowerPC to Intel x86)</div>
+      <div class="sub-bullet">Generally slowest method</div>
+      <div class="sub-bullet">When computer language not compiled to native code — Interpretation</div>
+      <div class="bullet">Virtualization — OS natively compiled for CPU, running guest OSes also natively compiled</div>
+      <div class="bullet"><span class="keyword-red" onclick="showKw('VMM')">VMM</span> (Virtual Machine Manager) provides virtualization services</div>
+      <div class="bullet">Use cases:</div>
+      <div class="sub-bullet">Running multiple OSes (Mac OS X host, Windows guest)</div>
+      <div class="sub-bullet">Developing apps for multiple OSes without multiple systems</div>
+      <div class="sub-bullet">QA testing without having multiple systems</div>
+      <div class="sub-bullet">Managing compute environments in data centers</div>
+    </div>
+    <div class="diagram-box">
+      <div style="font-size:13px;color:#666;margin-bottom:10px">(a) Single OS &nbsp;&nbsp;&nbsp; vs &nbsp;&nbsp;&nbsp; (b) Virtualized</div>
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap">
+        <div style="background:#f5f5f5;border:1px solid #ddd;border-radius:6px;padding:10px;min-width:120px;text-align:center">
+          <div style="background:#bbdefb;padding:6px;border-radius:4px;font-size:12px;color:#0d47a1;margin-bottom:4px">processes</div>
+          <div style="background:#b0bec5;padding:6px;border-radius:4px;font-size:12px;color:#263238;margin-bottom:4px">kernel</div>
+          <div style="background:#cfd8dc;padding:6px;border-radius:4px;font-size:12px;color:#37474f">hardware</div>
+        </div>
+        <div class="vm-diagram" style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="display:flex;gap:6px">
+            <div class="vm-col"><div class="vm-proc">proc</div><div class="vm-kern">kernel</div><div class="vm-label">VM1</div></div>
+            <div class="vm-col"><div class="vm-proc">proc</div><div class="vm-kern">kernel</div><div class="vm-label">VM2</div></div>
+            <div class="vm-col"><div class="vm-proc">proc</div><div class="vm-kern">kernel</div><div class="vm-label">VM3</div></div>
+          </div>
+          <div class="vmm-bar">virtual machine manager</div>
+          <div class="hw-bar">hardware</div>
+        </div>
+      </div>
+    </div>`,
+    arContent:`<div class="bullet">الافتراضية تسمح لأنظمة التشغيل بتشغيل تطبيقات داخل أنظمة تشغيل أخرى</div>
+    <div class="bullet">المحاكاة: تُستخدم عندما تختلف بنية المعالج المصدر عن الهدف — الطريقة الأبطأ عموماً</div>
+    <div class="bullet">مدير الآلة الافتراضية (VMM) يوفر خدمات الافتراضية</div>
+    <div class="bullet">حالات الاستخدام: تشغيل أنظمة تشغيل متعددة، تطوير التطبيقات، اختبار الجودة، إدارة مراكز البيانات</div>`,
+    quiz:[
+      {type:"mcq",q:"The VMM in virtualization stands for:",opts:["Virtual Memory Manager","Virtual Machine Manager","Video Mode Manager","Volume Management Module"],ans:1},
+      {type:"mcq",q:"Emulation is generally the slowest method because it:",opts:["Uses more RAM","Translates every instruction between architectures","Requires internet connection","Uses more disk space"],ans:1},
+      {type:"tf",q:"In virtualization, the VMM provides virtualization services between hardware and guest OSes.",ans:true},
+      {type:"tf",q:"Emulation and virtualization are the same thing.",ans:false},
+      {type:"short",q:"What is the difference between emulation and virtualization?","ans":"Emulation translates instructions between different CPU architectures (slow); virtualization runs OSes natively compiled for the same CPU (faster)"},
+      {type:"short",q:"Give two use cases for virtualization.","ans":"Running multiple OSes, app development for multiple platforms, QA testing, managing data center compute environments"}
+    ]
+  },
+  {
+    title:"Distributed Systems",
+    arTitle:"الأنظمة الموزعة",
+    content:`<div class="content-block">
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Distributed System')">Distributed computing</span> — collection of separate, possibly heterogeneous, systems networked together</div>
+      <div class="bullet">Network is a communications path, TCP/IP most common</div>
+      <div class="network-types">
+        <span class="net-badge" style="background:#e3f2fd;color:#0d47a1" onclick="showKw('LAN')">LAN</span>
+        <span class="net-badge" style="background:#e8f5e9;color:#1b5e20" onclick="showKw('WAN')">WAN</span>
+        <span class="net-badge" style="background:#fff3e0;color:#bf360c">MAN</span>
+        <span class="net-badge" style="background:#fce4ec;color:#880e4f">PAN</span>
+      </div>
+      <div class="bullet">Network Operating System provides features between systems across network</div>
+      <div class="sub-bullet">Communication scheme allows systems to exchange messages</div>
+      <div class="sub-bullet">Illusion of a single system</div>
+    </div>`,
+    arContent:`<div class="bullet">الحوسبة الموزعة: مجموعة من الأنظمة المنفصلة المتصلة بشبكة، تتعاون لتظهر كنظام واحد</div>
+    <div class="bullet">الشبكة هي مسار اتصالات، TCP/IP هو الأكثر شيوعاً</div>
+    <div class="bullet">أنواع الشبكات: LAN (محلية)، WAN (واسعة)، MAN (مدنية)، PAN (شخصية)</div>
+    <div class="bullet">نظام التشغيل الشبكي يوفر خدمات بين الأنظمة عبر الشبكة</div>`,
+    quiz:[
+      {type:"mcq",q:"Which network type covers the largest geographic area?",opts:["LAN","PAN","WAN","MAN"],ans:2},
+      {type:"mcq",q:"The most common network protocol for distributed systems is:",opts:["FTP","HTTP","TCP/IP","DNS"],ans:2},
+      {type:"tf",q:"A distributed system creates the illusion of a single unified system to users.",ans:true},
+      {type:"tf",q:"A LAN (Local Area Network) covers entire countries or continents.",ans:false},
+      {type:"short",q:"What is a distributed computing system?","ans":"A collection of separate, possibly heterogeneous, systems networked together that communicate to appear as one system"},
+      {type:"short",q:"List the four network types mentioned and their abbreviations.","ans":"LAN (Local Area Network), WAN (Wide Area Network), MAN (Metropolitan Area Network), PAN (Personal Area Network)"}
+    ]
+  },
+  {
+    title:"Client-Server Computing",
+    arTitle:"الحوسبة العميل-خادم",
+    content:`<div class="content-block">
+      <div class="bullet">Client-Server Computing</div>
+      <div class="sub-bullet">Dumb terminals supplanted by smart PCs</div>
+      <div class="sub-bullet">Many systems now <strong>servers</strong>, responding to requests generated by <strong>clients</strong></div>
+      <div class="sub-bullet"><span class="keyword-red">Compute-server system</span> provides an interface to client to request services (i.e., database)</div>
+      <div class="sub-bullet"><span class="keyword-red">File-server system</span> provides interface for clients to store and retrieve files</div>
+    </div>
+    <div class="diagram-box">
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap">
+        <div style="background:#b0bec5;padding:10px 18px;border-radius:6px;font-size:13px;color:#263238">Server</div>
+        <div style="font-size:20px;color:#1a237e">&#8594;</div>
+        <div style="background:#bbdefb;padding:10px 18px;border-radius:50%;font-size:13px;color:#0d47a1">Network</div>
+        <div style="font-size:20px;color:#1a237e">&#8594;</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="background:#e8f5e9;padding:6px 14px;border-radius:20px;font-size:12px;color:#2e7d32">client desktop</div>
+          <div style="background:#e8f5e9;padding:6px 14px;border-radius:20px;font-size:12px;color:#2e7d32">client laptop</div>
+          <div style="background:#e8f5e9;padding:6px 14px;border-radius:20px;font-size:12px;color:#2e7d32">client smartphone</div>
+        </div>
+      </div>
+    </div>`,
+    arContent:`<div class="bullet">الحوسبة العميل-خادم: خوادم تستجيب لطلبات العملاء</div>
+    <div class="bullet">نظام خادم الحوسبة: يوفر واجهة للعميل لطلب الخدمات (مثل قواعد البيانات)</div>
+    <div class="bullet">نظام خادم الملفات: يوفر واجهة للعملاء لتخزين الملفات واسترجاعها</div>`,
+    quiz:[
+      {type:"mcq",q:"A file-server system provides an interface for clients to:",opts:["Execute programs","Store and retrieve files","Access the CPU","Manage processes"],ans:1},
+      {type:"mcq",q:"In client-server computing, which component responds to requests?",opts:["Client","Network","Server","Router"],ans:2},
+      {type:"tf",q:"In client-server computing, the server responds to requests made by clients.",ans:true},
+      {type:"tf",q:"A compute-server system is used specifically for storing and retrieving files.",ans:false},
+      {type:"short",q:"What is the difference between a compute-server and a file-server?","ans":"Compute-server provides interface to request computing services (e.g., database queries); file-server provides interface to store and retrieve files"},
+      {type:"short",q:"How did client-server computing evolve from early computer terminals?","ans":"Dumb terminals were replaced by smart PCs; now many systems act as servers responding to client requests"}
+    ]
+  },
+  {
+    title:"Peer-to-Peer Computing",
+    arTitle:"حوسبة النظير إلى النظير",
+    content:`<div class="content-block">
+      <div class="bullet">Another model of distributed system</div>
+      <div class="bullet"><span class="keyword-red" onclick="showKw('P2P')">P2P</span> does not distinguish clients and servers</div>
+      <div class="sub-bullet">Instead all nodes are considered peers</div>
+      <div class="sub-bullet">May each act as client, server or both</div>
+      <div class="sub-bullet">Node must join P2P network:</div>
+      <div class="sub2-bullet">Registers its service with central lookup service on network, or</div>
+      <div class="sub2-bullet">Broadcast request for service and respond to requests via <strong><em>discovery protocol</em></strong></div>
+      <div class="bullet">Examples include Napster and Gnutella, <span class="keyword" style="color:#e65100;border-bottom-color:#e65100">Voice over IP (VoIP)</span> such as Skype</div>
+    </div>`,
+    arContent:`<div class="bullet">نموذج آخر للنظام الموزع — لا يُميّز بين العملاء والخوادم</div>
+    <div class="bullet">جميع العقد تُعتبر أندادًا — كل منها قد يعمل كعميل أو خادم أو كليهما</div>
+    <div class="bullet">للانضمام: التسجيل في خدمة بحث مركزية أو بث طلب الخدمة عبر بروتوكول الاكتشاف</div>
+    <div class="bullet">أمثلة: Napster، Gnutella، Skype (VoIP)</div>`,
+    quiz:[
+      {type:"mcq",q:"In a P2P network, each node can act as:",opts:["Only a client","Only a server","Client, server, or both","Neither client nor server"],ans:2},
+      {type:"mcq",q:"Which is an example of a P2P application?",opts:["Apache web server","MySQL database","Skype VoIP","SMTP mail server"],ans:2},
+      {type:"tf",q:"In P2P networks, all nodes are considered peers with no dedicated servers.",ans:true},
+      {type:"tf",q:"A P2P node can only register services with a central lookup service — it cannot use broadcasting.",ans:false},
+      {type:"short",q:"How does P2P differ from client-server computing?","ans":"P2P does not distinguish clients and servers; all nodes are peers and can act as client, server, or both"},
+      {type:"short",q:"Name two methods a node can use to join a P2P network.","ans":"Register service with central lookup service, or broadcast request using a discovery protocol"}
+    ]
+  },
+  {
+    title:"Cloud Computing",
+    arTitle:"الحوسبة السحابية",
+    content:`<div class="content-block">
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Cloud Computing')">Cloud computing</span> delivers computing, storage, even apps as a service across a network</div>
+      <div class="bullet">Logical extension of virtualization — uses virtualization as the base for its functionality</div>
+      <div class="bullet">Types of cloud:</div>
+      <div class="cloud-types">
+        <div class="cloud-card" style="background:#e3f2fd;border:1px solid #90caf9"><strong style="color:#0d47a1">Public cloud</strong><br><span style="font-size:12px;color:#1565c0">Available via Internet to anyone willing to pay</span></div>
+        <div class="cloud-card" style="background:#e8f5e9;border:1px solid #a5d6a7"><strong style="color:#1b5e20">Private cloud</strong><br><span style="font-size:12px;color:#2e7d32">Run by a company for its own use</span></div>
+        <div class="cloud-card" style="background:#fff3e0;border:1px solid #ffcc80"><strong style="color:#bf360c">Hybrid cloud</strong><br><span style="font-size:12px;color:#e65100">Both public and private components</span></div>
+      </div>
+      <div class="bullet">Service models:</div>
+      <div class="sub-bullet"><span class="keyword-red" onclick="showKw('SaaS')">SaaS</span> — applications available via Internet (word processor)</div>
+      <div class="sub-bullet"><span class="keyword-red" onclick="showKw('PaaS')">PaaS</span> — software stack ready for application use (database server)</div>
+      <div class="sub-bullet"><span class="keyword-red" onclick="showKw('IaaS')">IaaS</span> — servers or storage available over Internet (storage for backup)</div>
+      <div class="bullet">Internet connectivity requires security like firewalls; load balancers spread traffic</div>
+    </div>`,
+    arContent:`<div class="bullet">الحوسبة السحابية توفر الحوسبة والتخزين وحتى التطبيقات كخدمة عبر الشبكة</div>
+    <div class="bullet">امتداد منطقي للافتراضية — تستخدمها كأساس لوظائفها</div>
+    <div class="bullet">أنواع السحابة: عامة (للجميع)، خاصة (للشركة)، هجينة (مزيج منهما)</div>
+    <div class="bullet">نماذج الخدمة: SaaS (برمجيات)، PaaS (منصة)، IaaS (بنية تحتية)</div>`,
+    quiz:[
+      {type:"mcq",q:"Which cloud service model provides applications directly over the Internet (e.g., Gmail)?",opts:["IaaS","PaaS","SaaS","VaaS"],ans:2},
+      {type:"mcq",q:"Cloud computing is a logical extension of:",opts:["Multiprogramming","Distributed systems","Virtualization","File systems"],ans:2},
+      {type:"tf",q:"A private cloud is available via the Internet to anyone willing to pay.",ans:false},
+      {type:"tf",q:"IaaS provides servers or storage available over the Internet.",ans:true},
+      {type:"short",q:"What are the three types of cloud deployment models?","ans":"Public cloud, Private cloud, and Hybrid cloud"},
+      {type:"short",q:"Explain the difference between SaaS, PaaS, and IaaS.","ans":"SaaS: applications over Internet; PaaS: software platform/stack for app development; IaaS: raw infrastructure (servers/storage) over Internet"}
+    ]
+  },
+  {
+    title:"Real-Time Embedded Systems",
+    arTitle:"الأنظمة المدمجة الفورية",
+    content:`<div class="content-block">
+      <div class="bullet">Real-time embedded systems most prevalent form of computers</div>
+      <div class="sub-bullet">Vary considerably, special purpose, limited purpose OS, <span class="keyword-red" onclick="showKw('Real-Time OS')">real-time OS</span></div>
+      <div class="sub-bullet">Use expanding</div>
+      <div class="bullet">Many other special computing environments as well</div>
+      <div class="sub-bullet">Some have OSes, some perform tasks without an OS</div>
+      <div class="bullet"><span class="keyword-red" onclick="showKw('Real-Time OS')">Real-time OS</span> has well-defined fixed time constraints</div>
+      <div class="sub-bullet">Processing <em>must</em> be done within constraint</div>
+      <div class="sub-bullet">Correct operation only if constraints met</div>
+    </div>
+    <div class="diagram-box" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+      <div style="background:#ffebee;border:1px solid #ef9a9a;border-radius:8px;padding:10px 16px;text-align:center;min-width:120px">
+        <div style="font-size:11px;font-weight:700;color:#c62828;margin-bottom:4px">HARD RTOS</div>
+        <div style="font-size:12px;color:#b71c1c">Missing deadline = system failure</div>
+        <div style="font-size:11px;color:#888;margin-top:4px">Pacemaker, Aircraft</div>
+      </div>
+      <div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:8px;padding:10px 16px;text-align:center;min-width:120px">
+        <div style="font-size:11px;font-weight:700;color:#e65100;margin-bottom:4px">SOFT RTOS</div>
+        <div style="font-size:12px;color:#bf360c">Missing deadline = degraded performance</div>
+        <div style="font-size:11px;color:#888;margin-top:4px">Video streaming</div>
+      </div>
+    </div>`,
+    arContent:`<div class="bullet">الأنظمة المدمجة الفورية هي الشكل الأكثر انتشاراً لأجهزة الكمبيوتر</div>
+    <div class="bullet">نظام التشغيل الفوري له قيود زمنية ثابتة محددة — يجب إتمام المعالجة ضمن هذه القيود</div>
+    <div class="bullet">الفوري الصارم: تجاوز الموعد النهائي = فشل النظام (أجهزة ضبط النبض، الطائرات)</div>
+    <div class="bullet">الفوري المرن: تجاوز الموعد = تدهور الأداء (بث الفيديو)</div>`,
+    quiz:[
+      {type:"mcq",q:"A real-time OS where missing a deadline causes complete system failure is called:",opts:["Soft RTOS","Batch RTOS","Hard RTOS","Distributed RTOS"],ans:2},
+      {type:"mcq",q:"Real-time embedded systems are described as the _______ form of computers.",opts:["Rarest","Most expensive","Most prevalent","Oldest"],ans:2},
+      {type:"tf",q:"A real-time OS has well-defined fixed time constraints that must be met for correct operation.",ans:true},
+      {type:"tf",q:"All real-time embedded systems require a full operating system to function.",ans:false},
+      {type:"short",q:"What distinguishes a real-time OS from a regular OS?","ans":"A real-time OS has well-defined fixed time constraints; processing must be done within those constraints for correct operation"},
+      {type:"short",q:"Give an example of a hard real-time system and explain why timing is critical.","ans":"Pacemaker or aircraft control system — missing a timing deadline could cause physical harm or system failure"}
+    ]
+  }
+];
+
+let currentSlide = 0;
+let translateMode = false;
+
+function showSlide(idx){
+  currentSlide = idx;
+  document.querySelectorAll('.nav-item').forEach((el,i)=>{
+    el.classList.toggle('active', i===idx);
+  });
+  translateMode = false;
+  renderSlide(idx);
+}
+
+function renderSlide(idx){
+  const s = slides[idx];
+  const container = document.getElementById('slide-container');
+  container.innerHTML = `
+    <div class="slide-card">
+      <div class="slide-title">${s.title} <span id="lang-indicator" style="display:none">AR</span></div>
+      <div class="slide-controls">
+        <button class="translate-btn" id="trans-btn" onclick="toggleTranslate()">&#127760; Show Arabic Translation</button>
+        <button class="quiz-btn" onclick="openQuiz(${idx})">&#128221; Practice Questions</button>
+      </div>
+      <div id="slide-content">${s.content}</div>
+      <div class="ar-text" id="ar-content">${s.arContent}</div>
+    </div>
+  `;
+}
+
+function toggleTranslate(){
+  translateMode = !translateMode;
+  const btn = document.getElementById('trans-btn');
+  const ar = document.getElementById('ar-content');
+  const indicator = document.getElementById('lang-indicator');
+  if(translateMode){
+    ar.classList.add('show');
+    btn.textContent = '🌐 Hide Arabic Translation';
+    btn.classList.add('active');
+    indicator.style.display = 'inline';
+  } else {
+    ar.classList.remove('show');
+    btn.innerHTML = '&#127760; Show Arabic Translation';
+    btn.classList.remove('active');
+    indicator.style.display = 'none';
+  }
+}
+
+function showKw(kw){
+  const d = keywords[kw];
+  if(!d) return;
+  document.getElementById('kw-title').textContent = kw;
+  document.getElementById('kw-en').textContent = d.en;
+  document.getElementById('kw-ar').textContent = d.ar;
+  document.getElementById('kw-overlay').classList.add('show');
+}
+
+function closeOverlay(id){
+  document.getElementById(id).classList.remove('show');
+}
+
+function closeKw(e){
+  if(e.target.classList.contains('overlay')) e.target.classList.remove('show');
+}
+
+function openQuiz(idx){
+  const s = slides[idx];
+  document.getElementById('quiz-title').textContent = 'Practice: ' + s.title;
+  const qs = s.quiz;
+  let html = '';
+  qs.forEach((q,i)=>{
+    let typeLabel = q.type==='mcq'?'Multiple Choice':q.type==='tf'?'True / False':'Short Answer';
+    html += `<div class="q-section">
+      <div class="q-type">${typeLabel}</div>
+      <div class="q-text">Q${i+1}. ${q.q}</div>`;
+    if(q.type==='mcq'){
+      html += `<div class="q-options">`;
+      q.opts.forEach((o,j)=>{
+        html += `<label><input type="radio" name="q${i}" value="${j}"> ${o}</label>`;
+      });
+      html += `</div>`;
+    } else if(q.type==='tf'){
+      html += `<div class="q-options">
+        <label><input type="radio" name="q${i}" value="true"> True</label>
+        <label><input type="radio" name="q${i}" value="false"> False</label>
+      </div>`;
+    } else {
+      html += `<input class="q-input" type="text" id="short${i}" placeholder="Type your answer...">`;
+    }
+    html += `<button class="check-btn" onclick="checkAnswer(${i},'${q.type}',${JSON.stringify(q.ans).replace(/'/g,"&#39;")})">Check Answer</button>
+      <div class="feedback" id="fb${i}"></div>
+    </div>`;
+  });
+  document.getElementById('quiz-body').innerHTML = html;
+  document.getElementById('quiz-overlay').classList.add('show');
+}
+
+function checkAnswer(i, type, ans){
+  const fb = document.getElementById('fb'+i);
+  let correct = false;
+  if(type==='mcq'){
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    if(!sel){fb.className='feedback wrong';fb.textContent='Please select an answer.';return;}
+    correct = parseInt(sel.value) === ans;
+  } else if(type==='tf'){
+    const sel = document.querySelector(`input[name="q${i}"]:checked`);
+    if(!sel){fb.className='feedback wrong';fb.textContent='Please select True or False.';return;}
+    correct = sel.value === String(ans);
+  } else {
+    const val = document.getElementById('short'+i).value.trim().toLowerCase();
+    if(!val){fb.className='feedback wrong';fb.textContent='Please type an answer.';return;}
+    const ansLower = String(ans).toLowerCase();
+    const keywords = ansLower.split('/').map(k=>k.trim());
+    correct = keywords.some(kw => val.includes(kw.substring(0,Math.min(kw.length,15))));
+  }
+  if(correct){
+    fb.className='feedback correct';
+    fb.textContent = type==='short' ? '✓ Good answer! Sample: '+ans : '✓ Correct!';
+  } else {
+    fb.className='feedback wrong';
+    fb.textContent = type==='short' ? '✗ Try again. Hint: '+ans : '✗ Incorrect. The correct answer is: '+ans;
+  }
+}
+
+renderSlide(0);
+</script>
+</body>
+</html>
