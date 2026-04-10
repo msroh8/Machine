@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Control Fundamentals - Al-Baha University</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Open+Sans:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        :lang(ar) {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .slide-container {
+            background-color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-top: 8px solid #1a56db;
+            border-bottom: 8px solid #10b981;
+            min-height: 500px;
+            position: relative;
+        }
+
+        .keyword {
+            background-color: #fef08a;
+            color: #b45309;
+            padding: 0 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-bottom: 2px dashed #b45309;
+        }
+
+        .keyword:hover {
+            background-color: #fde047;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            color: #6b7280;
+        }
+        
+        .close-btn:hover { color: #111827; }
+
+        .quiz-question {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .correct-answer { color: #16a34a; font-weight: bold; }
+        .wrong-answer { color: #dc2626; font-weight: bold; }
+
+        .slide-title { color: #1e3a8a; font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;}
+        .slide-list { list-style-type: none; padding-left: 1.5rem; }
+        .slide-list > li { margin-bottom: 1rem; font-size: 1.25rem; position: relative;}
+        .slide-list > li::before { content: '■'; color: #3b82f6; position: absolute; left: -1.5rem; top: 0.2rem; font-size: 0.8rem;}
+        .slide-sublist { list-style-type: circle; padding-left: 2rem; margin-top: 0.5rem;}
+        .slide-sublist > li { font-size: 1.1rem; margin-bottom: 0.5rem; color: #4b5563;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #d1d5db; padding: 0.75rem; text-align: center; }
+        th { background-color: #f3f4f6; font-weight: bold; color: #1f2937; }
+
+    </style>
+</head>
+<body class="flex h-screen text-gray-800">
+
+    <!-- Sidebar -->
+    <aside class="w-1/4 bg-gray-900 text-white flex flex-col h-full overflow-hidden shadow-xl z-10 transition-all duration-300" id="sidebar">
+        <div class="p-6 border-b border-gray-700 bg-gray-800">
+            <h1 class="text-xl font-bold text-blue-400 mb-2">Operating System Security</h1>
+            <p class="text-sm text-gray-400">Chapter 04 Part 1: Access Control Fundamentals</p>
+        </div>
+        <div class="flex-1 overflow-y-auto" id="slide-list-container">
+            <ul id="slide-nav" class="py-2">
+                <!-- Navigation items injected via JS -->
+            </ul>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto transition-all duration-300" id="main-content">
+        <!-- Top Toolbar -->
+        <header class="bg-white shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+            <button id="toggle-sidebar" class="text-gray-500 hover:text-blue-600 focus:outline-none">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            <div class="flex gap-4">
+                <button id="lang-toggle" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-language"></i> <span id="lang-text">ترجمة للعربية</span>
+                </button>
+                <button id="quiz-btn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition">
+                    <i class="fas fa-question-circle"></i> <span>Take Quiz</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Slide Area -->
+        <div class="flex-1 p-8 flex justify-center items-start overflow-y-auto">
+            <div class="slide-container w-full max-w-4xl p-10 flex flex-col" id="slide-content">
+                <!-- Slide content injected here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Keyword Modal -->
+    <div id="keyword-modal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('keyword-modal')"></i>
+            <h2 id="kw-title" class="text-2xl font-bold text-blue-800 mb-4 pb-2 border-b"></h2>
+            <div class="bg-blue-50 p-4 rounded-lg mb-4 text-left">
+                <p class="text-sm font-bold text-blue-600 uppercase mb-1">English Definition:</p>
+                <p id="kw-en" class="text-lg"></p>
+            </div>
+            <div class="bg-green-50 p-4 rounded-lg text-right" dir="rtl">
+                <p class="text-sm font-bold text-green-600 mb-1">الشرح بالعربية:</p>
+                <p id="kw-ar" class="text-lg font-cairo"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="modal-overlay">
+        <div class="modal-content w-full max-w-3xl">
+            <i class="fas fa-times close-btn text-2xl" onclick="closeModal('quiz-modal')"></i>
+            <h2 class="text-2xl font-bold text-indigo-800 mb-6 border-b pb-2"><i class="fas fa-pencil-alt mr-2"></i> Slide Quiz</h2>
+            <div id="quiz-container" class="space-y-6">
+                <!-- Quiz forms injected here -->
+            </div>
+            <div class="mt-8 flex justify-end">
+                <button onclick="evaluateQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition">Submit Answers</button>
+            </div>
+            <div id="quiz-results" class="mt-6 hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "access enforcement mechanism": { 
+                en: "A mechanism that authorizes requests from multiple subjects to perform operations on objects.", 
+                ar: "آلية تصرح للطلبات من مواضيع متعددة لتنفيذ عمليات على الكائنات." 
+            },
+            "subjects": { 
+                en: "Entities such as users or processes that request to perform operations.", 
+                ar: "كيانات مثل المستخدمين أو العمليات التي تطلب تنفيذ الإجراءات." 
+            },
+            "objects": { 
+                en: "Entities such as files or sockets upon which operations are performed.", 
+                ar: "كيانات مثل الملفات أو المقابس التي يتم تنفيذ العمليات عليها." 
+            },
+            "protection system": { 
+                en: "A system that defines security requirements, consisting of a protection state and protection state operations.", 
+                ar: "نظام يحدد متطلبات الأمان، ويتكون من حالة الحماية وعمليات حالة الحماية." 
+            },
+            "protection state": { 
+                en: "Describes the operations that system subjects can perform on system objects.", 
+                ar: "يصف العمليات التي يمكن أن تؤديها مواضيع النظام على كائنات النظام." 
+            },
+            "access matrix": { 
+                en: "A two-dimensional representation defining the protection state with subjects, objects, and operations.", 
+                ar: "تمثيل ثنائي الأبعاد يحدد حالة الحماية باستخدام المواضيع والكائنات والعمليات." 
+            },
+            "protection domain": { 
+                en: "Specifies the set of resources a process can access and the permitted operations.", 
+                ar: "يحدد مجموعة الموارد التي يمكن للعملية الوصول إليها والعمليات المسموح بها." 
+            },
+            "ACL": { 
+                en: "Access Control List: A representation storing the column of the access matrix with the resource/object.", 
+                ar: "قائمة التحكم في الوصول: تمثيل يخزن عمود مصفوفة الوصول مع المورد/الكائن." 
+            },
+            "C-List": { 
+                en: "Capability List: A representation storing the row of the access matrix with the subject.", 
+                ar: "قائمة القدرات: تمثيل يخزن صف مصفوفة الوصول مع الموضوع." 
+            }
+        };
+
+        function kw(word, key) {
+            return `<span class="keyword" onclick="showKeyword('${key || word}')">${word}</span>`;
+        }
+
+        const slides = [
+            {
+                id: 2,
+                titleEn: "Outlines",
+                titleAr: "المحتويات",
+                contentEn: `
+                    <h2 class="slide-title">Outlines:</h2>
+                    <ul class="slide-list">
+                        <li>Introduction.</li>
+                        <li>Protection Systems</li>
+                        <li>Mandatory Protection Systems</li>
+                        <li>Reference Monitors</li>
+                        <li>Definition of a Secure Operating System</li>
+                        <li>Assessment criteria to be used against each operating system.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">المحتويات:</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>مقدمة.</li>
+                        <li>أنظمة الحماية</li>
+                        <li>أنظمة الحماية الإلزامية</li>
+                        <li>المراقبات المرجعية</li>
+                        <li>تعريف نظام التشغيل الآمن</li>
+                        <li>معايير التقييم لاستخدامها ضد كل نظام تشغيل.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which topic is listed in the outline?", options: ["Network Routing", "Protection Systems", "Database", "Web Dev"], ans: 1 },
+                    { type: 'mcq', q: "What monitors are mentioned in the outline?", options: ["Display Monitors", "Reference Monitors", "Network Monitors", "Hardware Monitors"], ans: 1 },
+                    { type: 'tf', q: "Mandatory Protection Systems are included in the outline.", ans: "true" },
+                    { type: 'tf', q: "Access Control Fundamentals is not part of this chapter.", ans: "false" },
+                    { type: 'short', q: "What kind of operating system's definition is covered?", ans: "Secure Operating System" },
+                    { type: 'short', q: "What criteria will be used against each operating system?", ans: "Assessment criteria" }
+                ]
+            },
+            {
+                id: 3,
+                titleEn: "Introduction (Enforcement Mechanism)",
+                titleAr: "مقدمة (آلية الإنفاذ)",
+                contentEn: `
+                    <h2 class="slide-title">Introduction</h2>
+                    <ul class="slide-list">
+                        <li>An ${kw('access enforcement mechanism', 'access enforcement mechanism')} authorizes requests (e.g., system calls) from multiple ${kw('subjects', 'subjects')} (e.g., users, processes, etc.) to perform operations (e.g., read, write, etc.) on ${kw('objects', 'objects')} (e.g., files, sockets, etc.).</li>
+                        <li class="mt-4">Operating system provides an access enforcement mechanism.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تُصرح ${kw('آلية إنفاذ الوصول', 'access enforcement mechanism')} للطلبات (مثل استدعاءات النظام) من ${kw('مواضيع', 'subjects')} متعددة (مثل المستخدمين والعمليات وما إلى ذلك) لأداء عمليات (مثل القراءة والكتابة وما إلى ذلك) على ${kw('كائنات', 'objects')} (مثل الملفات والمقابس وما إلى ذلك).</li>
+                        <li class="mt-4">يوفر نظام التشغيل آلية إنفاذ الوصول.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What authorizes requests from multiple subjects?", options: ["Access enforcement mechanism", "CPU", "Memory", "Router"], ans: 0 },
+                    { type: 'mcq', q: "What provides an access enforcement mechanism?", options: ["Printer", "Application", "Operating system", "Keyboard"], ans: 2 },
+                    { type: 'tf', q: "An access enforcement mechanism authorizes requests to perform operations on objects.", ans: "true" },
+                    { type: 'tf', q: "Files and sockets are examples of subjects.", ans: "false" },
+                    { type: 'short', q: "Give an example of a subject.", ans: "users / processes" },
+                    { type: 'short', q: "Give an example of an operation.", ans: "read / write" }
+                ]
+            },
+            {
+                id: 4,
+                titleEn: "Introduction (System Access)",
+                titleAr: "مقدمة (وصول النظام)",
+                contentEn: `
+                    <h2 class="slide-title">Introduction</h2>
+                    <ul class="slide-list">
+                        <li>A system access is traditionally stated in terms of which ${kw('subjects', 'subjects')} (e.g., processes and users) can perform which operations (e.g., read and write) on which ${kw('objects', 'objects')} (e.g., files and sockets).</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مقدمة</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يُنص تقليديًا على وصول النظام من حيث الـ ${kw('مواضيع', 'subjects')} (مثل العمليات والمستخدمين) التي يمكنها تنفيذ أي عمليات (مثل القراءة والكتابة) على أي ${kw('كائنات', 'objects')} (مثل الملفات والمقابس).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "A system access is stated in terms of subjects performing operations on what?", options: ["Networks", "Objects", "CPUs", "Memory"], ans: 1 },
+                    { type: 'mcq', q: "Processes and users are examples of what?", options: ["Operations", "Objects", "Subjects", "Mechanisms"], ans: 2 },
+                    { type: 'tf', q: "Files and sockets are considered objects.", ans: "true" },
+                    { type: 'tf', q: "Reading and writing are examples of subjects.", ans: "false" },
+                    { type: 'short', q: "How is a system access traditionally stated?", ans: "in terms of which subjects can perform which operations on which objects" },
+                    { type: 'short', q: "Give an example of an object mentioned.", ans: "files / sockets" }
+                ]
+            },
+            {
+                id: 5,
+                titleEn: "Protection System",
+                titleAr: "نظام الحماية",
+                contentEn: `
+                    <h2 class="slide-title">PROTECTION SYSTEM</h2>
+                    <ul class="slide-list">
+                        <li>The security requirements of an operating system are defined in its ${kw('protection system', 'protection system')}.</li>
+                        <li class="mt-4"><strong>Definition:</strong> A protection system consists of a ${kw('protection state', 'protection state')}, which describes the operations that system subjects can perform on system objects, and a set of protection state operations, which enable modification of that state.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نظام الحماية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يتم تعريف متطلبات الأمان لنظام التشغيل في ${kw('نظام الحماية', 'protection system')} الخاص به.</li>
+                        <li class="mt-4"><strong>التعريف:</strong> يتكون نظام الحماية من ${kw('حالة الحماية', 'protection state')}، والتي تصف العمليات التي يمكن أن تؤديها مواضيع النظام على كائنات النظام، ومجموعة من عمليات حالة الحماية، والتي تمكن من تعديل تلك الحالة.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What defines the security requirements of an OS?", options: ["Protection system", "File system", "Network system", "Memory system"], ans: 0 },
+                    { type: 'mcq', q: "What enables modification of the protection state?", options: ["Protection state operations", "Users", "Sockets", "The CPU"], ans: 0 },
+                    { type: 'tf', q: "A protection system consists of a protection state and protection state operations.", ans: "true" },
+                    { type: 'tf', q: "The protection state describes network configurations.", ans: "false" },
+                    { type: 'short', q: "What describes the operations system subjects can perform on system objects?", ans: "protection state" },
+                    { type: 'short', q: "What do protection state operations enable?", ans: "modification of that state" }
+                ]
+            },
+            {
+                id: 6,
+                titleEn: "Protection System Components",
+                titleAr: "مكونات نظام الحماية",
+                contentEn: `
+                    <h2 class="slide-title">PROTECTION SYSTEM</h2>
+                    <ul class="slide-list">
+                        <li>A protection system enables the definition and management of a protection state.</li>
+                        <li>A protection state consists of the specific system subjects, the specific system objects, and the operations that those subjects can perform on those objects.</li>
+                        <li class="mt-4 border-l-4 border-blue-500 pl-4 bg-gray-50 py-2">A protection system also defines protection state operations that enable a protection state to be modified. For example, protection state operations are necessary to add new system subjects or new system objects to the protection state.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نظام الحماية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>يتيح نظام الحماية تعريف وإدارة حالة الحماية.</li>
+                        <li>تتكون حالة الحماية من مواضيع نظام محددة وكائنات نظام محددة والعمليات التي يمكن لهذه المواضيع تنفيذها على هذه الكائنات.</li>
+                        <li class="mt-4 border-r-4 border-blue-500 pr-4 bg-gray-50 py-2">يحدد نظام الحماية أيضًا عمليات حالة الحماية التي تتيح تعديل حالة الحماية. على سبيل المثال، تعد عمليات حالة الحماية ضرورية لإضافة مواضيع نظام جديدة أو كائنات نظام جديدة إلى حالة الحماية.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does a protection system enable?", options: ["Network routing", "Definition and management of a protection state", "Fast booting", "Malware scanning"], ans: 1 },
+                    { type: 'mcq', q: "Why are protection state operations necessary?", options: ["To delete the OS", "To add new system subjects or objects", "To cool the CPU", "To print files"], ans: 1 },
+                    { type: 'tf', q: "A protection state consists of specific system subjects, objects, and operations.", ans: "true" },
+                    { type: 'tf', q: "Protection state operations cannot modify the protection state.", ans: "false" },
+                    { type: 'short', q: "What enables a protection state to be modified?", ans: "protection state operations" },
+                    { type: 'short', q: "Name one thing that a protection state consists of.", ans: "specific system subjects / objects / operations" }
+                ]
+            },
+            {
+                id: 7,
+                titleEn: "Protection System Function",
+                titleAr: "دالة نظام الحماية",
+                contentEn: `
+                    <h2 class="slide-title">PROTECTION SYSTEM</h2>
+                    <ul class="slide-list">
+                        <li>The most complete description, at given point in time, of what is allowed within a given computer system is given by a function which tells us, for a given subject and object, what the subject may do with the object.</li>
+                        <li class="mt-4 text-green-700 font-bold">The best way to represent this function is by means of a matrix called an ${kw('access matrix', 'access matrix')}.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نظام الحماية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>الوصف الأكثر اكتمالا، في وقت معين، لما هو مسموح به داخل نظام كمبيوتر معين يُعطى بواسطة دالة تخبرنا، لموضوع وكائن معينين، ما يمكن للموضوع أن يفعله بالكائن.</li>
+                        <li class="mt-4 text-green-700 font-bold">أفضل طريقة لتمثيل هذه الدالة هي عن طريق مصفوفة تسمى ${kw('مصفوفة الوصول', 'access matrix')}.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What is the best way to represent the function of what is allowed?", options: ["Access matrix", "Line graph", "Pie chart", "Flowchart"], ans: 0 },
+                    { type: 'mcq', q: "The function tells us what a subject may do with an:", options: ["Object", "Subject", "Algorithm", "Operator"], ans: 0 },
+                    { type: 'tf', q: "The access matrix represents what a subject may do with an object.", ans: "true" },
+                    { type: 'tf', q: "An access matrix is the worst way to represent this function.", ans: "false" },
+                    { type: 'short', q: "What tells us what a subject may do with an object?", ans: "a function" },
+                    { type: 'short', q: "What is the matrix called?", ans: "access matrix" }
+                ]
+            },
+            {
+                id: 8,
+                titleEn: "Lampson's Access Matrix",
+                titleAr: "مصفوفة وصول لامبسون",
+                contentEn: `
+                    <h2 class="slide-title">LAMPSON'S ACCESS MATRIX</h2>
+                    <ul class="slide-list">
+                        <li>Lampson defined the idea that a protection state is represented by an access matrix.</li>
+                        <li class="mt-4"><strong>Definition:</strong> An access matrix consists of a set of subjects <strong>s &isin; S</strong>, a set of objects <strong>o &isin; O</strong>, a set of operations <strong>op &isin; OP</strong>.</li>
+                        <li class="mt-2">function <strong>ops(s,o) &subseteq; OP</strong>, which determines the operations that subject s can perform on object o.</li>
+                        <li class="mt-4 text-blue-700">The function ops(s, o) is said to return a set of operations corresponding to cell (s, o).</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مصفوفة وصول لامبسون</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>حدد لامبسون فكرة أن حالة الحماية يتم تمثيلها بواسطة مصفوفة وصول.</li>
+                        <li class="mt-4"><strong>التعريف:</strong> تتكون مصفوفة الوصول من مجموعة من المواضيع <strong>s &isin; S</strong>، ومجموعة من الكائنات <strong>o &isin; O</strong>، ومجموعة من العمليات <strong>op &isin; OP</strong>.</li>
+                        <li class="mt-2">الدالة <strong>ops(s,o) &subseteq; OP</strong>، والتي تحدد العمليات التي يمكن للموضوع s تنفيذها على الكائن o.</li>
+                        <li class="mt-4 text-blue-700">يقال إن الدالة ops(s, o) تُرجع مجموعة من العمليات المقابلة للخلية (s, o).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Who defined the idea that a protection state is represented by an access matrix?", options: ["Turing", "Lampson", "Neumann", "Gates"], ans: 1 },
+                    { type: 'mcq', q: "What does the function ops(s, o) return?", options: ["A set of objects", "A set of operations", "A set of subjects", "A network path"], ans: 1 },
+                    { type: 'tf', q: "An access matrix consists of subjects, objects, and operations.", ans: "true" },
+                    { type: 'tf', q: "The function ops(s,o) determines what object an operation can delete.", ans: "false" },
+                    { type: 'short', q: "What does 's' and 'o' stand for in ops(s,o)?", ans: "subject, object" },
+                    { type: 'short', q: "Who defined this access matrix concept?", ans: "Lampson" }
+                ]
+            },
+            {
+                id: 9,
+                titleEn: "Access Matrix Structure",
+                titleAr: "هيكل مصفوفة الوصول",
+                contentEn: `
+                    <h2 class="slide-title">LAMPSON'S ACCESS MATRIX</h2>
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>File 1</th>
+                            <th>File 2</th>
+                            <th>File 3</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Process 1</strong></td>
+                            <td>Read</td>
+                            <td>Read, Write</td>
+                            <td>Read, Write</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Process 2</strong></td>
+                            <td></td>
+                            <td>Read</td>
+                            <td>Read, Write</td>
+                        </tr>
+                    </table>
+                    <ul class="slide-list mt-6">
+                        <li>The matrix is a two-dimensional representation where the set of subjects form one axis and the set of objects forms the other axis.</li>
+                        <li>The cells of the access matrix store the operations that the corresponding subject can perform on the corresponding object.</li>
+                        <li>For example, subject Process 1 can perform read and write operations on object File 2.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مصفوفة وصول لامبسون</h2>
+                    <table>
+                        <tr>
+                            <th></th>
+                            <th>File 1</th>
+                            <th>File 2</th>
+                            <th>File 3</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Process 1</strong></td>
+                            <td>Read</td>
+                            <td>Read, Write</td>
+                            <td>Read, Write</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Process 2</strong></td>
+                            <td></td>
+                            <td>Read</td>
+                            <td>Read, Write</td>
+                        </tr>
+                    </table>
+                    <ul class="slide-list mt-6" dir="rtl">
+                        <li>المصفوفة عبارة عن تمثيل ثنائي الأبعاد حيث تشكل مجموعة المواضيع محورًا واحدًا ومجموعة الكائنات تشكل المحور الآخر.</li>
+                        <li>تخزن خلايا مصفوفة الوصول العمليات التي يمكن للموضوع المقابل تنفيذها على الكائن المقابل.</li>
+                        <li>على سبيل المثال، يمكن للموضوع العملية 1 (Process 1) تنفيذ عمليتي القراءة والكتابة على الكائن الملف 2 (File 2).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "The matrix is a representation of how many dimensions?", options: ["One", "Two", "Three", "Four"], ans: 1 },
+                    { type: 'mcq', q: "The cells of the access matrix store what?", options: ["Operations", "Subjects", "Objects", "Networks"], ans: 0 },
+                    { type: 'tf', q: "The set of subjects forms one axis and objects form the other.", ans: "true" },
+                    { type: 'tf', q: "Process 1 cannot perform read operations on File 1.", ans: "false" },
+                    { type: 'short', q: "What does subject Process 1 perform on object File 2?", ans: "Read, Write" },
+                    { type: 'short', q: "What forms the two axes of the matrix?", ans: "subjects and objects" }
+                ]
+            },
+            {
+                id: 10,
+                titleEn: "Access Matrix Example",
+                titleAr: "مثال على مصفوفة الوصول",
+                contentEn: `
+                    <h2 class="slide-title">LAMPSON'S ACCESS MATRIX</h2>
+                    <p class="font-bold text-lg mb-2">The Matrix:</p>
+                    <table class="bg-white shadow">
+                        <tr>
+                            <th rowspan="6" class="bg-gray-200">Subjects</th>
+                            <th colspan="5" class="bg-gray-200">Objects</th>
+                        </tr>
+                        <tr>
+                            <th>File 1</th>
+                            <th>File 2</th>
+                            <th>File 3</th>
+                            <th>SVR</th>
+                            <th>File n</th>
+                        </tr>
+                        <tr>
+                            <td><strong>User 1</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                            <td></td>
+                            <td></td>
+                            <td>read</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 2</strong></td>
+                            <td>write</td>
+                            <td>write</td>
+                            <td>write</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 3</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>read</td>
+                            <td>read</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User m</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                            <td>read</td>
+                            <td>write</td>
+                            <td>read</td>
+                        </tr>
+                    </table>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مصفوفة وصول لامبسون</h2>
+                    <p class="font-bold text-lg mb-2" dir="rtl">المصفوفة (The Matrix):</p>
+                    <table class="bg-white shadow" dir="ltr">
+                        <tr>
+                            <th rowspan="6" class="bg-gray-200">Subjects</th>
+                            <th colspan="5" class="bg-gray-200">Objects</th>
+                        </tr>
+                        <tr>
+                            <th>File 1</th>
+                            <th>File 2</th>
+                            <th>File 3</th>
+                            <th>SVR</th>
+                            <th>File n</th>
+                        </tr>
+                        <tr>
+                            <td><strong>User 1</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                            <td></td>
+                            <td></td>
+                            <td>read</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 2</strong></td>
+                            <td>write</td>
+                            <td>write</td>
+                            <td>write</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 3</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>read</td>
+                            <td>read</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User m</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                            <td>read</td>
+                            <td>write</td>
+                            <td>read</td>
+                        </tr>
+                    </table>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In the matrix shown, User 1 has what access to File 1?", options: ["read", "write", "read and write", "none"], ans: 0 },
+                    { type: 'mcq', q: "Which user has write access to File 3?", options: ["User 1", "User 2", "User 3", "User m"], ans: 1 },
+                    { type: 'tf', q: "User m has both read and write operations listed in the matrix.", ans: "true" },
+                    { type: 'tf', q: "User 3 has write access to File 1.", ans: "false" },
+                    { type: 'short', q: "What operation can User 2 perform on File 1?", ans: "write" },
+                    { type: 'short', q: "What is the general name for the items on the vertical axis (User 1, User 2...)?", ans: "Subjects" }
+                ]
+            },
+            {
+                id: 11,
+                titleEn: "Updating the Protection State",
+                titleAr: "تحديث حالة الحماية",
+                contentEn: `
+                    <h2 class="slide-title">LAMPSON'S ACCESS MATRIX</h2>
+                    <ul class="slide-list">
+                        <li>If the subjects correspond to processes and the objects correspond to files, then we need protection state operations to update the protection state as new files and processes are created.</li>
+                        <li class="mt-4">For example, when a new file is created, at least the creating process should gain access to the file.</li>
+                        <li class="mt-4 border-l-4 border-green-500 pl-4">Then a protection state operation <strong>create_file(process, file)</strong> would add a new column for the new file and add read and write operations to the cell (process, file).</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مصفوفة وصول لامبسون</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>إذا كانت المواضيع تتوافق مع العمليات والكائنات تتوافق مع الملفات، فإننا نحتاج إلى عمليات حالة الحماية لتحديث حالة الحماية عند إنشاء ملفات وعمليات جديدة.</li>
+                        <li class="mt-4">على سبيل المثال، عند إنشاء ملف جديد، يجب أن يكتسب تطبيق الإنشاء (creating process) على الأقل حق الوصول إلى الملف.</li>
+                        <li class="mt-4 border-r-4 border-green-500 pr-4">ثم تقوم عملية حالة الحماية <strong>create_file(process, file)</strong> بإضافة عمود جديد للملف الجديد وإضافة عمليات القراءة والكتابة إلى الخلية (process, file).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "If subjects are processes, what do objects correspond to?", options: ["CPUs", "Files", "Networks", "Keyboards"], ans: 1 },
+                    { type: 'mcq', q: "When a new file is created, what should happen?", options: ["The system crashes", "The creating process gains access", "All processes gain access", "The file is deleted"], ans: 1 },
+                    { type: 'tf', q: "Protection state operations update the state as new files are created.", ans: "true" },
+                    { type: 'tf', q: "The operation create_file adds a new row for the file.", ans: "false" },
+                    { type: 'short', q: "What operation is used as an example to add a new file?", ans: "create_file" },
+                    { type: 'short', q: "What does create_file add to the matrix?", ans: "a new column" }
+                ]
+            },
+            {
+                id: 12,
+                titleEn: "Protection Domain",
+                titleAr: "مجال الحماية",
+                contentEn: `
+                    <h2 class="slide-title">LAMPSON'S ACCESS MATRIX</h2>
+                    <ul class="slide-list">
+                        <li>The access matrix is used to define the ${kw('protection domain', 'protection domain')} of a process.</li>
+                        <li class="mt-6 bg-blue-50 p-4 border border-blue-200 rounded">
+                            <strong>Definition:</strong> A protection domain specifies the set of resources (objects) that a process can access and the operations that the process may use to access such resources.
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مصفوفة وصول لامبسون</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تُستخدم مصفوفة الوصول لتحديد ${kw('مجال الحماية', 'protection domain')} للعملية.</li>
+                        <li class="mt-6 bg-blue-50 p-4 border border-blue-200 rounded">
+                            <strong>التعريف:</strong> يحدد مجال الحماية مجموعة الموارد (الكائنات) التي يمكن للعملية الوصول إليها والعمليات التي قد تستخدمها العملية للوصول إلى مثل هذه الموارد.
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "The access matrix is used to define what for a process?", options: ["Memory size", "Protection domain", "CPU speed", "Network IP"], ans: 1 },
+                    { type: 'mcq', q: "A protection domain specifies a set of what?", options: ["Resources (objects)", "External networks", "Power supplies", "Unused variables"], ans: 0 },
+                    { type: 'tf', q: "A protection domain specifies resources a process can access.", ans: "true" },
+                    { type: 'tf', q: "A protection domain does not specify operations.", ans: "false" },
+                    { type: 'short', q: "What specifies the set of resources a process can access?", ans: "Protection domain" },
+                    { type: 'short', q: "What defines the protection domain of a process?", ans: "The access matrix" }
+                ]
+            },
+            {
+                id: 13,
+                titleEn: "Examining the Access Matrix",
+                titleAr: "فحص مصفوفة الوصول",
+                contentEn: `
+                    <h2 class="slide-title">LAMPSON'S ACCESS MATRIX</h2>
+                    <ul class="slide-list">
+                        <li>By examining the rows in the access matrix, one can see all the operations that a subject is authorized to perform on system resources.</li>
+                        <li>This determines what information could be read and modified by a processe running on behalf of that subject.</li>
+                        <li class="mt-4 text-red-600 font-semibold">For a secure operating system, we will want to ensure that the protection domain of each process satisfies system security goals (e.g., secrecy and integrity).</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مصفوفة وصول لامبسون</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>من خلال فحص الصفوف في مصفوفة الوصول، يمكن للمرء أن يرى جميع العمليات التي يُصرح لموضوع ما بتنفيذها على موارد النظام.</li>
+                        <li>يحدد هذا المعلومات التي يمكن قراءتها وتعديلها من خلال عملية قيد التشغيل نيابة عن هذا الموضوع.</li>
+                        <li class="mt-4 text-red-600 font-semibold">بالنسبة لنظام تشغيل آمن، سنرغب في التأكد من أن مجال الحماية لكل عملية يلبي أهداف أمان النظام (مثل السرية والنزاهة).</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "By examining rows in the access matrix, you see operations authorized for a:", options: ["Object", "Subject", "Domain", "Network"], ans: 1 },
+                    { type: 'mcq', q: "What do we want to ensure the protection domain satisfies?", options: ["Hardware limits", "System security goals", "User preferences", "Storage capacity"], ans: 1 },
+                    { type: 'tf', q: "Rows in the access matrix show authorized operations for a subject.", ans: "true" },
+                    { type: 'tf', q: "Secrecy and integrity are examples of system security goals.", ans: "true" },
+                    { type: 'short', q: "What do you examine to see operations a subject is authorized to perform?", ans: "rows in the access matrix" },
+                    { type: 'short', q: "Name two system security goals mentioned.", ans: "secrecy and integrity" }
+                ]
+            },
+            {
+                id: 14,
+                titleEn: "Sparse Access Matrix",
+                titleAr: "مصفوفة الوصول المتناثرة",
+                contentEn: `
+                    <h2 class="slide-title">PROTECTION SYSTEM</h2>
+                    <ul class="slide-list">
+                        <li>The Access matrix specifies the access rights of subjects on objects.</li>
+                        <li class="mt-4">In practice, the access matrix is sparse (which is usually occupied mostly by empty permissions).</li>
+                    </ul>
+                    <table class="bg-white mt-4 w-3/4 mx-auto">
+                        <tr>
+                            <th class="bg-gray-200"></th>
+                            <th class="bg-gray-200">File 1</th>
+                            <th class="bg-gray-200">File 2</th>
+                        </tr>
+                        <tr>
+                            <td><strong>User 1</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 2</strong></td>
+                            <td>write</td>
+                            <td>write</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 3</strong></td>
+                            <td></td>
+                            <td>read</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User m</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                        </tr>
+                    </table>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نظام الحماية</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تحدد مصفوفة الوصول حقوق وصول المواضيع على الكائنات.</li>
+                        <li class="mt-4">من الناحية العملية، تكون مصفوفة الوصول متناثرة (sparse) (والتي تشغلها عادةً أذونات فارغة في الغالب).</li>
+                    </ul>
+                    <table class="bg-white mt-4 w-3/4 mx-auto" dir="ltr">
+                        <tr>
+                            <th class="bg-gray-200"></th>
+                            <th class="bg-gray-200">File 1</th>
+                            <th class="bg-gray-200">File 2</th>
+                        </tr>
+                        <tr>
+                            <td><strong>User 1</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 2</strong></td>
+                            <td>write</td>
+                            <td>write</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User 3</strong></td>
+                            <td></td>
+                            <td>read</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User m</strong></td>
+                            <td>read</td>
+                            <td>write</td>
+                        </tr>
+                    </table>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "In practice, the access matrix is typically:", options: ["Full", "Sparse", "One-dimensional", "Irrelevant"], ans: 1 },
+                    { type: 'mcq', q: "A sparse matrix is occupied mostly by what?", options: ["Passwords", "Empty permissions", "Read accesses", "Write accesses"], ans: 1 },
+                    { type: 'tf', q: "The access matrix specifies the access rights of subjects on objects.", ans: "true" },
+                    { type: 'tf', q: "An access matrix is usually completely full of permissions.", ans: "false" },
+                    { type: 'short', q: "What term describes a matrix mostly occupied by empty permissions?", ans: "sparse" },
+                    { type: 'short', q: "What specifies the access rights of subjects on objects?", ans: "Access matrix" }
+                ]
+            },
+            {
+                id: 15,
+                titleEn: "Other Representations (ACL & C-List)",
+                titleAr: "تمثيلات أخرى (ACL و C-List)",
+                contentEn: `
+                    <h2 class="slide-title">PROTECTION SYSTEM</h2>
+                    <p class="font-bold text-xl mb-4 text-blue-800">So, other representations are often used:</p>
+                    <ul class="slide-list space-y-6">
+                        <li class="bg-gray-100 p-4 rounded shadow-sm border-l-4 border-indigo-500">
+                            <strong>${kw('Access Control Lists(ACL)', 'ACL')}:</strong> for each object, list the subject and their access rights.
+                        </li>
+                        <li class="bg-gray-100 p-4 rounded shadow-sm border-l-4 border-green-500">
+                            <strong>${kw('Capability List (C-List)', 'C-List')}:</strong> for each subject, list the object and the rights the subject has on that object.
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">نظام الحماية</h2>
+                    <p class="font-bold text-xl mb-4 text-blue-800" dir="rtl">لذلك، غالبًا ما تستخدم تمثيلات أخرى:</p>
+                    <ul class="slide-list space-y-6" dir="rtl">
+                        <li class="bg-gray-100 p-4 rounded shadow-sm border-r-4 border-indigo-500">
+                            <strong>${kw('قوائم التحكم في الوصول (ACL)', 'ACL')}:</strong> لكل كائن، اذكر الموضوع وحقوق الوصول الخاصة به.
+                        </li>
+                        <li class="bg-gray-100 p-4 rounded shadow-sm border-r-4 border-green-500">
+                            <strong>${kw('قائمة القدرات (C-List)', 'C-List')}:</strong> لكل موضوع، اذكر الكائن والحقوق التي يمتلكها الموضوع على هذا الكائن.
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "What does ACL stand for?", options: ["Access Control Lists", "Active Control Limits", "Automatic Computer Login", "Array Control Logic"], ans: 0 },
+                    { type: 'mcq', q: "What does C-List stand for?", options: ["Computer List", "Capability List", "Control List", "Command List"], ans: 1 },
+                    { type: 'tf', q: "An ACL lists the subject and their access rights for each object.", ans: "true" },
+                    { type: 'tf', q: "A C-List lists the object and rights for each subject.", ans: "true" },
+                    { type: 'short', q: "For each object, what does an ACL list?", ans: "the subject and their access rights" },
+                    { type: 'short', q: "For each subject, what does a C-List list?", ans: "the object and the rights" }
+                ]
+            },
+            {
+                id: 16,
+                titleEn: "Two Implementation Concepts",
+                titleAr: "مفهومان للتنفيذ",
+                contentEn: `
+                    <h2 class="slide-title">Two implementation concepts</h2>
+                    <ul class="slide-list">
+                        <li><strong>Access control list (ACL)</strong>
+                            <ul class="slide-sublist mt-2">
+                                <li>Store column of the matrix with the resource.</li>
+                                <li>Describing which subjects have access to a particular object.</li>
+                                <li>Check the user/group against the list.</li>
+                                <li>Relies on authentication: need to know user.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-6"><strong>Capability (C-List)</strong>
+                            <ul class="slide-sublist mt-2">
+                                <li>Stores the other dimension of the access matrix, the subject rows.</li>
+                                <li>In this case, the objects that a particular subject can access are stored.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">مفهومان للتنفيذ</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li><strong>قائمة التحكم في الوصول (ACL)</strong>
+                            <ul class="slide-sublist mt-2">
+                                <li>تخزين عمود المصفوفة مع المورد.</li>
+                                <li>تصف المواضيع التي يمكنها الوصول إلى كائن معين.</li>
+                                <li>تحقق من المستخدم/المجموعة مقابل القائمة.</li>
+                                <li>تعتمد على المصادقة: بحاجة إلى معرفة المستخدم.</li>
+                            </ul>
+                        </li>
+                        <li class="mt-6"><strong>القدرة (C-List)</strong>
+                            <ul class="slide-sublist mt-2">
+                                <li>تُخزن البعد الآخر لمصفوفة الوصول، صفوف الموضوع.</li>
+                                <li>في هذه الحالة، يتم تخزين الكائنات التي يمكن لموضوع معين الوصول إليها.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "Which concept stores the column of the matrix with the resource?", options: ["C-List", "ACL", "MAC", "RBAC"], ans: 1 },
+                    { type: 'mcq', q: "Which concept stores the other dimension (subject rows)?", options: ["ACL", "C-List", "DNS", "SSL"], ans: 1 },
+                    { type: 'tf', q: "ACL relies on authentication because you need to know the user.", ans: "true" },
+                    { type: 'tf', q: "C-List stores the column of the access matrix.", ans: "false" },
+                    { type: 'short', q: "What does ACL store with the resource?", ans: "column of the matrix" },
+                    { type: 'short', q: "What does a Capability list store?", ans: "subject rows / objects a subject can access" }
+                ]
+            },
+            {
+                id: 17,
+                titleEn: "ACL vs Capabilities (ACL)",
+                titleAr: "ACL مقابل القدرات (ACL)",
+                contentEn: `
+                    <h2 class="slide-title">ACL vs Capabilities</h2>
+                    <ul class="slide-list">
+                        <li>There are advantages and disadvantages to both the C-List and ACL representations of protection states.</li>
+                        <li class="mt-4">For the ACL approach, the set of subjects and the operations that they can perform are stored with the objects, making it easy to tell which subjects can access an object at any time. Administration of permissions seems to be more intuitive.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">ACL مقابل القدرات</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>هناك مزايا وعيوب لكل من تمثيلات C-List و ACL لحالات الحماية.</li>
+                        <li class="mt-4">بالنسبة لنهج ACL، يتم تخزين مجموعة المواضيع والعمليات التي يمكنها تنفيذها مع الكائنات، مما يسهل معرفة المواضيع التي يمكنها الوصول إلى كائن في أي وقت. تبدو إدارة الأذونات أكثر بديهية.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "For the ACL approach, subjects and operations are stored with the:", options: ["User", "Objects", "Network", "CPU"], ans: 1 },
+                    { type: 'mcq', q: "What is a key advantage of ACL?", options: ["Faster CPU", "Easy to tell which subjects can access an object", "Uses less RAM", "Hard to administer"], ans: 1 },
+                    { type: 'tf', q: "ACL makes administration of permissions seem more intuitive.", ans: "true" },
+                    { type: 'tf', q: "ACL stores operations with the subjects instead of objects.", ans: "false" },
+                    { type: 'short', q: "With what are subjects and operations stored in the ACL approach?", ans: "with the objects" },
+                    { type: 'short', q: "What seems to be more intuitive with ACL?", ans: "Administration of permissions" }
+                ]
+            },
+            {
+                id: 18,
+                titleEn: "ACL vs Capabilities (C-Lists)",
+                titleAr: "ACL مقابل القدرات (C-Lists)",
+                contentEn: `
+                    <h2 class="slide-title">ACL vs Capabilities</h2>
+                    <ul class="slide-list">
+                        <li>C-Lists store with the subjects the set of objects and operations that can be performed on them, making it easy to identify a process's protection domain.</li>
+                    </ul>
+                `,
+                contentAr: `
+                    <h2 class="slide-title">ACL مقابل القدرات</h2>
+                    <ul class="slide-list" dir="rtl">
+                        <li>تقوم قوائم C-Lists بتخزين مجموعة الكائنات والعمليات التي يمكن تنفيذها عليها مع المواضيع، مما يسهل تحديد مجال حماية العملية.</li>
+                    </ul>
+                `,
+                quiz: [
+                    { type: 'mcq', q: "C-Lists store objects and operations with the:", options: ["Objects", "Subjects", "Network", "Firewall"], ans: 1 },
+                    { type: 'mcq', q: "C-Lists make it easy to identify a process's:", options: ["Speed", "Protection domain", "Location", "Hardware"], ans: 1 },
+                    { type: 'tf', q: "C-Lists store the set of objects and operations with the subjects.", ans: "true" },
+                    { type: 'tf', q: "C-Lists make it hard to identify a protection domain.", ans: "false" },
+                    { type: 'short', q: "What do C-Lists store with the subjects?", ans: "the set of objects and operations" },
+                    { type: 'short', q: "What is easy to identify using C-Lists?", ans: "a process's protection domain" }
+                ]
+            },
+            {
+                id: 19,
+                titleEn: "The End",
+                titleAr: "النهاية",
+                contentEn: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="Al-Baha University Logo" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10">The End</h1>
+                    </div>
+                `,
+                contentAr: `
+                    <div class="flex flex-col items-center justify-center h-full">
+                        <img src="https://via.placeholder.com/200x200.png?text=BU+Logo" alt="شعار جامعة الباحة" class="mb-8" style="background-color: transparent;">
+                        <h1 class="text-6xl font-bold text-blue-900 mt-10 font-cairo">النهاية</h1>
+                    </div>
+                `,
+                quiz: []
+            }
+        ];
+
+        // --- 2. STATE & LOGIC ---
+        let currentSlideIndex = 0;
+        let isArabic = false;
+
+        const slideNav = document.getElementById('slide-nav');
+        const slideContent = document.getElementById('slide-content');
+        const langToggleBtn = document.getElementById('lang-toggle');
+        const langText = document.getElementById('lang-text');
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar');
+        const quizBtn = document.getElementById('quiz-btn');
+
+        function init() {
+            buildNavigation();
+            renderSlide(0);
+        }
+
+        function buildNavigation() {
+            slideNav.innerHTML = '';
+            slides.forEach((slide, index) => {
+                const li = document.createElement('li');
+                li.className = `px-6 py-3 cursor-pointer border-l-4 transition-colors duration-200 ${index === currentSlideIndex ? 'border-blue-500 bg-gray-700 text-white' : 'border-transparent text-gray-400 hover:bg-gray-800 hover:text-white'}`;
+                li.innerHTML = `<span class="mr-2 opacity-50">${slide.id.toString().padStart(2, '0')}</span> ${isArabic ? slide.titleAr : slide.titleEn}`;
+                li.onclick = () => {
+                    currentSlideIndex = index;
+                    renderSlide(index);
+                    buildNavigation();
+                };
+                slideNav.appendChild(li);
+            });
+        }
+
+        function renderSlide(index) {
+            const slide = slides[index];
+            const content = isArabic ? slide.contentAr : slide.contentEn;
+            
+            const footer = `
+                <div class="mt-auto pt-8 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500 ${isArabic ? 'flex-row-reverse' : ''}">
+                    <div class="font-bold text-blue-800">BU <br> <span class="font-normal text-xs text-black">${isArabic ? 'جامعة الباحة' : 'Al-Baha University'}</span></div>
+                    <div class="bg-gray-200 rounded-full w-8 h-8 flex items-center justify-center font-bold">${slide.id}</div>
+                </div>
+            `;
+
+            slideContent.innerHTML = content + footer;
+
+            if(slide.quiz && slide.quiz.length > 0) {
+                quizBtn.style.display = 'flex';
+            } else {
+                quizBtn.style.display = 'none';
+            }
+        }
+
+        langToggleBtn.onclick = () => {
+            isArabic = !isArabic;
+            document.documentElement.lang = isArabic ? 'ar' : 'en';
+            document.documentElement.dir = isArabic ? 'rtl' : 'ltr';
+            langText.innerText = isArabic ? 'English' : 'ترجمة للعربية';
+            
+            if(isArabic) {
+                sidebar.classList.remove('border-r');
+                sidebar.classList.add('border-l');
+            } else {
+                sidebar.classList.remove('border-l');
+                sidebar.classList.add('border-r');
+            }
+
+            buildNavigation();
+            renderSlide(currentSlideIndex);
+        };
+
+        toggleSidebarBtn.onclick = () => {
+            sidebar.classList.toggle('w-0');
+            sidebar.classList.toggle('w-1/4');
+            sidebar.classList.toggle('px-0');
+        };
+
+        function showKeyword(wordKey) {
+            const data = dictionary[wordKey];
+            if(!data) return;
+
+            document.getElementById('kw-title').innerText = wordKey;
+            document.getElementById('kw-en').innerText = data.en;
+            document.getElementById('kw-ar').innerText = data.ar;
+            
+            document.getElementById('keyword-modal').style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            if(modalId === 'quiz-modal') {
+                document.getElementById('quiz-results').classList.add('hidden');
+                document.getElementById('quiz-results').innerHTML = '';
+            }
+        }
+
+        quizBtn.onclick = () => {
+            const slide = slides[currentSlideIndex];
+            if(!slide || !slide.quiz || slide.quiz.length === 0) return;
+
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            document.getElementById('quiz-results').classList.add('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                let html = `<div class="quiz-question" id="q-block-${i}">
+                    <p class="font-bold text-lg mb-2" dir="ltr">${i + 1}. ${q.q}</p>`;
+
+                if(q.type === 'mcq') {
+                    q.options.forEach((opt, optIndex) => {
+                        html += `<label class="block cursor-pointer p-2 hover:bg-blue-50 rounded" dir="ltr">
+                            <input type="radio" name="q${i}" value="${optIndex}" class="mr-2"> ${opt}
+                        </label>`;
+                    });
+                } else if(q.type === 'tf') {
+                    html += `
+                        <label class="inline-block cursor-pointer p-2 mr-4 hover:bg-blue-50 rounded" dir="ltr"><input type="radio" name="q${i}" value="true" class="mr-1"> True</label>
+                        <label class="inline-block cursor-pointer p-2 hover:bg-blue-50 rounded" dir="ltr"><input type="radio" name="q${i}" value="false" class="mr-1"> False</label>
+                    `;
+                } else if(q.type === 'short') {
+                    html += `<input type="text" name="q${i}" class="w-full border border-gray-300 p-2 rounded mt-1 focus:outline-none focus:border-blue-500" placeholder="Type your answer..." dir="ltr">`;
+                }
+                
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+
+            document.getElementById('quiz-modal').style.display = 'flex';
+        };
+
+        function evaluateQuiz() {
+            const slide = slides[currentSlideIndex];
+            let score = 0;
+            const resultsDiv = document.getElementById('quiz-results');
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('hidden');
+
+            slide.quiz.forEach((q, i) => {
+                const block = document.getElementById(`q-block-${i}`);
+                let isCorrect = false;
+                let userAnswer = '';
+                let correctAnswerStr = '';
+
+                if(q.type === 'mcq') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.options[q.ans];
+                    if(selected) {
+                        userAnswer = q.options[parseInt(selected.value)];
+                        if(parseInt(selected.value) === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'tf') {
+                    const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                    correctAnswerStr = q.ans.charAt(0).toUpperCase() + q.ans.slice(1);
+                    if(selected) {
+                        userAnswer = selected.value === "true" ? "True" : "False";
+                        if(selected.value === q.ans) isCorrect = true;
+                    }
+                } else if (q.type === 'short') {
+                    const input = document.querySelector(`input[name="q${i}"]`);
+                    correctAnswerStr = q.ans;
+                    if(input && input.value.trim() !== '') {
+                        userAnswer = input.value.trim();
+                        if(userAnswer.length > 2) {
+                             isCorrect = true; 
+                        }
+                    }
+                }
+
+                if(isCorrect) score++;
+
+                const feedback = document.createElement('div');
+                feedback.className = 'mt-2 p-3 rounded ' + (isCorrect ? 'bg-green-100 border border-green-300' : 'bg-red-100 border border-red-300');
+                feedback.innerHTML = `
+                    <p class="${isCorrect ? 'correct-answer' : 'wrong-answer'}">
+                        <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'} mr-1"></i>
+                        Q${i+1}: ${isCorrect ? 'Correct!' : 'Incorrect.'}
+                    </p>
+                    ${!isCorrect ? `<p class="text-sm mt-1 text-gray-700"><b>Correct Answer:</b> ${correctAnswerStr}</p>` : ''}
+                `;
+                block.appendChild(feedback);
+            });
+
+            resultsDiv.innerHTML = `<div class="bg-indigo-100 border-l-4 border-indigo-500 p-4 rounded text-center">
+                <p class="text-2xl font-bold text-indigo-800">Your Score: ${score} / 6</p>
+            </div>`;
+        }
+
+        window.onclick = function(event) {
+            const kwModal = document.getElementById('keyword-modal');
+            const qzModal = document.getElementById('quiz-modal');
+            if (event.target == kwModal) {
+                closeModal('keyword-modal');
+            }
+            if (event.target == qzModal) {
+                closeModal('quiz-modal');
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
