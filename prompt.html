@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مجتمعات تبادل المعرفة للمعلم الجديد</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            base: '#0B1120',      
+                            surface: '#1E293B',   
+                            primary: '#48CAE4',   
+                            secondary: '#0077B6', 
+                            text: '#F8FAFC',
+                            muted: '#94A3B8'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s ease-out forwards',
+                        'bounce-x': 'bounceX 1s infinite',
+                        'pop': 'pop 0.3s ease-out forwards',
+                        'heart-beat': 'heartBeat 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        bounceX: { '0%, 100%': { transform: 'translateX(0)' }, '50%': { transform: 'translateX(-25%)' } },
+                        pop: { '0%': { transform: 'scale(0.8)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+                        heartBeat: { '0%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.2)' }, '100%': { transform: 'scale(1)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B1120;
+            background-image: radial-gradient(circle at top right, rgba(72, 202, 228, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 119, 182, 0.1), transparent 40%);
+            color: #F8FAFC;
+            overflow: hidden;
+        }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(72, 202, 228, 0.4); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(72, 202, 228, 0.8); }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        }
+
+        .nav-item { border-right: 4px solid transparent; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(72, 202, 228, 0.05); }
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(72,202,228,0.1) 0%, transparent 100%);
+            border-right-color: #48CAE4; color: #48CAE4; font-weight: 700;
+        }
+
+        .interactive-box { transition: all 0.3s ease; cursor: pointer; }
+        .interactive-box:hover { transform: translateY(-3px); border-color: #48CAE4; box-shadow: 0 10px 20px rgba(72, 202, 228, 0.15); }
+        .reveal-content { display: none; animation: fadeIn 0.4s ease-out; }
+
+        .modal-overlay { background: rgba(11, 17, 32, 0.85); backdrop-filter: blur(5px); }
+
+        /* الأنشطة التفاعلية */
+        .tooltip-container { position: relative; display: inline-block; border-bottom: 1px dashed #48CAE4; cursor: help; color: #48CAE4;}
+        .tooltip-container .tooltip-text {
+            visibility: hidden; width: 250px; background-color: #1E293B; color: #fff; text-align: center;
+            border-radius: 8px; padding: 10px; border: 1px solid #48CAE4; position: absolute; z-index: 10;
+            bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s;
+            font-size: 0.875rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; }
+        
+        .split-container { position: relative; width: 100%; height: 350px; overflow: hidden; border-radius: 12px; }
+        .panel { position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; padding: 30px; font-size: 1.2rem; line-height: 1.8; }
+        .panel-bad { background: #3f1818; color: #fca5a5; text-align: right; }
+        .panel-good { background: #064e3b; color: #6ee7b7; clip-path: polygon(0 0, 50% 0, 50% 100%, 0 100%); text-align: right; }
+        .slider-split {
+            position: absolute; -webkit-appearance: none; appearance: none; width: 100%; height: 100%;
+            background: transparent; outline: none; z-index: 10; cursor: col-resize;
+        }
+        .slider-split::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 8px; height: 350px; background: #48CAE4; cursor: col-resize; box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        
+        .upgrade-word { transition: all 0.3s ease; }
+        .upgrade-word:hover { transform: scale(1.1); text-shadow: 0 0 10px rgba(239,68,68,0.5); }
+        .upgraded { color: #4ade80 !important; font-weight: bold; border-bottom: 2px solid #4ade80; animation: pop 0.4s; pointer-events: none;}
+        
+        .tree-node { border-right: 2px solid #48CAE4; padding-right: 15px; margin-bottom: 15px; position: relative; animation: slideUp 0.3s ease-out; }
+        .tree-node::before { content: ''; position: absolute; right: 0; top: 12px; width: 10px; height: 2px; background: #48CAE4; }
+    </style>
+</head>
+<body class="h-screen w-full flex font-sans selection:bg-brand-primary selection:text-brand-base">
+
+    <!-- القائمة الجانبية -->
+    <aside class="w-80 h-screen flex-shrink-0 bg-brand-surface border-l border-white/5 flex flex-col z-20 shadow-2xl">
+        <div class="p-6 border-b border-white/5 bg-brand-base/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center">
+                    <i class="fa-solid fa-graduation-cap text-brand-base text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm font-bold text-white leading-tight">مجتمعات تبادل المعرفة</h1>
+                    <p class="text-xs text-brand-primary mt-1">للمعلم الجديد بالاتجاه التخصصي</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex-grow overflow-y-auto pb-4 custom-scrollbar" id="sidebar-menu">
+            <!-- يُولد برمجياً -->
+        </div>
+        
+        <div class="p-4 border-t border-white/5 bg-brand-base/80">
+            <div class="flex justify-between text-xs text-brand-muted mb-2">
+                <span>التقدم العام في الدورة</span>
+                <span id="progress-text" class="font-bold text-brand-primary">0%</span>
+            </div>
+            <div class="w-full bg-brand-surface rounded-full h-2">
+                <div class="bg-brand-primary h-2 rounded-full transition-all duration-500" id="progress-bar" style="width: 0%"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- منطقة العرض الرئيسية -->
+    <main class="flex-grow h-screen flex flex-col relative overflow-hidden">
+        <div class="flex-grow overflow-y-auto w-full relative flex flex-col" id="main-scroll-area">
+            <div class="max-w-6xl mx-auto p-8 md:p-12 flex-grow flex flex-col w-full">
+                
+                <!-- 1. حاوية الدروس النظرية -->
+                <div id="lesson-container" class="flex-grow flex flex-col animate-fade-in hidden">
+                    <span class="text-brand-primary font-bold tracking-wide text-sm mb-3 px-3 py-1 bg-brand-primary/10 rounded-full w-fit" id="lesson-number">الدرس</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-8 leading-tight" id="lesson-title">العنوان</h2>
+                    
+                    <div class="glass-panel rounded-2xl p-8 md:p-10 text-lg text-gray-300 leading-relaxed shadow-xl flex-grow mb-8" id="lesson-content">
+                        <!-- محتوى الدرس التفاعلي يدرج هنا -->
+                    </div>
+
+                    <div class="flex justify-between items-center mt-auto pt-6 border-t border-white/10">
+                        <button onclick="navigate(-1)" id="prev-btn" class="px-6 py-3 rounded-lg text-brand-muted hover:text-white hover:bg-white/5 transition-colors flex items-center gap-2 font-bold">
+                            <i class="fa-solid fa-arrow-right"></i> السابق
+                        </button>
+                        <button onclick="navigate(1)" id="next-btn" class="px-8 py-3 rounded-xl bg-brand-primary text-brand-base font-bold hover:shadow-[0_0_20px_rgba(72,202,228,0.4)] transition-all flex items-center gap-3 text-lg">
+                            التالي <i class="fa-solid fa-arrow-left"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. منصة الأنشطة التفاعلية -->
+                <div id="activities-hub" class="flex-grow flex flex-col animate-fade-in hidden">
+                    <div class="text-center mb-12">
+                        <div class="inline-block p-4 rounded-full bg-brand-primary/10 text-brand-primary text-4xl mb-4"><i class="fa-solid fa-gamepad"></i></div>
+                        <h2 class="text-4xl font-extrabold text-white mb-4">منصة الأنشطة التفاعلية</h2>
+                        <p class="text-gray-400 text-xl max-w-2xl mx-auto">لقد أكملت الجانب النظري. اختر نشاطاً من الأنشطة أدناه لتعزيز فهمك لمفاهيم هندسة المطالبات بشكل عملي وممتع.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="activities-menu">
+                        <div class="glass-panel p-6 rounded-xl cursor-pointer hover:border-brand-primary transition-all group" onclick="openActivityView(1)">
+                            <div class="w-14 h-14 rounded-full bg-brand-primary/20 text-brand-primary flex justify-center items-center text-2xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-sliders"></i></div>
+                            <h3 class="font-bold text-xl mb-2 text-white">عداد الهلوسة</h3>
+                            <p class="text-sm text-gray-400">اسحب الشريط لترى كيف تقل الهلوسة بزيادة القيود في المطالبة.</p>
+                        </div>
+                        <div class="glass-panel p-6 rounded-xl cursor-pointer hover:border-brand-primary transition-all group" onclick="openActivityView(2)">
+                            <div class="w-14 h-14 rounded-full bg-blue-500/20 text-blue-400 flex justify-center items-center text-2xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-magnifying-glass"></i></div>
+                            <h3 class="font-bold text-xl mb-2 text-white">المجهر التحليلي</h3>
+                            <p class="text-sm text-gray-400">مرر الماوس على نص المطالبة لاكتشاف أسرار هندسة الجمل.</p>
+                        </div>
+                        <div class="glass-panel p-6 rounded-xl cursor-pointer hover:border-brand-primary transition-all group" onclick="openActivityView(3)">
+                            <div class="w-14 h-14 rounded-full bg-green-500/20 text-green-400 flex justify-center items-center text-2xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-arrows-left-right"></i></div>
+                            <h3 class="font-bold text-xl mb-2 text-white">المقارنة المنزلقة</h3>
+                            <p class="text-sm text-gray-400">اسحب الفاصل وقارن بين المخرجات العشوائية والهندسية الدقيقة.</p>
+                        </div>
+                        <div class="glass-panel p-6 rounded-xl cursor-pointer hover:border-brand-primary transition-all group" onclick="openActivityView(4)">
+                            <div class="w-14 h-14 rounded-full bg-red-500/20 text-red-400 flex justify-center items-center text-2xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-hand-pointer"></i></div>
+                            <h3 class="font-bold text-xl mb-2 text-white">ترقية الكلمات</h3>
+                            <p class="text-sm text-gray-400">انقر على الكلمات الضعيفة لترقيتها إلى مصطلحات هندسية احترافية.</p>
+                        </div>
+                        <div class="glass-panel p-6 rounded-xl cursor-pointer hover:border-brand-primary transition-all group" onclick="openActivityView(5)">
+                            <div class="w-14 h-14 rounded-full bg-yellow-500/20 text-yellow-400 flex justify-center items-center text-2xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-regular fa-face-smile"></i></div>
+                            <h3 class="font-bold text-xl mb-2 text-white">شجرة الإيموجي</h3>
+                            <p class="text-sm text-gray-400">غير تنسيق المخرجات (جداول، نقاط، حوار) بضغطة زر واحدة.</p>
+                        </div>
+                        <div class="glass-panel p-6 rounded-xl cursor-pointer hover:border-brand-primary transition-all group" onclick="openActivityView(6)">
+                            <div class="w-14 h-14 rounded-full bg-purple-500/20 text-purple-400 flex justify-center items-center text-2xl mb-4 group-hover:scale-110 transition-transform"><i class="fa-solid fa-network-wired"></i></div>
+                            <h3 class="font-bold text-xl mb-2 text-white">الخارطة التراكمية</h3>
+                            <p class="text-sm text-gray-400">ابنِ هيكل المطالبة الشاملة غصناً بغصن لتسهيل حفظ مكوناتها.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- حاوية عرض النشاط الفردي -->
+                <div id="single-activity-view" class="hidden flex-grow flex flex-col animate-fade-in relative">
+                    <button onclick="closeActivityView()" class="absolute -top-4 right-0 text-gray-400 hover:text-white px-5 py-2.5 bg-brand-surface rounded-xl z-10 shadow-lg border border-white/10 font-bold flex items-center gap-2"><i class="fa-solid fa-arrow-right"></i> العودة لمنصة الأنشطة</button>
+                    <div class="glass-panel rounded-2xl p-10 mt-10 flex-grow flex flex-col items-center justify-center text-center shadow-2xl" id="activity-content-area">
+                        <!-- يُعبأ عبر الجافاسكريبت -->
+                    </div>
+                </div>
+
+                <!-- 3. المختبر التفاعلي الختامي -->
+                <div id="lab-container" class="hidden flex-grow flex flex-col animate-fade-in">
+                    <div class="text-center mb-10">
+                        <div class="inline-block p-4 rounded-full bg-brand-secondary/20 text-brand-primary text-4xl mb-4"><i class="fa-solid fa-flask"></i></div>
+                        <h2 class="text-4xl font-extrabold mb-3">المختبر الختامي: <span class="text-brand-primary">هندسة المطالبة التراكمية</span></h2>
+                        <p class="text-brand-muted text-xl max-w-3xl mx-auto">التطبيق العملي النهائي: تتبع كيف يتحول البرومبت الساذج والمفتوح إلى قالب هندسي احترافي للمهام الأدائية قابل للاستخدام في أي مادة.</p>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
+                        <!-- الشاشة الرئيسية للمطالبة -->
+                        <div class="lg:col-span-7 glass-panel rounded-2xl p-8 flex flex-col border-t-4 border-t-brand-primary relative shadow-2xl">
+                            <span class="absolute top-6 left-6 bg-brand-surface text-brand-primary px-4 py-1.5 rounded-lg text-sm font-bold border border-brand-primary/20 shadow-lg" id="lab-badge">مرحلة 1</span>
+                            <h3 class="text-2xl font-bold text-white mb-6 border-b border-white/10 pb-4" id="lab-title">الطلب المفتوح</h3>
+                            <div class="bg-[#040810] rounded-xl p-8 flex-grow border border-white/5 text-xl leading-loose font-medium text-gray-200 shadow-inner relative overflow-y-auto" id="lab-prompt">
+                                <!-- النص التفاعلي -->
+                            </div>
+                        </div>
+                        
+                        <!-- شاشة التحليل والتوجيه -->
+                        <div class="lg:col-span-5 flex flex-col gap-6">
+                            <div class="bg-red-950/40 rounded-2xl p-8 border border-red-500/20 flex-grow shadow-lg transition-all duration-300" id="lab-flaw-box">
+                                <h4 class="text-red-400 font-bold mb-5 text-xl flex items-center gap-3" id="lab-flaw-title"><i class="fa-solid fa-triangle-exclamation text-2xl"></i> موقع الخلل والنقص</h4>
+                                <ul class="list-disc list-inside text-gray-300 space-y-4 text-lg leading-relaxed" id="lab-flaw"></ul>
+                            </div>
+                            <div class="bg-brand-primary/10 rounded-2xl p-8 border border-brand-primary/30 flex-grow hidden shadow-lg animate-slide-up" id="lab-fix-box">
+                                <h4 class="text-brand-primary font-bold mb-5 text-xl flex items-center gap-3"><i class="fa-solid fa-wrench text-2xl"></i> أسلوب التحسين</h4>
+                                <p class="text-gray-200 text-lg leading-relaxed" id="lab-fix"></p>
+                            </div>
+                            <button onclick="nextLabStep()" class="w-full py-5 rounded-xl bg-gradient-to-l from-brand-primary to-brand-secondary text-white font-bold text-xl hover:shadow-[0_0_30px_rgba(72,202,228,0.5)] transition-all flex justify-center items-center gap-3 mt-auto" id="lab-btn">
+                                <span>انقر لتطبيق التحسين والتتبع</span><i class="fa-solid fa-arrow-left animate-bounce-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <!-- قسم التقييم الختامي التفاعلي (القلب) -->
+            <div class="w-full py-8 bg-[#0B1120] border-t border-white/5 flex flex-col items-center justify-center z-20 relative">
+                <h4 class="text-lg md:text-xl font-bold text-gray-300 mb-4 select-none">هل أعجبك محتوى اليوم؟ (انقر للتقييم)</h4>
+                
+                <!-- SVG Heart with Dynamic Fill -->
+                <svg width="70" height="70" viewBox="0 0 24 24" class="cursor-pointer transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_10px_rgba(239,68,68,0.2)]" onclick="fillHeart()" id="eval-heart">
+                    <defs>
+                        <!-- Gradient fills from bottom to top -->
+                        <linearGradient id="heartGradient" x1="0" y1="1" x2="0" y2="0">
+                            <stop id="fillStop" offset="0%" stop-color="#ef4444"/>
+                            <stop id="emptyStop" offset="0%" stop-color="transparent"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heartGradient)" stroke="#ef4444" stroke-width="1.5"/>
+                </svg>
+                
+                <p id="heart-text" class="mt-4 text-red-400 font-bold opacity-0 transition-opacity duration-500 text-lg">شكراً لتقييمك الرائع! ❤️</p>
+            </div>
+
+            <!-- Footer -->
+            <footer class="w-full py-5 bg-[#040810] text-center text-brand-muted text-sm z-30 relative">
+                تصميم وبرمجة: <span class="font-bold text-brand-primary text-base ml-1">قائد المجتمع محمد مجممي</span> &copy; 2026
+            </footer>
+        </div>
+    </main>
+
+    <!-- Modal (النافذة المنبثقة التفاعلية) -->
+    <div id="modal" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-brand-surface border border-white/10 w-11/12 max-w-3xl rounded-2xl p-8 transform scale-95 transition-transform duration-300 shadow-2xl" id="modal-content-box">
+            <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h3 class="text-2xl font-bold text-brand-primary" id="modal-title">عنوان النافذة</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-white text-3xl bg-black/20 w-10 h-10 rounded-lg flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="text-lg text-gray-200 leading-relaxed max-h-[60vh] overflow-y-auto pr-4 custom-scrollbar" id="modal-body">
+                <!-- المحتوى يدرج هنا -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================================================================
+        // 0. قاعدة بيانات النوافذ المنبثقة (لفصل الـ HTML عن سلاسل الجافاسكريبت)
+        // =====================================================================
+        const modalData = {
+            'types': `<ul class="space-y-4 text-lg"><li class="bg-black/30 p-4 rounded-lg border-r-4 border-brand-primary"><b class="text-brand-primary">1. النماذج النصية (LLMs):</b> مثل ChatGPT و Claude. تستخدم في التربية للتحضير، صياغة أسئلة التقويم، وتصميم سيناريوهات المهام الأدائية.</li><li class="bg-black/30 p-4 rounded-lg border-r-4 border-brand-secondary"><b class="text-brand-secondary">2. نماذج توليد الصور:</b> مثل Midjourney و DALL-E. لتوليد وسائل إيضاح بصرية مبتكرة للدروس لا توجد في جوجل.</li><li class="bg-black/30 p-4 rounded-lg border-r-4 border-purple-500"><b class="text-purple-400">3. نماذج الصوت والفيديو:</b> لتحويل نصوص المنهج إلى بودكاست تعليمي أو مقاطع فيديو تفاعلية.</li></ul>`,
+            
+            'quality': `<div class="flex flex-col gap-6 text-right"><div class="bg-red-950/40 p-6 rounded-xl border border-red-500/20"><b class="text-red-400 text-xl flex items-center gap-2 mb-3"><i class="fa-solid fa-xmark"></i> مطالبة ضعيفة:</b> <p class="text-gray-300 mb-3">اكتب لي درساً عن المغناطيس.</p><div class="bg-black/30 p-4 rounded text-sm text-gray-400"><b class="text-red-400">النتيجة المتوقعة:</b> مقال فيزيائي أكاديمي معقد مليء بالمعادلات لا يناسب المدارس.</div></div><div class="bg-green-950/40 p-6 rounded-xl border border-green-500/20"><b class="text-green-400 text-xl flex items-center gap-2 mb-3"><i class="fa-solid fa-check"></i> مطالبة هندسية دقيقة:</b> <p class="text-gray-300 mb-3">أنت خبير مناهج. صمم خطة درس عن المغناطيس لطلاب الصف الثالث الابتدائي تعتمد على التعلم باللعب.</p><div class="bg-black/30 p-4 rounded text-sm text-gray-400"><b class="text-green-400">النتيجة المتوقعة:</b> خطة إجرائية تتضمن لعبة اصطياد المشابك الورقية بالمغناطيس مع أسئلة مبسطة تناسب العمر.</div></div></div>`,
+            
+            'audience_student': `<div class="text-right text-lg leading-relaxed"><p class="mb-4">ضمن نموذج تصميم المهام، يجب تحديد الجمهور (Audience) الذي سيقدم له الطالب عمله لزيادة واقعية المهمة وإشعار الطالب بالمسؤولية.</p><div class="bg-brand-surface p-4 rounded-lg border-r-4 border-brand-primary"><b class="text-brand-primary">مثال للمطالبة:</b> <br>اجعل الطالب يصمم التقرير ليقدمه إلى (مدير المستشفى) بدلاً من تقديمه لمعلمه.</div></div>`,
+            
+            'audience_ai': `<div class="text-right text-lg leading-relaxed"><p class="mb-4">يجب أن تخبر النموذج من سيقرأ ناتجه المولد في النهاية لتحديد مستوى تعقيد اللغة المستخدمة.</p><div class="bg-brand-surface p-4 rounded-lg border-r-4 border-brand-secondary"><b class="text-brand-secondary">مثال للمطالبة:</b> <br>صغ تعليمات المهمة بلغة بسيطة ومحببة ليقرأها (الطالب) مباشرة، وصغ معايير التقييم والروبرك بلغة أكاديمية رصينة ليقرأها (المعلم).</div></div>`,
+            
+            'student_roles': `<div class="text-right text-lg leading-relaxed space-y-6"><div class="bg-red-950/30 p-5 rounded-xl border border-red-500/20"><b class="text-red-400">بدلاً من أن تقول للآلة:</b><br>صمم مهمة يكتب فيها الطالب تقريراً عن التلوث البحري. (هنا الطالب سيكتب بقلق من أجل الدرجة فقط).</div><div class="bg-green-950/30 p-5 rounded-xl border border-green-500/20"><b class="text-green-400">قل للآلة:</b><br>صمم مهمة يتقمص فيها الطالب دور (مفتش بيئي بوزارة البيئة)، مكلف بكتابة تقرير عاجل لـ (معالي الوزير) عن أسباب تلوث الشاطئ المحلي واقتراح 3 حلول قابلة للتطبيق. (هنا الطالب يشعر بالأهمية والواقعية).</div></div>`,
+            
+            'grasps': `<div class="text-right text-lg space-y-4"><p class="text-brand-primary font-bold">النموذج العالمي لتصميم المهام الأصيلة يتكون من:</p><ul class="bg-black/30 p-6 rounded-xl space-y-3 font-mono"><li><b class="text-white">G - Goal:</b> الهدف والتحدي.</li><li><b class="text-white">R - Role:</b> دور الطالب (مهندس، طبيب).</li><li><b class="text-white">A - Audience:</b> الجمهور المتلقي.</li><li><b class="text-white">S - Situation:</b> السياق والمشكلة.</li><li><b class="text-white">P - Product:</b> المنتج النهائي.</li><li><b class="text-white">S - Standards:</b> معايير النجاح (الروبرك).</li></ul></div>`,
+            
+            '5es': `<div class="text-right text-lg space-y-4"><p class="text-brand-secondary font-bold">إطار عمل لبناء خطط الدروس التفاعلية (خاصة العلوم):</p><ul class="bg-black/30 p-6 rounded-xl space-y-3 font-mono"><li><b class="text-white">1. Engage (التهيئة والإثارة):</b> جذب الانتباه بسؤال أو قصة.</li><li><b class="text-white">2. Explore (الاستكشاف):</b> نشاط عملي للطالب.</li><li><b class="text-white">3. Explain (التفسير):</b> المعلم يشرح المفهوم ويربطه.</li><li><b class="text-white">4. Elaborate (الإثراء):</b> تطبيق المفهوم في موقف جديد.</li><li><b class="text-white">5. Evaluate (التقويم):</b> قياس تحقق الهدف.</li></ul></div>`,
+            
+            'brainstorm': `<div class="bg-[#0B1120] p-8 rounded-xl border border-white/10 text-right text-lg leading-loose font-mono text-gray-300"><p>بعد تحليل الناتج السابق، اكتب للنموذج الاستكمال التالي:</p><br><p class="text-brand-primary">"بناءً على أفعال الأداء التي ذكرتها، اقترح 3 أفكار مختلفة ومبتكرة لمهام أدائية واقعية بحيث:</p><ul class="list-disc list-inside mt-2 ml-4 text-white"><li>الفكرة الأولى: تعتمد على الكتابة والتعبير.</li><li>الفكرة الثانية: تعتمد على التصميم اليدوي والمجسمات.</li><li>الفكرة الثالثة: تعتمد على التحدث والعرض التقديمي.</li></ul><p class="text-brand-primary mt-2">اكتب عنوان كل فكرة ووصفاً موجزاً لها في سطرين."</p></div>`,
+            
+            'ex_science': `<div class="text-right text-lg leading-relaxed space-y-4"><p class="bg-black/30 p-4 rounded border-r-4 border-green-500"><b>الدور:</b> عالم فلك في وكالة فضاء.</p><p class="bg-black/30 p-4 rounded border-r-4 border-green-500"><b>الموقف:</b> وكالة الفضاء تريد تبسيط شرح النظام الشمسي لزوار المعرض من الأطفال.</p><p class="bg-black/30 p-4 rounded border-r-4 border-green-500"><b>المنتج:</b> تصميم مجسم للمجموعة الشمسية باستخدام الفواكه (بنسب أحجام تقريبية)، وكتابة بطاقة تشرح لمدير المعرض لماذا تم اختيار كل فاكهة لتمثيل كوكب معين (مثال: البطيخ للمشتري، العنب للأرض).</p></div>`,
+            
+            'ex_arabic': `<div class="text-right text-lg leading-relaxed space-y-4"><p class="bg-black/30 p-4 rounded border-r-4 border-blue-500"><b>الدور:</b> محرر صحفي في جريدة المدرسة.</p><p class="bg-black/30 p-4 rounded border-r-4 border-blue-500"><b>الموقف:</b> انتشار ظاهرة التنمر الإلكتروني بين الطلاب في مجموعات الألعاب، وإدارة المدرسة تطلب تدخلاً توعوياً.</p><p class="bg-black/30 p-4 rounded border-r-4 border-blue-500"><b>المنتج:</b> كتابة مقال افتتاحي إقناعي يُنشر في لوحة الإعلانات، يحذر فيه زملائه من الظاهرة، مع اشتراط استخدام (أدوات التوكيد) و (علامات الترقيم) بشكل صحيح للتأثير في القراء.</p></div>`,
+            
+            'ex_math': `<div class="text-right text-lg leading-relaxed space-y-4"><p class="bg-black/30 p-4 rounded border-r-4 border-purple-500"><b>الدور:</b> مهندس ديكور مبتدئ.</p><p class="bg-black/30 p-4 rounded border-r-4 border-purple-500"><b>الموقف:</b> عائلة تريد تجديد سجاد غرفة المعيشة، ولديهم ميزانية محدودة جداً لا تتجاوز 500 ريال.</p><p class="bg-black/30 p-4 rounded border-r-4 border-purple-500"><b>المنتج:</b> رسم مخطط للغرفة، حساب المساحة والمحيط بدقة، وتصفح كتالوج (مرفق) لأسعار السجاد بالمتر المربع، ثم تقديم عرض سعر للعائلة يثبت أن الخيار المختار يغطي المساحة ولا يتجاوز الميزانية.</p></div>`,
+            
+            'bias': `<div class="text-right text-lg leading-relaxed"><p class="mb-4"><b>السياق المقترح من الآلة:</b><br>طلب الذكاء الاصطناعي في مهمة الأحياء أن يخرج الطلاب لجمع أوراق (أشجار القيقب) وسط (تساقط الثلوج) لدراستها.</p><div class="bg-brand-surface p-4 rounded-lg border-r-4 border-red-500 mb-4"><b class="text-red-400">المشكلة:</b> هذا سياق بيئي وجغرافي غير متوفر في المملكة العربية السعودية ومستحيل التطبيق.</div><div class="bg-brand-surface p-4 rounded-lg border-r-4 border-green-500"><b class="text-green-400">التدخل البشري (التعديل):</b><br>يتدخل المعلم بتعديل المطالبة: <i>"قم بتوطين المهمة لتناسب البيئة السعودية، استبدل الشجرة بشجرة محلية كالسدر أو النخيل، واجعل التجربة تناسب طقسنا المعتدل أو الحار."</i></div></div>`
+        };
+
+        // =====================================================================
+        // 1. قاعدة بيانات الـ 29 درساً بالمحتوى العميق والتفاعلات (غير مختصرة)
+        // =====================================================================
+        const fullCourse = [
+            {
+                title: "لماذا أصبحت النماذج التوليدية 'ترند' في آخر خمس سنوات؟",
+                content: `
+                    <p class="mb-6 text-xl">شهد العالم التعليمي والتقني انفجاراً في استخدام الذكاء الاصطناعي. لفهم السبب، انقر على البطاقات أدناه لاستكشاف الدوافع الثلاثة الكبرى:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="interactive-box bg-brand-base p-6 rounded-xl border border-white/10 text-center shadow-lg" onclick="revealElement('trend-1', this)">
+                            <i class="fa-solid fa-microchip text-5xl text-brand-primary mb-4 drop-shadow-[0_0_10px_rgba(72,202,228,0.5)]"></i>
+                            <h4 class="font-bold text-white text-xl">قفزة الحوسبة</h4>
+                            <p id="trend-1" class="reveal-content mt-4 text-sm text-brand-muted border-t border-white/10 pt-4 leading-relaxed">تطور معالجات الرسوميات (GPUs) سمح بتدريب نماذج عملاقة على مليارات النصوص في وقت قياسي جداً.</p>
+                        </div>
+                        <div class="interactive-box bg-brand-base p-6 rounded-xl border border-white/10 text-center shadow-lg" onclick="revealElement('trend-2', this)">
+                            <i class="fa-solid fa-database text-5xl text-brand-primary mb-4 drop-shadow-[0_0_10px_rgba(72,202,228,0.5)]"></i>
+                            <h4 class="font-bold text-white text-xl">البيانات الضخمة</h4>
+                            <p id="trend-2" class="reveal-content mt-4 text-sm text-brand-muted border-t border-white/10 pt-4 leading-relaxed">توفر محتوى بشري هائل على الإنترنت تم تغذية النماذج به لتتعلم لغتنا، ثقافتنا، وحتى مناهجنا.</p>
+                        </div>
+                        <div class="interactive-box bg-brand-base p-6 rounded-xl border border-white/10 text-center shadow-lg" onclick="revealElement('trend-3', this)">
+                            <i class="fa-solid fa-network-wired text-5xl text-brand-primary mb-4 drop-shadow-[0_0_10px_rgba(72,202,228,0.5)]"></i>
+                            <h4 class="font-bold text-white text-xl">محولات Transformers</h4>
+                            <p id="trend-3" class="reveal-content mt-4 text-sm text-brand-muted border-t border-white/10 pt-4 leading-relaxed">اختراع هذه المعمارية عام 2017 جعل الآلة قادرة على 'فهم سياق' الجملة كاملاً بدلاً من ترجمة الكلمات حرفياً.</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "مدخل إلى النماذج التوليدية: المفهوم، الأنواع، والاستخدامات",
+                content: `
+                    <p class="mb-5 text-xl leading-relaxed"><strong>المفهوم:</strong> الذكاء الاصطناعي التوليدي (Generative AI) هو نظام يستطيع ابتكار وتوليد محتوى جديد تماماً (نص، صورة، كود) استناداً إلى الأنماط الاحتمالية التي تعلمها، وليس مجرد البحث واسترجاع البيانات المخزنة.</p>
+                    <button onclick="openModalById('أنواع النماذج واستخداماتها التعليمية', 'types')" class="mt-4 px-8 py-4 bg-brand-base border border-brand-primary text-brand-primary rounded-xl hover:bg-brand-primary hover:text-brand-base font-bold text-lg transition-colors flex items-center gap-3 w-fit">
+                        <i class="fa-solid fa-layer-group"></i> استكشف الأنواع بالتفصيل
+                    </button>
+                `
+            },
+            {
+                title: "الفرق بين النماذج التوليدية والنماذج التقليدية في التعلم",
+                content: `
+                    <p class="mb-6 text-xl">انقر على كل جهة لتكتشف الفرق الجوهري في كيفية استجابة التقنية لطلب المعلم:</p>
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1 interactive-box bg-gray-900 p-8 rounded-2xl border border-gray-700 shadow-lg" onclick="revealElement('trad-diff', this)">
+                            <h4 class="text-2xl font-bold text-gray-300 mb-4 flex items-center gap-3"><i class="fa-brands fa-google text-3xl"></i> محركات البحث التقليدية</h4>
+                            <p id="trad-diff" class="reveal-content text-gray-400 mt-4 border-t border-gray-700 pt-4 leading-relaxed">تبحث عن إجابة <b>موجودة ومكتوبة مسبقاً</b> في صفحات الإنترنت. لا يمكنها تكييف النص. (مثلاً: إذا وجدت مقالاً علمياً معقداً، لا تستطيع تبسيطه ليناسب طالباً في الصف الأول الابتدائي، بل تعطيك الرابط فقط).</p>
+                        </div>
+                        <div class="flex-1 interactive-box bg-brand-secondary/10 p-8 rounded-2xl border border-brand-secondary/50 shadow-lg" onclick="revealElement('gen-diff', this)">
+                            <h4 class="text-2xl font-bold text-brand-primary mb-4 flex items-center gap-3"><i class="fa-solid fa-brain text-3xl"></i> النماذج التوليدية</h4>
+                            <p id="gen-diff" class="reveal-content text-brand-text mt-4 border-t border-brand-secondary/30 pt-4 leading-relaxed">تقوم بـ <b>تأليف</b> الإجابة كلمة بكلمة. تتكيف مع أوامرك، ويمكنها دمج مفاهيم مختلفة لإنشاء نشاط تعليمي غير مسبوق مخصص لطلابك تحديداً. (مثال: اشرح الجاذبية بأسلوب قصة بطلها سبايدرمان).</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "مفهوم هندسة المطالبات ودورها في توجيه مخرجات الذكاء الاصطناعي",
+                content: `
+                    <p class="mb-5 text-xl leading-relaxed"><strong>هندسة المطالبات (Prompt Engineering):</strong> هي فن وعلم صياغة الأوامر اللغوية (البرومبت) بدقة متناهية لضمان حصولك على الاستجابة المطلوبة من الذكاء الاصطناعي، بأعلى جودة وأقل نسبة من الأخطاء والهلوسة.</p>
+                    <div class="bg-[#0B1120] p-8 rounded-2xl border-r-4 border-brand-primary mt-8 shadow-inner">
+                        <h4 class="text-brand-primary font-bold mb-3 text-xl flex items-center gap-2"><i class="fa-solid fa-lightbulb"></i> تشبيه مجازي:</h4>
+                        <p class="text-lg leading-relaxed text-gray-300">النموذج اللغوي يشبه بحراً لا نهائياً من المعرفة. "المطالبة" هي <b>الدفة</b> التي توجه السفينة. تخيل أنك تقود سيارة وتستخدم الـ GPS. إذا قلت "خذني إلى السوق"، قد تأخذك لأي سوق عشوائي. لكن هندسة المطالبات تعني أن تقول: "خذني إلى سوق الخضار المركزي، من أسرع طريق خالي من الرسوم، وتجنب الزحام".</p>
+                    </div>
+                `
+            },
+            {
+                title: "لماذا تؤثر جودة المطالبة على جودة المخرجات التعليمية؟",
+                content: `
+                    <p class="text-xl mb-6 leading-relaxed">في علم الحاسوب توجد قاعدة ذهبية تُدعى <b>(GIGO)</b> وتعني: <b>Garbage In, Garbage Out</b> (مدخلات سيئة = مخرجات سيئة).</p>
+                    <p class="text-lg mb-6 text-gray-300">الذكاء الاصطناعي لا يقرأ أفكارك، ولا يعرف مستويات طلابك ولا المنهج السعودي ما لم تخبره بذلك صراحة.</p>
+                    <button onclick="openModalById('تأثير الجودة (مقارنة تطبيقية)', 'quality')" class="mt-4 px-8 py-4 bg-gradient-to-l from-brand-primary to-brand-secondary text-white font-bold rounded-xl hover:shadow-[0_0_20px_rgba(72,202,228,0.4)] transition-all flex items-center gap-3 text-lg w-fit">
+                        <i class="fa-solid fa-eye text-xl"></i> شاهد الفرق بمثال تطبيقي
+                    </button>
+                `
+            },
+            {
+                title: "مفهوم المهام الأدائية وأهميتها في التصميم التعليمي الحديث",
+                content: `
+                    <p class="mb-5 text-xl leading-relaxed"><strong>المهمة الأدائية (Performance Task):</strong> هي نشاط تقييمي أصيل يتطلب من المتعلم تطبيق المعرفة والمهارات المكتسبة في سياقات حقيقية (أو تحاكي الواقع) لإنتاج منتج ملموس أو أداء يمكن ملاحظته وتقييمه.</p>
+                    <ul class="space-y-4 mt-6 text-gray-300 text-lg">
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-left text-brand-primary mt-1 text-xl"></i> <span>تتجاوز الحفظ والاسترجاع (الاختبارات التقليدية) لتقيس مستويات التفكير العليا وتجهز الطالب لمهارات القرن 21.</span></li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-left text-brand-primary mt-1 text-xl"></i> <span>تربط التعلم بواقع الطالب وتجعله تعلماً ذا معنى.</span></li>
+                        <li class="flex items-start gap-3"><i class="fa-solid fa-caret-left text-brand-primary mt-1 text-xl"></i> <span>توفر أدلة حقيقية ومتعددة الأبعاد على فهم الطالب للناتج التعليمي.</span></li>
+                    </ul>
+                `
+            },
+            {
+                title: "الربط بين هندسة المطالبات وتصميم مهام أدائية فعالة",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">تصميم مهمة أدائية أصيلة يدوياً يتطلب وقتاً طويلاً جداً من المعلم (تأليف السيناريو، تحديد الأدوار، صياغة المعايير، بناء الروبرك).</p>
+                    <div class="interactive-box bg-brand-primary/10 border border-brand-primary/30 p-8 rounded-2xl text-center shadow-lg" onclick="revealElement('connection-reveal', this)">
+                        <i class="fa-solid fa-link text-5xl text-brand-primary mb-4 drop-shadow-[0_0_10px_rgba(72,202,228,0.5)]"></i>
+                        <h4 class="font-bold text-2xl text-white">أين يكمن الربط السحري؟ (انقر للاكتشاف)</h4>
+                        <p id="connection-reveal" class="reveal-content mt-6 text-gray-200 text-lg leading-relaxed border-t border-brand-primary/20 pt-6">من خلال (هندسة المطالبات)، يمكنك تزويد النموذج بناتج التعلم المجرد فقط. سيقوم الذكاء الاصطناعي بالجهد الشاق المتمثل في "العصف الذهني" وتوليد سيناريوهات واقعية وأدوار تقمصية في ثوانٍ معدودة. هذا يحرر المعلم ليتفرغ لعملية التوجيه والتحكيم التربوي للمخرج بدلاً من كتابته من الصفر.</p>
+                    </div>
+                `
+            },
+            {
+                title: "تحديد الهدف التعليمي والسياق بدقة داخل المطالبة",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">لتحصل على مهمة أدائية صحيحة ودقيقة، يجب أن تكون المطالبة محددة كنصل السكين. هناك مكونان لا غنى عنهما في البداية:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-[#0B1120] p-6 rounded-xl border-r-4 border-blue-500 shadow-md">
+                            <h4 class="text-blue-400 font-bold mb-3 text-xl flex items-center gap-2"><i class="fa-solid fa-bullseye"></i> 1. الهدف (ناتج التعلم)</h4>
+                            <p class="text-gray-300 leading-relaxed">يجب نسخه نصاً من المنهج لمنع التخمين. <br><span class="text-white bg-white/5 px-2 py-1 rounded mt-2 inline-block">مثال: "الهدف هو التمييز بين الخلية النباتية والحيوانية".</span></p>
+                        </div>
+                        <div class="bg-[#0B1120] p-6 rounded-xl border-r-4 border-green-500 shadow-md">
+                            <h4 class="text-green-400 font-bold mb-3 text-xl flex items-center gap-2"><i class="fa-solid fa-map-location-dot"></i> 2. السياق الديموغرافي</h4>
+                            <p class="text-gray-300 leading-relaxed">حدد البيئة والمرحلة. <br><span class="text-white bg-white/5 px-2 py-1 rounded mt-2 inline-block">مثال: "طلاب في المرحلة المتوسطة، لديهم معمل مدرسي بسيط ببيئة سعودية محليّة".</span></p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "تحليل السياق والجمهور المستهدف لتوجيه استجابة النموذج",
+                content: `
+                    <p class="text-xl mb-6 leading-relaxed">عند تصميم المهام بالذكاء الاصطناعي، يجب أن تدرك أن هناك <b>جمهورين</b> مختلفين يجب تحديدهما في المطالبة:</p>
+                    <div class="space-y-4">
+                        <div class="interactive-box bg-[#0B1120] p-6 rounded-xl flex items-center justify-between border border-white/5 shadow-md" onclick="openModalById('جمهور المهمة (للطالب)', 'audience_student')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-brand-primary/20 flex items-center justify-center text-brand-primary text-xl"><i class="fa-solid fa-users"></i></div>
+                                <span class="font-bold text-xl text-white">1. جمهور المهمة (Audience for the student)</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-left text-brand-muted text-xl"></i>
+                        </div>
+                        <div class="interactive-box bg-[#0B1120] p-6 rounded-xl flex items-center justify-between border border-white/5 shadow-md" onclick="openModalById('جمهور المخرجات (للذكاء الاصطناعي)', 'audience_ai')">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-brand-secondary/20 flex items-center justify-center text-brand-secondary text-xl"><i class="fa-solid fa-robot"></i></div>
+                                <span class="font-bold text-xl text-white">2. جمهور المخرجات (Audience for the AI)</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-left text-brand-muted text-xl"></i>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "صياغة التعليمات الإجرائية بوضوح لتقليل الغموض",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">النماذج التوليدية تفضل التعليمات المباشرة المرقمة على الفقرات السردية المتداخلة والعائمة. استخدام الأفعال الإجرائية القاطعة يوفر على النموذج عناء التخمين.</p>
+                    <div class="bg-[#0B1120] p-8 rounded-2xl border border-white/5 font-mono text-lg leading-loose shadow-inner">
+                        <div class="mb-6">
+                            <span class="bg-green-900/40 text-green-400 px-3 py-1 rounded text-sm font-sans font-bold mr-2 border border-green-500/30">افعل <i class="fa-solid fa-check"></i></span>
+                            <span class="text-gray-200">"1. صمم سيناريو. 2. استخرج المعايير. 3. ابنِ جدول التقييم."</span>
+                        </div>
+                        <div class="border-t border-white/10 pt-6">
+                            <span class="bg-red-900/40 text-red-400 px-3 py-1 rounded text-sm font-sans font-bold mr-2 border border-red-500/30">لا تفعل <i class="fa-solid fa-xmark"></i></span>
+                            <span class="text-gray-400">"أريد منك أن تعطيني بعض الأفكار الجيدة حول كيف يمكنني أن أصمم مهمة وتكون فيها معايير واضحة وشكراً..."</span>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "تحديد شكل المخرجات ومعايير الجودة المتوقعة",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">إذا تركت المخرجات مفتوحة، سيولد لك النموذج نصاً متصلاً (Blocks of text) يصعب قراءته أو استخدامه مباشرة في الطباعة.</p>
+                    <p class="mb-5 font-bold text-brand-primary text-xl"><i class="fa-solid fa-wand-magic-sparkles"></i> القاعدة: أضف دائماً قيد "التنسيق" في نهاية المطالبة:</p>
+                    <ul class="space-y-4 bg-[#0B1120] p-6 rounded-xl border border-white/5 text-lg shadow-md">
+                        <li class="flex items-center gap-3 text-gray-300"><div class="w-10 h-10 bg-brand-surface rounded flex items-center justify-center text-brand-primary"><i class="fa-solid fa-table"></i></div> "أخرج التقييم في جدول من 4 أعمدة و 3 صفوف."</li>
+                        <li class="flex items-center gap-3 text-gray-300"><div class="w-10 h-10 bg-brand-surface rounded flex items-center justify-center text-brand-secondary"><i class="fa-solid fa-list-ul"></i></div> "استخدم النقاط العريضة لتسليط الضوء على التعليمات."</li>
+                        <li class="flex items-center gap-3 text-gray-300"><div class="w-10 h-10 bg-brand-surface rounded flex items-center justify-center text-purple-400"><i class="fa-brands fa-markdown"></i></div> "استخدم تنسيق Markdown ليكون الإخراج جذاباً وواضحاً."</li>
+                    </ul>
+                `
+            },
+            {
+                title: "استخدام القيود والأمثلة كعناصر داعمة للمطالبة (Few-Shot)",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">لتقليل نسبة ההلوسة (Hallucination) إلى الصفر تقريباً، استخدم تقنية <b>Few-Shot Prompting</b> (إعطاء أمثلة مسبقة).</p>
+                    <div class="interactive-box bg-gradient-to-br from-brand-surface to-[#0B1120] border border-brand-secondary p-8 rounded-2xl text-center shadow-xl" onclick="revealElement('few-shot-reveal', this)">
+                        <h4 class="font-bold text-white text-2xl flex justify-center items-center gap-3"><i class="fa-solid fa-lightbulb text-yellow-400 text-3xl animate-pulse"></i> انقر لترى كيف تُصاغ القيود بالأمثلة</h4>
+                        <div id="few-shot-reveal" class="reveal-content mt-6 border-t border-brand-secondary/30 pt-6 text-right">
+                            <p class="text-brand-primary mb-4 text-lg font-bold">داخل المطالبة اكتب النص التالي حرفياً:</p>
+                            <p class="text-gray-300 font-mono text-lg bg-black/50 p-6 rounded-xl border border-white/10 leading-loose">
+                            "إليك مثال على مهمة أدائية ممتازة أعددتها سابقاً للغة العربية: <span class="text-brand-secondary">[قم بلصق المثال الخاص بك هنا]</span>. <br><br>
+                            الآن، بناءً على نفس النمط، وبنفس الطول والأسلوب، قم بتصميم مهمة أدائية لمادة العلوم لدرس الاحتكاك."
+                            </p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "توظيف الأدوار والشخصيات لتخصيص استجابات النموذج التوليدي",
+                content: `
+                    <p class="text-2xl mb-4 font-bold text-white">تقنية التقمص (Persona)</p>
+                    <p class="mb-8 text-xl leading-relaxed text-gray-300">بدء المطالبة بـ <span class="text-brand-primary font-bold">"أنت خبير في..."</span> يغير الخوارزميات الرياضية والأوزان داخل النموذج، فيقوم باستدعاء قاموس المفردات الأكاديمية الخاص بذلك التخصص حصراً.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-[#0B1120] p-8 rounded-xl text-center border border-white/5 opacity-70">
+                            <div class="w-16 h-16 mx-auto bg-gray-800 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-user text-3xl text-gray-500"></i></div>
+                            <h4 class="text-white font-bold mb-2">بدون دور (مفتوح)</h4>
+                            <p class="text-base text-gray-400">سيجيب كمساعد افتراضي عادي، لغته سطحية وموجهة للعامة.</p>
+                        </div>
+                        <div class="bg-brand-surface p-8 rounded-xl text-center border border-brand-primary shadow-[0_0_20px_rgba(72,202,228,0.2)] transform scale-105">
+                            <div class="w-16 h-16 mx-auto bg-brand-primary/20 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-user-tie text-3xl text-brand-primary"></i></div>
+                            <h4 class="text-brand-primary font-bold mb-2">"أنت مصمم تعليمي خبير"</h4>
+                            <p class="text-base text-gray-200">سيستخدم مصطلحات تربوية دقيقة مثل (التقويم التكويني، نواتج التعلم، التفكير الناقد).</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "تصميم مطالبات قائمة على الأدوار لدعم المهام الأدائية",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">في المهام الأدائية الواقعية، نحن لا نعطي دوراً للذكاء الاصطناعي فحسب، بل <b>نطلب منه صراحة أن يعطي دوراً للطالب</b> ليزيد من حماسه وانغماسه (Immersion) في المهمة.</p>
+                    <button onclick="openModalById('إسناد الأدوار للطلاب (تأثير السياق)', 'student_roles')" class="w-full py-5 bg-[#0B1120] border border-white/10 hover:border-brand-primary rounded-xl transition-all font-bold text-xl flex justify-center items-center gap-3 shadow-md">
+                        <i class="fa-solid fa-masks-theater text-2xl text-brand-primary"></i> شاهد الفرق الشاسع في صياغة دور الطالب
+                    </button>
+                `
+            },
+            {
+                title: "تقنية التفكير خطوة بخطوة لتحسين عمق وجودة المخرجات",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">تقنية <b>Chain of Thought (CoT)</b> هي تعويذة سحرية تضيفها في نهاية المطالبة المعقدة التي تتطلب تخطيطاً أو حلاً للمشكلات.</p>
+                    <div class="bg-gradient-to-r from-brand-primary/20 to-brand-secondary/20 border-l-4 border-brand-primary p-6 rounded-r-xl mb-6 shadow-md">
+                        <p class="text-brand-primary font-extrabold text-2xl text-center">"فكر خطوة بخطوة قبل إعطاء النتيجة النهائية"</p>
+                    </div>
+                    <p class="text-gray-300 text-lg leading-relaxed">هذه الجملة تجبر النموذج على عدم القفز للنتيجة فوراً والتأليف العشوائي. بدلاً من ذلك، سيقوم بتفكيك المشكلة برمجياً، وكتابة مسودة التفكير أمامك، مما يرفع دقة التخطيط للمهام الأدائية ويقلل الأخطاء المنطقية بنسبة تصل إلى 80%.</p>
+                `
+            },
+            {
+                title: "التكرار والتحسين التدريجي للمطالبات للوصول إلى أفضل نتيجة",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">لا تتوقع الحصول على الكمال من المطالبة الأولى (ما يسمى بـ Zero-Shot). هندسة المطالبات هي عملية <b>حوار (Iterative Dialog)</b> ومفاوضات مستمرة مع الآلة.</p>
+                    <div class="space-y-4">
+                        <div class="bg-[#0B1120] p-5 rounded-xl border-r-4 border-gray-600 flex items-center gap-4 shadow-sm"><span class="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center font-bold">1</span> <span class="text-lg text-gray-300">أرسل المطالبة الأولى المبدئية.</span></div>
+                        <div class="bg-brand-surface p-5 rounded-xl border-r-4 border-brand-secondary flex items-center gap-4 shadow-sm ml-4"><span class="w-8 h-8 rounded-full bg-brand-secondary text-white flex items-center justify-center font-bold">2</span> <span class="text-lg text-gray-200">اقرأ المخرج. إذا كان طويلاً جداً، رد عليه في نفس المحادثة: "المحتوى رائع، لكن اختصره للنصف".</span></div>
+                        <div class="bg-brand-primary/10 p-5 rounded-xl border-r-4 border-brand-primary flex items-center gap-4 shadow-sm ml-8"><span class="w-8 h-8 rounded-full bg-brand-primary text-[#0B1120] flex items-center justify-center font-bold">3</span> <span class="text-lg text-white font-medium">إذا كانت المصطلحات معقدة: "أعد صياغة المهمة لتناسب قاموس طالب في العاشرة". (وهكذا حتى تصل للمثالية).</span></div>
+                    </div>
+                `
+            },
+            {
+                title: "استخدام القيود والأطر للتحكم في مخرجات النماذج التوليدية",
+                content: `
+                    <p class="mb-8 text-xl leading-relaxed">لإجبار النموذج على العمل بطريقة منهجية تربوية، لا تتركه يبتكر هياكل من العدم. اطلب منه صراحة الالتزام بـ <b>(إطار عمل / Framework)</b> عالمي معتمد.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                        <div class="bg-[#0B1120] p-6 rounded-2xl border border-white/5 interactive-box shadow-lg group" onclick="openModalById('نموذج GRASPS للمهام الأدائية', 'grasps')">
+                            <i class="fa-solid fa-puzzle-piece text-4xl text-brand-primary mb-4 group-hover:scale-110 transition-transform"></i>
+                            <h4 class="font-bold text-white text-xl">نموذج GRASPS</h4>
+                            <p class="text-sm mt-3 text-brand-muted bg-white/5 py-1 rounded">انقر لاستعراض العناصر</p>
+                        </div>
+                        <div class="bg-[#0B1120] p-6 rounded-2xl border border-white/5 interactive-box shadow-lg group" onclick="openModalById('نموذج الاستقصاء الخماسي 5Es', '5es')">
+                            <i class="fa-solid fa-magnifying-glass-chart text-4xl text-brand-secondary mb-4 group-hover:scale-110 transition-transform"></i>
+                            <h4 class="font-bold text-white text-xl">نموذج 5Es للدروس</h4>
+                            <p class="text-sm mt-3 text-brand-muted bg-white/5 py-1 rounded">انقر لاستعراض العناصر</p>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "تحليل الأخطاء الشائعة في هندسة المطالبات وطرق معالجتها",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">انقر على الخطأ الشائع لتعرف طريقة المعالجة الهندسية الصحيحة:</p>
+                    <div class="space-y-4">
+                        <details class="bg-[#0B1120] p-5 rounded-xl border border-white/5 cursor-pointer group shadow-sm transition-all open:border-brand-primary">
+                            <summary class="font-bold text-red-400 text-lg outline-none flex items-center justify-between">
+                                <span><i class="fa-solid fa-bug mr-2"></i> الخطأ: النموذج يكتب معلومات خارج المنهج السعودي.</span>
+                                <i class="fa-solid fa-chevron-down text-sm text-gray-500 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="mt-4 text-lg text-green-400 border-t border-white/10 pt-4 bg-green-900/10 p-4 rounded-lg">
+                                <b class="text-white">الحل (قيد التأسيس):</b> أضف الجملة التالية: "استند فقط على مفردات المنهج السعودي، ولا تضف مفاهيم تفوق المرحلة العمرية المطلوبة، وإذا لم تكن متأكداً من معلومة اكتب صراحة: لا أملك المعلومة."
+                            </div>
+                        </details>
+                        <details class="bg-[#0B1120] p-5 rounded-xl border border-white/5 cursor-pointer group shadow-sm transition-all open:border-brand-primary">
+                            <summary class="font-bold text-red-400 text-lg outline-none flex items-center justify-between">
+                                <span><i class="fa-solid fa-bug mr-2"></i> الخطأ: يعطيني أفكاراً لمهام مكلفة مادياً وتصعب تطبيقها.</span>
+                                <i class="fa-solid fa-chevron-down text-sm text-gray-500 group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="mt-4 text-lg text-green-400 border-t border-white/10 pt-4 bg-green-900/10 p-4 rounded-lg">
+                                <b class="text-white">الحل (قيد الموارد):</b> أضف الجملة التالية: "يجب أن تعتمد المهمة بالكامل على خامات البيئة المستهلكة المتوفرة في أي منزل، أو باستخدام الورق والقصاصات المدرسية فقط."
+                            </div>
+                        </details>
+                    </div>
+                `
+            },
+            {
+                title: "تحليل نواتج التعلم وصياغتها كأساس لتصميم مهام أدائية",
+                content: `
+                    <p class="text-xl mb-6 leading-relaxed">الخطوة الأولى العملية (نقطة الانطلاق): لا يمكنك تصميم مهمة من فراغ. افتح دليل المعلم، انسخ (ناتج التعلم)، واجعله البذرة الأساسية للمطالبة.</p>
+                    <div class="bg-[#0B1120] p-8 rounded-2xl border-r-4 border-brand-primary shadow-lg relative overflow-hidden">
+                        <i class="fa-solid fa-quote-right absolute top-6 left-6 text-4xl text-white/5"></i>
+                        <p class="font-bold text-brand-primary mb-4 text-xl">مطالبة التحليل المبدئي:</p>
+                        <p class="font-mono text-gray-300 text-lg leading-loose">"أنت خبير مناهج. لدي ناتج التعلم التالي: <span class="text-yellow-400">[يكتشف خصائص المغناطيس]</span>. قم بتحليل هذا الناتج إلى 3 أفعال أداء سلوكية قابلة للقياس والملاحظة داخل الفصل."</p>
+                    </div>
+                `
+            },
+            {
+                title: "تحويل نواتج التعلم إلى متطلبات أداء قابلة للتنفيذ",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">بعد أن يحلل النموذج ناتج التعلم إلى أفعال، ننتقل للخطوة الثانية في نفس المحادثة، وهي طلب "العصف الذهني" لاختيار نوع المهمة المناسبة.</p>
+                    <button onclick="openModalById('مطالبة العصف الذهني لاقتراح المهام', 'brainstorm')" class="w-full py-5 bg-gradient-to-r from-brand-secondary to-[#005f92] text-white rounded-xl hover:shadow-lg transition-all font-bold text-xl flex justify-center items-center gap-3">
+                        <i class="fa-solid fa-wand-magic-sparkles text-2xl"></i> استعرض مطالبة توليد أفكار المهام
+                    </button>
+                `
+            },
+            {
+                title: "بناء مطالبة احترافية لتوليد مهمة أدائية متكاملة",
+                content: `
+                    <p class="mb-6 text-2xl text-center font-extrabold text-brand-primary">هذه هي ذروة الدورة التدريبية (The Mega-Prompt).</p>
+                    <p class="text-center text-gray-300 mb-8 text-xl leading-relaxed max-w-3xl mx-auto">المطالبة الشاملة (القالب) هي التي تجمع كل ما تعلمناه في الدروس السابقة في كتلة واحدة: <br><span class="text-white font-bold">(الدور + السياق + الهدف + إطار GRASPS + قيد الموارد + التنسيق)</span>.</p>
+                    <div class="text-center bg-[#0B1120] p-6 rounded-2xl border border-brand-primary/30 inline-block mx-auto">
+                        <i class="fa-solid fa-arrow-down text-5xl text-brand-primary animate-bounce mb-4"></i>
+                        <p class="text-lg text-gray-200 font-medium">سنتدرب على بناء هذا القالب عملياً، خطوة بخطوة، ونرى أثر كل خطوة في <b class="text-brand-primary">المختبر التفاعلي الختامي</b> نهاية هذه المنصة.</p>
+                    </div>
+                `
+            },
+            {
+                title: "توليد معايير التقييم وروبركات الأداء باستخدام النماذج",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">أي مهمة أدائية تفقد قيمتها ومصداقيتها إذا لم يصاحبها (سلم تقدير لفظي - Rubric) يوضح للطلاب معايير النجاح وتوزيع الدرجات بشكل مسبق وموضوعي.</p>
+                    <div class="interactive-box bg-[#0B1120] p-8 rounded-2xl border border-white/5 text-center shadow-lg group" onclick="revealElement('rubric-reveal', this)">
+                        <i class="fa-solid fa-table-cells text-5xl text-brand-primary mb-4 group-hover:scale-110 transition-transform"></i>
+                        <h4 class="font-bold text-2xl text-white">ما هي المطالبة الخاصة بتوليد الروبرك؟ (انقر للكشف)</h4>
+                        <p id="rubric-reveal" class="reveal-content mt-6 bg-black/50 p-6 rounded-xl text-lg text-gray-300 font-mono text-right border border-white/10 leading-loose">
+                            "بناءً على المهمة السابقة التي صممتها، قم الآن ببناء سلم تقدير لفظي (Rubric) لتقييمها. <br>
+                            <span class="text-brand-primary">القيود:</span><br>
+                            1. أخرج الروبرك في شكل جدول (Markdown Table).<br>
+                            2. اجعله من 4 مستويات أداء (مبتدئ، نامٍ، كفء، متميز).<br>
+                            3. ضع 3 معايير رئيسية فقط للتقييم: الدقة العلمية، جودة الإخراج والتصميم، وعمق الحلول المقترحة."
+                        </p>
+                    </div>
+                `
+            },
+            {
+                title: "مراجعة وتحسين المهام الأدائية المولدة لضمان المواءمة",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">تذكر دائماً: الذكاء الاصطناعي هو <span class="text-brand-primary font-bold">"المساعد السريع"</span>، وأنت هو <span class="text-brand-secondary font-bold">"الخبير التربوي"</span>. لا تطبع المهمة المولدة وتوزعها للطلاب مباشرة دون تحكيم!</p>
+                    <ul class="space-y-4 list-decimal list-inside text-gray-200 bg-[#0B1120] p-8 rounded-2xl border border-white/5 text-lg shadow-md leading-relaxed">
+                        <li><b>مراجعة البيئة:</b> هل سيناريو المهمة يناسب الثقافة المحلية والمدرسية (لا يطلب مثلاً الذهاب للغابة في مدينة صحراوية)؟</li>
+                        <li><b>مراجعة اللغة:</b> هل صياغة التعليمات واضحة وقاموسها اللغوي مناسب لعمر الطالب وتطوره المعرفي؟</li>
+                        <li><b>مراجعة العدالة:</b> هل الروبرك المولد يُقيم الجهد الحقيقي وعمق المحتوى العلمي، أم أنه يُعطي الدرجة الأكبر للشكل والتنسيق الجمالي فقط؟</li>
+                    </ul>
+                `
+            },
+            {
+                title: "أمثلة تطبيقية لمهام أدائية في سياقات تعليمية متنوعة",
+                content: `
+                    <p class="mb-8 text-center text-gray-300 text-xl">كيف تبدو المهام الأدائية المولدة باحترافية؟ انقر على المادة لترى السيناريو (الدور والموقف):</p>
+                    <div class="flex flex-col md:flex-row gap-4">
+                        <button onclick="openModalById('مثال مادة العلوم', 'ex_science')" class="flex-1 bg-[#0B1120] py-5 rounded-xl hover:bg-green-600 hover:text-white font-bold transition-all text-xl border border-white/5 shadow-md">العلوم</button>
+                        <button onclick="openModalById('مثال اللغة العربية', 'ex_arabic')" class="flex-1 bg-[#0B1120] py-5 rounded-xl hover:bg-blue-600 hover:text-white font-bold transition-all text-xl border border-white/5 shadow-md">اللغة العربية</button>
+                        <button onclick="openModalById('مثال الرياضيات', 'ex_math')" class="flex-1 bg-[#0B1120] py-5 rounded-xl hover:bg-purple-600 hover:text-white font-bold transition-all text-xl border border-white/5 shadow-md">الرياضيات</button>
+                    </div>
+                `
+            },
+            {
+                title: "معايير تقييم جودة المهام الأدائية المولدة بالنماذج التوليدية",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">كيف تحكم كمعلم ومحكم أن الذكاء الاصطناعي أعطاك مهمة ممتازة صالحة للتطبيق الفوري؟ تحقق من الأبعاد الأربعة التالية:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-[#0B1120] p-6 rounded-xl border border-green-500/30 shadow-md flex items-start gap-4">
+                            <i class="fa-solid fa-check-circle text-3xl text-green-500 mt-1"></i> 
+                            <div><b class="text-xl text-white">الأصالة (Authenticity):</b><p class="text-gray-400 mt-2">المشكلة حقيقية، وسيناريو التقمص يحاكي مهام العالم الحقيقي وليس مصطنعاً.</p></div>
+                        </div>
+                        <div class="bg-[#0B1120] p-6 rounded-xl border border-blue-500/30 shadow-md flex items-start gap-4">
+                            <i class="fa-solid fa-bullseye text-3xl text-blue-500 mt-1"></i> 
+                            <div><b class="text-xl text-white">المواءمة (Alignment):</b><p class="text-gray-400 mt-2">المهمة تقيس ناتج التعلم المقصود بدقة ولا تنحرف لمهارات أخرى هامشية.</p></div>
+                        </div>
+                        <div class="bg-[#0B1120] p-6 rounded-xl border border-yellow-500/30 shadow-md flex items-start gap-4">
+                            <i class="fa-regular fa-eye text-3xl text-yellow-500 mt-1"></i> 
+                            <div><b class="text-xl text-white">الوضوح (Clarity):</b><p class="text-gray-400 mt-2">لغة التعليمات خالية من الغموض، والطالب يعرف تماماً ماذا يُتوقع منه تسليمه.</p></div>
+                        </div>
+                        <div class="bg-[#0B1120] p-6 rounded-xl border border-purple-500/30 shadow-md flex items-start gap-4">
+                            <i class="fa-solid fa-stopwatch text-3xl text-purple-500 mt-1"></i> 
+                            <div><b class="text-xl text-white">الجدوى (Feasibility):</b><p class="text-gray-400 mt-2">يمكن تنفيذها ضمن وقت الحصة (أو الواجب)، ومواردها المالية متوفرة بالمدرسة.</p></div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                title: "استخدام أدوات التقييم والروبركات لتحليل المخرجات المولدة",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">من أسرار هندسة المطالبات المتقدمة: تماماً كما يمتلك الطالب روبرك للتقييم، يمكنك أن تطلب من الذكاء الاصطناعي أن <b>يقيم المخرج الذي أعطاك إياه للتو!</b> (AI Self-Correction).</p>
+                    <div class="bg-[#0B1120] p-8 rounded-2xl border border-brand-primary/50 relative overflow-hidden shadow-lg">
+                        <div class="absolute -right-10 -top-10 w-32 h-32 bg-brand-primary/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <p class="font-bold mb-4 text-white text-xl">أرسل له هذه المطالبة بعد أن يولد لك المهمة مباشرة:</p>
+                        <p class="font-mono text-gray-300 text-lg leading-loose">"بصفتك خبير جودة ومراجع أكاديمي صارم، قم بتقييم المهمة التي صممتها للتو من 10 درجات. <br>أوضح نقاط القوة، ونقاط الضعف فيها، والأهم: اذكر ما الذي تفتقر إليه هذه المهمة لتصبح مثالية وأكثر واقعية للطلاب."</p>
+                    </div>
+                `
+            },
+            {
+                title: "تحسين المطالبات بناءً على نتائج التقييم وجودة الأداء",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">التحسين المستمر هو جوهر "هندسة المطالبات". إذا كشف التقييم الذاتي للنموذج عن ضعف (مثلاً: اكتشفت أن المهمة طويلة جداً وستستغرق 3 حصص)، يجب ألا تكتفي بتعديل المهمة الحالية فقط، بل يجب أن <b>تُحدث القالب الأساسي</b> الخاص بك.</p>
+                    <div class="flex items-center gap-6 bg-[#0B1120] p-8 rounded-2xl border border-white/5 shadow-md">
+                        <i class="fa-solid fa-rotate text-5xl text-brand-primary animate-spin-slow"></i>
+                        <p class="text-lg text-gray-200 leading-relaxed"><b class="text-white text-xl">التحديث الهندسي للقالب:</b><br>افتح مفكرتك التي تحفظ فيها أوامرك الشاملة، وأضف القيد الدائم الجديد: <i>"تأكد أن خطوات إنجاز المهمة لا تتجاوز 4 خطوات عملية، ويمكن للطالب إنجازها في 45 دقيقة كحد أقصى داخل الفصل المقلوب."</i></p>
+                    </div>
+                `
+            },
+            {
+                title: "التعامل مع التحيزات (الرقابة البشرية)",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">النماذج اللغوية دُربت على نصوص عالمية أغلبها غربية، وقد تحمل تحيزات أو تقترح سياقات لا تتناسب مع بيئتنا وثقافتنا المحلية. هنا يأتي دور <b>الرقابة البشرية (Human in the loop)</b>.</p>
+                    <button onclick="openModalById('تعديل التحيز البيئي (مثال تطبيقي)', 'bias')" class="w-full py-5 bg-red-950/40 text-red-400 border border-red-500/50 hover:bg-red-900/60 transition-all font-bold rounded-xl text-xl flex justify-center items-center gap-3 shadow-md">
+                        <i class="fa-solid fa-shield-halved text-2xl"></i> انقر للتعرف على دور الرقابة البشرية وتوطين المحتوى
+                    </button>
+                `
+            },
+            {
+                title: "الاعتبارات الأخلاقية والتربوية في تقييم واستخدام المخرجات",
+                content: `
+                    <p class="mb-6 text-xl leading-relaxed">في الدرس الأخير النظري من هذا البرنامج، نؤكد على الميثاق الأخلاقي للمعلم الممارس في عصر الذكاء الاصطناعي:</p>
+                    <ul class="space-y-5 text-gray-200 bg-[#0B1120] p-8 rounded-2xl border border-white/5 text-lg shadow-md">
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-user-shield text-3xl text-brand-primary"></i> <div><b class="text-white text-xl">1. الخصوصية:</b> لا تضع أسماء طلابك الحقيقية، أو درجاتهم، أو تقاريرهم الطبية/السلوكية في المطالبات أبداً حماية لبياناتهم.</div></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-lightbulb text-3xl text-brand-secondary"></i> <div><b class="text-white text-xl">2. الشفافية التثقيفية:</b> لا مانع من إخبار الطلاب بوضوح أن "سيناريو هذه المهمة" تم تطويره بمساعدة الذكاء الاصطناعي، لتعليمهم بالقدوة الاستخدام الإيجابي للتقنية.</div></li>
+                        <li class="flex items-start gap-4"><i class="fa-solid fa-scale-balanced text-3xl text-purple-400"></i> <div><b class="text-white text-xl">3. المسؤولية الكاملة:</b> المعلم هو من يوقع في النهاية. أنت المسؤول الأول والأخير عن صحة ومناسبة أي محتوى يتم تقديمه واعتماده في فصلك الدراسي.</div></li>
+                    </ul>
+                `
+            }
+        ];
+
+        // ==========================================
+        // 2. منطق الأنشطة التفاعلية الستة
+        // ==========================================
+        const activitiesHTML = [
+            // 1. Slider
+            `<h3 class="text-3xl font-bold mb-4 text-brand-primary">عداد تقليل الهلوسة</h3>
+             <p class="text-gray-400 mb-8 text-xl">اسحب الشريط لليمين لتضيف قيوداً للمطالبة ولاحظ كيف تنخفض مساحة التأليف العشوائي.</p>
+             <div class="w-full max-w-3xl bg-[#040810] p-8 rounded-xl border border-white/10 text-right min-h-[150px] flex items-center justify-center text-2xl font-medium shadow-inner" id="slider-text">اكتب لي درساً عن البيئة</div>
+             <div class="w-full max-w-3xl mt-10 flex flex-col items-center">
+                <div class="flex justify-between w-full text-lg font-bold mb-3">
+                    <span class="text-red-500 animate-pulse">🔴 هلوسة وتأليف عشوائي عالي</span>
+                    <span class="text-green-500 transition-all duration-300" id="slider-status"></span>
+                </div>
+                <input type="range" min="1" max="4" value="1" class="w-full accent-brand-primary h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer shadow-lg" oninput="updateSlider(this.value)">
+             </div>`,
+             
+            // 2. Hover
+            `<h3 class="text-3xl font-bold mb-4 text-brand-primary">المجهر التحليلي الهندسي</h3>
+             <p class="text-gray-400 mb-8 text-xl">مرر الماوس (Hover) فوق الجمل المضيئة لاكتشاف أسرار هندستها التربوية.</p>
+             <div class="w-full max-w-4xl bg-[#040810] p-10 rounded-2xl border border-white/10 text-right text-2xl leading-loose font-medium shadow-2xl">
+                <span class="tooltip-container font-bold" data-info="التقمص (Persona): يجعل النموذج يستدعي المفردات التخصصية للتربية والمناهج حصراً.">أنت خبير تقويم تربوي</span>، 
+                قم بتصميم مهمة أدائية <span class="tooltip-container font-bold" data-info="تضييق نطاق السياق والمحتوى العلمي لمنع إضافة معلومات جامعية.">لمادة العلوم للصف الرابع</span>. 
+                <br><br>استخدم <span class="tooltip-container font-bold" data-info="القيود الهيكلية: إجبار الآلة على العمل وفق منهجية علمية معتمدة بدلاً من التأليف العشوائي للأنشطة.">نموذج GRASPS</span> في التصميم. 
+                <br><br>أخرج الناتج <span class="tooltip-container font-bold" data-info="قيد التنسيق: لمنع النموذج من سرد النصوص الطويلة المتداخلة وتسهيل استخراج وطباعة المخرج للطلاب.">في شكل جدول Markdown من 4 أعمدة</span>.
+             </div>`,
+
+            // 3. Split Screen
+            `<h3 class="text-3xl font-bold mb-4 text-brand-primary">المقارنة المنزلقة قبل وبعد</h3>
+             <p class="text-gray-400 mb-8 text-xl">اسحب الفاصل يميناً ويساراً لتقارن بين استجابة الذكاء الاصطناعي للمطالبة المفتوحة (الضعيفة) والمطالبة الهندسية (المقيدة).</p>
+             <div class="split-container bg-black border border-white/20 shadow-2xl max-w-4xl w-full">
+                <div class="panel panel-bad"><div class="w-full"><b class="text-2xl mb-4 block underline">مطالبة ضعيفة (مفتوحة):</b>مقال طويل جداً وممل يسرد معلومات نظرية جافة عن البيئة، بدون أي نشاط عملي للطالب، وبدون معايير تقييم واضحة للمهمة. 🥱</div></div>
+                <div class="panel panel-good" id="good-panel"><div class="w-full"><b class="text-2xl mb-4 block underline">مطالبة هندسية (مقيدة):</b>جدول منظم وأنيق، سيناريو يتقمص فيه الطالب دور (باحث بيئي) يحل مشكلة محلية، مع روبرك تقييم واضح يوزع الدرجات على 4 مستويات. 🤩</div></div>
+                <input type="range" min="0" max="100" value="50" class="slider-split" oninput="document.getElementById('good-panel').style.clipPath = 'polygon(0 0, ' + this.value + '% 0, ' + this.value + '% 100%, 0 100%)'">
+             </div>`,
+
+            // 4. Upgrade Word
+            `<h3 class="text-3xl font-bold mb-4 text-brand-primary">ترقية الكلمات الضعيفة</h3>
+             <p class="text-gray-400 mb-8 text-xl">انقر على الكلمات الحمراء (الضعيفة) لتحويلها إلى كلمات (هندسية احترافية) توجه الآلة بشكل صحيح.</p>
+             <div class="w-full max-w-4xl bg-[#040810] p-10 rounded-2xl border border-white/10 text-center text-3xl leading-loose shadow-2xl">
+                أريدك أن <span class="text-red-500 font-bold cursor-pointer upgrade-word inline-block border-b-2 border-red-500/50 pb-1" onclick="upgradeWord(this, 'تصمم مهمة أدائية')">تعطيني فكرة</span> عن المغناطيس 
+                للطلاب الصغار، و <span class="text-red-500 font-bold cursor-pointer upgrade-word inline-block border-b-2 border-red-500/50 pb-1" onclick="upgradeWord(this, 'تستخدم الاستقصاء الخماسي')">اجعلها ممتعة</span>، 
+                واكتب <span class="text-red-500 font-bold cursor-pointer upgrade-word inline-block border-b-2 border-red-500/50 pb-1" onclick="upgradeWord(this, 'سلم تقدير لفظي من 4 مستويات')">بعض درجات التقييم</span>.
+             </div>
+             <p class="mt-8 text-green-400 font-bold text-2xl hidden drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]" id="upgrade-success">🎉 مبروك! أصبحت المطالبة دقيقة وستمنع الهلوسة تماماً.</p>`,
+
+            // 5. Emoji Tree
+            `<h3 class="text-3xl font-bold mb-4 text-brand-primary">مُحدد التنسيق الفوري بالإيموجي</h3>
+             <p class="text-gray-400 mb-8 text-xl">انقر على الإيموجي لتغيير (قيد التنسيق) ورؤية أثره الفوري على المخرجات.</p>
+             <div class="flex gap-6 justify-center mb-10">
+                <button onclick="changeFormat('table')" class="text-5xl bg-brand-surface p-6 rounded-2xl hover:bg-brand-primary/20 transition-all border border-transparent hover:border-brand-primary shadow-lg hover:scale-110">📊 جدول</button>
+                <button onclick="changeFormat('bullets')" class="text-5xl bg-brand-surface p-6 rounded-2xl hover:bg-brand-primary/20 transition-all border border-transparent hover:border-brand-primary shadow-lg hover:scale-110">📝 نقاط</button>
+                <button onclick="changeFormat('scenario')" class="text-5xl bg-brand-surface p-6 rounded-2xl hover:bg-brand-primary/20 transition-all border border-transparent hover:border-brand-primary shadow-lg hover:scale-110">🎭 حوار</button>
+             </div>
+             <div id="format-result" class="w-full max-w-2xl bg-[#040810] p-8 rounded-xl text-xl text-gray-300 min-h-[200px] border border-white/10 shadow-inner flex flex-col justify-center">
+                <p class="text-center opacity-50 text-base">(النص العشوائي الافتراضي بدون تنسيق يظهر كنص طويل متصل يسرد معلومات نظرية متشابكة يصعب على الطالب قراءتها واستيعاب تعليماتها...)</p>
+             </div>`,
+
+            // 6. Tree Builder
+            `<h3 class="text-3xl font-bold mb-4 text-brand-primary">الخارطة الشجرية التراكمية</h3>
+             <p class="text-gray-400 mb-8 text-xl">ابنِ هيكل المطالبة الشاملة غصناً بغصن لترسيخ مكوناتها في ذهنك.</p>
+             <button onclick="addTreeNode()" id="tree-btn" class="mb-8 px-8 py-3 bg-brand-primary text-brand-base font-bold text-xl rounded-xl hover:bg-brand-secondary hover:text-white transition-colors shadow-[0_0_15px_rgba(72,202,228,0.4)]">إضافة الغصن الأول: الدور (Role) <i class="fa-solid fa-plus"></i></button>
+             <div class="w-full max-w-lg bg-transparent border-r-4 border-brand-surface pr-6 flex flex-col items-start" id="tree-container">
+                <div class="bg-brand-surface p-4 rounded-lg mb-6 font-bold border border-white/10 w-fit text-xl shadow-md">جذر المطالبة الاحترافية</div>
+             </div>`
+        ];
+
+        // دوال مساعدة للأنشطة
+        function updateSlider(val) {
+            const texts = [
+                "اكتب لي درساً عن البيئة",
+                "اكتب لي درساً <span class='text-brand-primary'>لمادة العلوم للصف الرابع</span> عن البيئة",
+                "أنت خبير تعليمي. اكتب درساً للعلوم رابع <span class='text-brand-primary'>يهدف للتمييز بين السلاسل الغذائية</span>",
+                "<span class='text-green-400 font-bold'>أنت خبير. صمم درساً باستراتيجية 5Es للصف الرابع (الهدف: السلاسل)، أخرج التقييم بجدول.</span>"
+            ];
+            const textEl = document.getElementById('slider-text');
+            textEl.innerHTML = texts[val - 1];
+            textEl.classList.remove('animate-fade-in'); void textEl.offsetWidth; textEl.classList.add('animate-fade-in');
+            
+            const status = document.getElementById('slider-status');
+            if(val == 4) { status.innerText = "🟢 مطالبة آمنة تماماً (لا هلوسة)"; status.classList.add('scale-110', 'font-extrabold'); }
+            else { status.innerText = ""; status.classList.remove('scale-110', 'font-extrabold'); }
+        }
+
+        let upgradedWordsCount = 0;
+        function upgradeWord(el, newWord) {
+            el.innerText = newWord; el.classList.add('upgraded'); el.classList.remove('text-red-500', 'border-red-500/50');
+            upgradedWordsCount++;
+            if(upgradedWordsCount === 3) document.getElementById('upgrade-success').classList.remove('hidden');
+        }
+
+        function changeFormat(type) {
+            const res = document.getElementById('format-result');
+            res.classList.remove('animate-fade-in'); void res.offsetWidth; res.classList.add('animate-fade-in');
+            if(type==='table') res.innerHTML = `<table class="w-full border-collapse border border-brand-primary/30 text-right"><tr class="bg-brand-primary/20"><th class="border border-brand-primary/30 p-3 text-brand-primary">المعيار</th><th class="border border-brand-primary/30 p-3 text-brand-primary">الوصف ومستوى الإنجاز</th></tr><tr><td class="border border-brand-primary/30 p-3 font-bold">الدقة العلمية</td><td class="border border-brand-primary/30 p-3">استخدام المصطلحات بشكل صحيح وخالٍ من الأخطاء المفاهيمية.</td></tr></table>`;
+            else if(type==='bullets') res.innerHTML = `<ul class="list-disc list-inside space-y-4 text-right"><li><b class="text-brand-primary">الخطوة 1 (التهيئة):</b> عرض فيديو قصير عن المغناطيس.</li><li><b class="text-brand-primary">الخطوة 2 (التجربة):</b> توزيع مشابك ومغناطيسات على المجموعات.</li><li><b class="text-brand-primary">الخطوة 3 (التقويم):</b> ورقة عمل سريعة من سؤالين.</li></ul>`;
+            else res.innerHTML = `<div class="text-right space-y-3"><p><b class="text-brand-secondary">المعلم (مبتسماً):</b> أهلاً يا أبطال، من منكم يعرف السحر الخفي في هذا الحجر الأسود؟</p><p><b class="text-green-400">الطالب (متحمساً):</b> إنه المغناطيس! يجذب الحديد يا أستاذ.</p><p><b class="text-brand-secondary">المعلم:</b> ممتاز! تعالوا لنجرب ذلك عملياً الآن.</p></div>`;
+        }
+
+        let treeStep = 0;
+        const treeNodes = ["1. تحديد الدور (Persona: أنت خبير...)", "2. تحديد السياق (الصف والمادة والبيئة)", "3. الهدف بدقة (ناتج التعلم من المنهج)", "4. الإطار الهيكلي (نموذج GRASPS أو 5Es)", "5. قيد التنسيق (جدول / نقاط / روبرك)"];
+        const treeBtnTexts = ["السياق البيئي", "الهدف التعليمي", "الإطار الهيكلي", "قيد التنسيق والروبرك", "اكتملت الخريطة"];
+        function addTreeNode() {
+            if (treeStep < 5) {
+                const container = document.getElementById('tree-container');
+                container.innerHTML += `<div class="tree-node bg-[#040810] p-4 rounded-lg w-fit border border-brand-primary text-brand-primary font-bold text-lg shadow-md hover:bg-brand-primary/10 transition-colors">${treeNodes[treeStep]}</div>`;
+                const btn = document.getElementById('tree-btn');
+                if(treeStep < 4) btn.innerHTML = `إضافة الغصن: ${treeBtnTexts[treeStep]} <i class="fa-solid fa-plus"></i>`;
+                else { btn.innerHTML = "اكتمل الهيكل السليم للمطالبة! 🌟"; btn.classList.replace('bg-brand-primary', 'bg-green-500'); btn.disabled = true; }
+                treeStep++;
+            }
+        }
+
+        // ==========================================
+        // 3. بيانات المختبر الختامي التراكمي
+        // ==========================================
+        const labSteps = [
+            { 
+                title: "المطالبة البدائية (الساذجة)", 
+                prompt: "اكتب لي مهمة أدائية للطلاب عن البيئة.", 
+                flaw: "<li><b class='text-white'>نقص السياق والهدف:</b> النموذج لا يعرف من هم الطلاب (المرحلة) ولا المادة العلمية.</li><li><b class='text-white'>احتمالية هلوسة عالية:</b> سيبتكر نشاطاً عشوائياً (قد يناسب الروضة أو الجامعة) ولن يخدم أي ناتج تعلم محدد.</li>", 
+                fix: "كقاعدة تأسيسية: يجب تحديد <b>ناتج التعلم الدقيق</b> من المنهج، وتحديد <b>المادة</b>، و<b>المرحلة الدراسية</b> لتضييق مساحة التخمين لدى الآلة." 
+            },
+            { 
+                title: "إضافة السياق والهدف التعليمي", 
+                prompt: "اكتب مهمة أدائية <span class='text-brand-primary'>في مادة العلوم للصف الخامس، تقيس قدرة الطالب على التمييز بين السلاسل والشبكات الغذائية.</span>", 
+                flaw: "<li><b class='text-white'>غياب التخصص الأكاديمي:</b> سيتحدث النموذج كـ 'مساعد آلي' وليس كتربوي خبير.</li><li><b class='text-white'>مهمة تقليدية سطحية:</b> لن تكون 'أدائية' مبنية على المعايير العالمية، بل قد يقترح لك مجرد ورقة عمل تقليدية أو رسمة.</li>", 
+                fix: "منح النموذج <b>دوراً (Persona)</b> ليتحدث بلغة الخبراء، واستخدام إطار عمل <b>(GRASPS)</b> العالمي لإجبار الآلة على تصميم مهمة أدائية أصيلة." 
+            },
+            { 
+                title: "توظيف الدور وإطار العمل (GRASPS)", 
+                prompt: "<span class='text-brand-primary'>أنت خبير في طرق تدريس العلوم والتقويم البديل.</span> صمم مهمة أدائية تقيس التمييز بين السلاسل الغذائية. <br><br><span class='text-brand-primary'>استخدم نموذج GRASPS. اجعل الطالب يتقمص دور (باحث بيئي) يحل مشكلة نقص الكائنات في محمية طبيعية.</span>", 
+                flaw: "<li>السيناريو رائع، لكن.. <b class='text-white'>لمن سيقدم الطالب هذا الحل؟</b> (عنصر الجمهور غائب).</li><li><b class='text-white'>ما هو المنتج النهائي المطلوب؟</b> (هل سيسلم مقالاً؟ أم مجسماً؟ أم عرضاً تقديمياً؟). الآلة ستجتهد وتخترع مخرجاً قد لا يعجبك.</li>", 
+                fix: "استكمال عناصر النموذج: تحديد <b>(الجمهور)</b> الذي يتلقى المهمة من الطالب، و<b>(المنتج النهائي الملموس)</b> المطلوب تسليمه." 
+            },
+            { 
+                title: "تحديد المخرجات والجمهور", 
+                prompt: "... دور باحث بيئي في محمية. <br><br><span class='text-brand-primary'>الجمهور المستهدف: مدير المحمية. <br>المنتج النهائي الملموس: تقرير مرئي (مطوية) مدعم بالرسوم يشرح التأثير ويقترح الحلول.</span>", 
+                flaw: "<li>المهمة الآن أصبحت <b>ممتازة ومكتملة للطالب</b>.</li><li>لكن المعلم لا يزال يفتقد لأهم أداة تربوية: <b class='text-white'>كيف سيُقيّم المعلم هذا التقرير بموضوعية وعدالة بعيداً عن الاجتهاد الشخصي؟</b></li>", 
+                fix: "الطلب المباشر والصريح في نهاية المطالبة بتصميم <b>(سلم تقدير لفظي - Rubric)</b> وتحديد شكله في جدول ليكون جاهزاً للطباعة." 
+            },
+            { 
+                title: "البرومبت الاحترافي (الميجا برومبت)", 
+                prompt: "... المنتج: تقرير مرئي مدعم بالرسوم. <br><br><span class='text-brand-primary'>أخيراً، صمم سلم تقدير لفظي (Rubric) لتقييم التقرير من 4 مستويات أداء في شكل جدول (Markdown Table)، يغطي حصراً معايير: الدقة العلمية للمحتوى، جودة التصميم الفني، وعمق الحلول المقترحة.</span>", 
+                flaw: "<li>هذا البرومبت <b>مثالي ومقيد بقوة</b> ولا مجال فيه للهلوسة أو التأليف العشوائي.</li><li>الخلل الوحيد الباقي هو أنه <b>محدود لدرس السلاسل الغذائية لمادة العلوم فقط</b>، ولا يمكن استخدامه لمواد أخرى.</li>", 
+                fix: "عملية التجريد (Abstraction): سحب المتغيرات (المادة، الصف، الهدف، الموقف) واستبدالها بـ <b>أقواس فراغات [ ]</b> لإنشاء قالب شامل." 
+            },
+            { 
+                title: "القالب الشامل (Universal Template) للاستخدام الدائم", 
+                prompt: `أنت خبير في مناهج وطرق تدريس مادة <span class='text-yellow-400 font-bold'>[اسم المادة]</span> ومختص في التقويم المعتمد على الأداء.
+
+مهمتك: تصميم مهمة أدائية متكاملة لطلاب الصف <span class='text-yellow-400 font-bold'>[المرحلة الدراسية]</span>.
+الهدف المطلوب قياسه: <span class='text-yellow-400 font-bold'>[اكتب ناتج التعلم أو الهدف بدقة من المنهج]</span>.
+
+القيود والشروط:
+1. استخدم نموذج GRASPS العالمي للمهام (الهدف، الدور، الجمهور، الموقف المشكل، المنتج الملموس، المعايير).
+2. يجب أن تكون المهمة واقعية ومرتبطة ببيئة الطالب المحلية لتكون ذات معنى.
+3. التزم بخصائص المرحلة العمرية لغوياً ومعرفياً.
+
+أخيراً، أرفق "سلم تقدير لفظي" (Rubric) في شكل جدول (Markdown) من 4 مستويات لتقييم المنتج.`, 
+                flaw: "<li><i class='fa-solid fa-medal text-green-400 ml-2 text-2xl'></i> <b class='text-white text-xl'>تم الاعتماد بنجاح.</b> لا يوجد أي خلل. هذا القالب هو كنزك الهندسي الذي يضمن لك مهام أدائية فائقة الجودة لجميع موادك وتخصصاتك بلا أي هلوسة.</li>", 
+                fix: "اضغط على زر (نسخ القالب وإنهاء) في الأسفل، احفظه في ملاحظاتك، وابدأ في الإبداع التربوي." 
+            }
+        ];
+
+        // ==========================================
+        // 4. منطق التنقل الرئيسي للتطبيق
+        // ==========================================
+        let currentIndex = 0;
+        let currentLabIndex = 0;
+
+        function initApp() {
+            const menu = document.getElementById('sidebar-menu');
+            let html = '<ul class="py-2">';
+            
+            // الدروس 29
+            fullCourse.forEach((lesson, index) => {
+                html += `<li class="nav-item cursor-pointer px-6 py-3.5 text-sm text-gray-300 flex items-center gap-3 border-b border-white/5" id="nav-item-${index}" onclick="loadLesson(${index})">
+                        <i class="fa-solid fa-file-lines text-brand-muted opacity-50"></i><span class="truncate leading-tight">${lesson.title}</span></li>`;
+            });
+            
+            // تبويب الأنشطة التفاعلية
+            html += `<li class="nav-item cursor-pointer px-6 py-5 text-sm text-brand-primary flex items-center gap-3 font-bold bg-brand-primary/10 mt-4 border-t border-brand-primary/30 shadow-md" id="nav-item-activities" onclick="openActivitiesHub()">
+                    <i class="fa-solid fa-gamepad text-xl animate-bounce"></i><span>منصة الأنشطة التفاعلية</span></li>`;
+            
+            // تبويب المختبر الختامي
+            html += `<li class="nav-item cursor-pointer px-6 py-5 text-sm text-brand-secondary flex items-center gap-3 font-bold bg-brand-secondary/10 border-b border-brand-secondary/30 shadow-md mb-2" id="nav-item-lab" onclick="startLab()">
+                    <i class="fa-solid fa-flask text-xl"></i><span>المختبر التفاعلي الختامي</span></li></ul>`;
+            
+            menu.innerHTML = html;
+            loadLesson(0);
+        }
+
+        function updateSidebar(id) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeEl = document.getElementById(id);
+            if(activeEl) {
+                activeEl.classList.add('active');
+                activeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function hideAllPanels() {
+            document.getElementById('lesson-container').classList.add('hidden');
+            document.getElementById('activities-hub').classList.add('hidden');
+            document.getElementById('single-activity-view').classList.add('hidden');
+            document.getElementById('lab-container').classList.add('hidden');
+        }
+
+        // عرض درس عادي
+        function loadLesson(index) {
+            hideAllPanels();
+            currentIndex = index;
+            const lessonContainer = document.getElementById('lesson-container');
+            lessonContainer.classList.remove('hidden');
+            lessonContainer.classList.remove('animate-fade-in'); void lessonContainer.offsetWidth; lessonContainer.classList.add('animate-fade-in');
+
+            document.getElementById('lesson-number').innerText = `الدرس ${index + 1} من ${fullCourse.length}`;
+            document.getElementById('lesson-title').innerText = fullCourse[index].title;
+            document.getElementById('lesson-content').innerHTML = fullCourse[index].content;
+
+            document.getElementById('prev-btn').style.visibility = index === 0 ? 'hidden' : 'visible';
+            const nextBtn = document.getElementById('next-btn');
+            if (index === fullCourse.length - 1) {
+                nextBtn.innerHTML = `اذهب إلى منصة الأنشطة <i class="fa-solid fa-gamepad"></i>`;
+                nextBtn.onclick = openActivitiesHub;
+                nextBtn.className = "px-8 py-4 rounded-xl bg-gradient-to-l from-brand-secondary to-brand-primary text-white font-bold hover:shadow-[0_0_20px_rgba(72,202,228,0.6)] transition-all flex items-center gap-3 text-lg";
+            } else {
+                nextBtn.innerHTML = `التالي <i class="fa-solid fa-arrow-left"></i>`;
+                nextBtn.onclick = () => navigate(1);
+                nextBtn.className = "px-8 py-3 rounded-xl bg-brand-primary text-brand-base font-bold hover:shadow-[0_0_20px_rgba(72,202,228,0.4)] transition-all flex items-center gap-3 text-lg";
+            }
+
+            updateSidebar(`nav-item-${index}`);
+            updateProgress(index + 1);
+            document.getElementById('main-scroll-area').scrollTo(0,0);
+        }
+
+        function navigate(dir) {
+            if (currentIndex + dir >= 0 && currentIndex + dir < fullCourse.length) loadLesson(currentIndex + dir);
+        }
+
+        // فتح منصة الأنشطة
+        function openActivitiesHub() {
+            hideAllPanels();
+            const hub = document.getElementById('activities-hub');
+            hub.classList.remove('hidden');
+            hub.classList.remove('animate-fade-in'); void hub.offsetWidth; hub.classList.add('animate-fade-in');
+            updateSidebar('nav-item-activities');
+            updateProgress(fullCourse.length + 1);
+            document.getElementById('main-scroll-area').scrollTo(0,0);
+        }
+
+        // فتح نشاط فردي
+        function openActivityView(activityId) {
+            document.getElementById('activities-hub').classList.add('hidden');
+            const view = document.getElementById('single-activity-view');
+            view.classList.remove('hidden');
+            view.classList.remove('animate-fade-in'); void view.offsetWidth; view.classList.add('animate-fade-in');
+            
+            // إعادة ضبط متغيرات الأنشطة
+            upgradedWordsCount = 0; treeStep = 0; 
+            
+            document.getElementById('activity-content-area').innerHTML = activitiesHTML[activityId - 1];
+            
+            // تفعيل Tooltips للنشاط 2 إن وجد
+            if(activityId === 2) {
+                document.querySelectorAll('.tooltip-container').forEach(el => {
+                    const txt = document.createElement('span');
+                    txt.className = 'tooltip-text';
+                    txt.innerText = el.getAttribute('data-info');
+                    el.appendChild(txt);
+                });
+            }
+        }
+
+        function closeActivityView() {
+            document.getElementById('single-activity-view').classList.add('hidden');
+            document.getElementById('activities-hub').classList.remove('hidden');
+        }
+
+        // المختبر الختامي
+        function startLab() {
+            hideAllPanels();
+            const labContainer = document.getElementById('lab-container');
+            labContainer.classList.remove('hidden');
+            labContainer.classList.remove('animate-fade-in'); void labContainer.offsetWidth; labContainer.classList.add('animate-fade-in');
+
+            currentLabIndex = 0;
+            renderLabStep();
+            updateSidebar('nav-item-lab');
+            updateProgress(fullCourse.length + 2);
+            document.getElementById('main-scroll-area').scrollTo(0,0);
+        }
+
+        function renderLabStep() {
+            const step = labSteps[currentLabIndex];
+            document.getElementById('lab-badge').innerText = `مرحلة ${currentLabIndex + 1} من ${labSteps.length}`;
+            document.getElementById('lab-title').innerText = step.title;
+            
+            const promptEl = document.getElementById('lab-prompt');
+            promptEl.style.opacity = 0; setTimeout(() => { promptEl.innerHTML = step.prompt.replace(/\n/g, '<br>'); promptEl.style.opacity = 1; }, 200);
+
+            document.getElementById('lab-flaw').innerHTML = step.flaw;
+            const fixBox = document.getElementById('lab-fix-box'); fixBox.classList.add('hidden');
+            setTimeout(() => { document.getElementById('lab-fix').innerHTML = step.fix; fixBox.classList.remove('hidden'); fixBox.classList.add('animate-slide-up'); }, 600);
+
+            const btn = document.getElementById('lab-btn');
+            const flawBox = document.getElementById('lab-flaw-box');
+            const flawTitle = document.getElementById('lab-flaw-title');
+
+            if(currentLabIndex === labSteps.length - 1) {
+                btn.innerHTML = `<span>نسخ القالب وإنهاء البرنامج</span> <i class="fa-solid fa-copy ml-2"></i>`;
+                btn.className = "w-full py-5 rounded-xl bg-gradient-to-l from-green-500 to-emerald-600 text-white font-bold text-2xl hover:shadow-[0_0_30px_rgba(74,222,128,0.5)] transition-all flex justify-center items-center gap-3 mt-auto shadow-lg";
+                flawBox.className = "bg-green-950/40 rounded-2xl p-8 border border-green-500/40 flex-grow shadow-lg transition-all duration-300";
+                flawTitle.className = "text-green-400 font-bold mb-5 text-xl flex items-center gap-3";
+                flawTitle.innerHTML = `<i class="fa-solid fa-medal text-3xl"></i> الاعتماد النهائي والنجاح`;
+            } else {
+                btn.innerHTML = `<span>انقر لتطبيق التحسين والتتبع</span> <i class="fa-solid fa-arrow-left animate-bounce-x ml-2"></i>`;
+                btn.className = "w-full py-5 rounded-xl bg-gradient-to-l from-brand-primary to-brand-secondary text-white font-bold text-2xl hover:shadow-[0_0_30px_rgba(72,202,228,0.5)] transition-all flex justify-center items-center gap-3 mt-auto shadow-lg";
+                flawBox.className = "bg-red-950/40 rounded-2xl p-8 border border-red-500/30 flex-grow shadow-lg transition-all duration-300";
+                flawTitle.className = "text-red-400 font-bold mb-5 text-xl flex items-center gap-3";
+                flawTitle.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-2xl"></i> التشخيص الأكاديمي (موقع الخلل)`;
+            }
+        }
+
+        function nextLabStep() {
+            if (currentLabIndex < labSteps.length - 1) { currentLabIndex++; renderLabStep(); } 
+            else {
+                const template = labSteps[currentLabIndex].prompt.replace(/<[^>]*>?/gm, '');
+                navigator.clipboard.writeText(template).then(() => {
+                    const btn = document.getElementById('lab-btn');
+                    btn.innerHTML = `<i class="fa-solid fa-check text-3xl"></i> <span>تم النسخ بنجاح! شكراً لك.</span>`;
+                    btn.classList.add('scale-105');
+                });
+            }
+        }
+
+        function updateProgress(step) {
+            const totalSteps = fullCourse.length + 2; 
+            const progress = (step / totalSteps) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `${Math.round(progress)}%`;
+        }
+
+        // --- وظائف التفاعل الإضافية للدروس (النوافذ وكشف النصوص) ---
+        
+        // دالة مخصصة لفتح النوافذ بشكل آمن باستخدام بيانات الـ Modal المفصولة
+        function openModalById(title, id) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerHTML = modalData[id];
+            const modal = document.getElementById('modal');
+            const contentBox = document.getElementById('modal-content-box');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                contentBox.classList.remove('scale-95');
+                contentBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const contentBox = document.getElementById('modal-content-box');
+            
+            modal.classList.add('opacity-0');
+            contentBox.classList.remove('scale-100');
+            contentBox.classList.add('scale-95');
+            
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        function revealElement(id, element) {
+            const el = document.getElementById(id);
+            if(el.style.display !== 'block') {
+                el.style.display = 'block';
+                element.classList.add('border-brand-primary');
+                element.classList.remove('border-white/10');
+            } else {
+                el.style.display = 'none';
+                element.classList.remove('border-brand-primary');
+                element.classList.add('border-white/10');
+            }
+        }
+
+        // --- وظيفة التقييم الختامي (تعبئة القلب) ---
+        let heartClicks = 0;
+        function fillHeart() {
+            if (heartClicks < 4) {
+                heartClicks++;
+                const percentage = (heartClicks / 4) * 100;
+                
+                // تحديث الـ Gradient للقلب
+                document.getElementById('fillStop').setAttribute('offset', percentage + '%');
+                document.getElementById('emptyStop').setAttribute('offset', percentage + '%');
+                
+                // أنميشن نبض
+                const heartSvg = document.getElementById('eval-heart');
+                heartSvg.classList.remove('animate-heart-beat');
+                void heartSvg.offsetWidth; // Trigger reflow
+                heartSvg.classList.add('animate-heart-beat');
+
+                // عند الاكتمال
+                if (heartClicks === 4) {
+                    const text = document.getElementById('heart-text');
+                    text.classList.remove('opacity-0');
+                    text.classList.add('animate-fade-in');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
