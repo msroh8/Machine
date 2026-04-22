@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تمييز قوى التأثير المتبادل</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f0fdfa; /* Light teal background */
+        }
+        
+        /* Tab transitions */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Rocket Animation Styles */
+        .rocket-container {
+            position: relative;
+            height: 400px;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #0f172a, #1e293b, #475569);
+            border-radius: 1rem;
+        }
+        
+        #rocket {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: bottom 2s ease-in;
+            z-index: 10;
+        }
+
+        .fire {
+            display: none;
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ef4444;
+            font-size: 2rem;
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        @keyframes flicker {
+            from { opacity: 0.8; transform: translateX(-50%) scale(1); }
+            to { opacity: 1; transform: translateX(-50%) scale(1.2); }
+        }
+
+        /* Vector Arrows */
+        .vector-arrow {
+            position: absolute;
+            width: 4px;
+            background-color: currentColor;
+            display: none;
+            transition: height 0.3s;
+        }
+        .vector-arrow::after {
+            content: '';
+            position: absolute;
+            left: -6px;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+        }
+        
+        .arrow-up {
+            bottom: 100%;
+            height: 0;
+            color: #22c55e; /* Green */
+        }
+        .arrow-up::after {
+            top: -10px;
+            border-bottom: 12px solid #22c55e;
+        }
+
+        .arrow-down {
+            top: 100%;
+            height: 0;
+            color: #ef4444; /* Red */
+        }
+        .arrow-down::after {
+            bottom: -10px;
+            border-top: 12px solid #ef4444;
+        }
+
+        /* Custom Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            margin-top: -8px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 8px;
+            cursor: pointer;
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-teal-600 to-indigo-700 text-white shadow-xl rounded-b-[3rem] pb-8 pt-10 px-4 text-center relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+            <i class="fas fa-atom absolute text-9xl -left-10 top-10"></i>
+            <i class="fas fa-rocket absolute text-8xl right-10 top-0 transform rotate-45"></i>
+        </div>
+        <div class="relative z-10">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 drop-shadow-md">تمييز قوى التأثير المتبادل</h1>
+            <p class="text-xl md:text-2xl font-semibold text-teal-100 bg-black bg-opacity-20 inline-block px-6 py-2 rounded-full backdrop-blur-sm">
+                إشراف المعلمة - رحمة القرشي
+            </p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8 max-w-5xl">
+        
+        <!-- Tab Navigation -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8 border-b-2 border-teal-200 pb-4">
+            <button onclick="switchTab('concept')" id="btn-concept" class="tab-btn px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 bg-teal-600 text-white shadow-md hover:bg-teal-700 transform hover:-translate-y-1">
+                <i class="fas fa-book-open ml-2"></i> المفهوم الأساسي
+            </button>
+            <button onclick="switchTab('interactive')" id="btn-interactive" class="tab-btn px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 bg-white text-teal-600 border border-teal-600 hover:bg-teal-50 transform hover:-translate-y-1">
+                <i class="fas fa-gamepad ml-2"></i> أمثلة تفاعلية
+            </button>
+            <button onclick="switchTab('quiz')" id="btn-quiz" class="tab-btn px-6 py-3 rounded-full font-bold text-lg transition-all duration-300 bg-white text-teal-600 border border-teal-600 hover:bg-teal-50 transform hover:-translate-y-1">
+                <i class="fas fa-question-circle ml-2"></i> اختبر فهمك
+            </button>
+        </div>
+
+        <!-- TAB 1: Concept -->
+        <div id="tab-concept" class="tab-content active bg-white rounded-3xl shadow-xl p-6 md:p-10">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-6 border-r-4 border-indigo-500 pr-4">قانون نيوتن الثالث</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <p class="text-lg leading-relaxed mb-4 text-gray-700">
+                        ينص قانون نيوتن الثالث على أنه: <br>
+                        <span class="font-bold text-xl text-teal-600 block my-3 p-4 bg-teal-50 rounded-xl border border-teal-100">
+                            "لكل قوة فعل، قوة رد فعل، مساوية لها في المقدار ومعاكسة لها في الاتجاه."
+                        </span>
+                    </p>
+                    <ul class="space-y-3 text-gray-600 mb-6">
+                        <li class="flex items-center"><i class="fas fa-check-circle text-green-500 ml-2"></i> القوتان تظهران وتختفيان معاً (في نفس اللحظة).</li>
+                        <li class="flex items-center"><i class="fas fa-check-circle text-green-500 ml-2"></i> تؤثر القوتان في <strong>جسمين مختلفين</strong>، لذلك لا تلغيان بعضهما البعض.</li>
+                        <li class="flex items-center"><i class="fas fa-check-circle text-green-500 ml-2"></i> تسمى هاتان القوتان بـ <strong class="mr-1">زوج التأثير المتبادل</strong>.</li>
+                    </ul>
+                </div>
+                
+                <!-- Interactive Force Slider -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-center">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">تفاعل القوى (جرب بنفسك)</h3>
+                    <p class="text-sm text-gray-500 mb-6">حرك الشريط لزيادة قوة الدفع (الفعل) ولاحظ ماذا يحدث لرد الفعل.</p>
+                    
+                    <div class="relative h-32 flex items-center justify-center mb-8">
+                        <!-- Object A (Hand pushing) -->
+                        <div class="flex items-center relative z-10 transform -translate-x-4">
+                            <div class="text-4xl text-indigo-500"><i class="fas fa-hand-paper transform -rotate-90"></i></div>
+                            <!-- Action Arrow -->
+                            <div class="relative flex items-center mr-2">
+                                <div id="arrow-action" class="bg-indigo-500 h-2 transition-all duration-100" style="width: 0px;"></div>
+                                <div id="arrow-action-head" class="w-0 h-0 border-t-8 border-b-8 border-r-[12px] border-t-transparent border-b-transparent border-r-indigo-500 transition-all duration-100 opacity-0"></div>
+                            </div>
+                        </div>
+
+                        <!-- Center Line -->
+                        <div class="w-1 h-24 bg-gray-300 mx-4"></div>
+
+                        <!-- Object B (Wall) -->
+                        <div class="flex items-center flex-row-reverse relative z-10 transform translate-x-4">
+                            <div class="w-8 h-24 bg-gray-600 rounded-sm"></div>
+                            <!-- Reaction Arrow -->
+                            <div class="relative flex items-center flex-row-reverse ml-2">
+                                <div id="arrow-reaction" class="bg-teal-500 h-2 transition-all duration-100" style="width: 0px;"></div>
+                                <div id="arrow-reaction-head" class="w-0 h-0 border-t-8 border-b-8 border-l-[12px] border-t-transparent border-b-transparent border-l-teal-500 transition-all duration-100 opacity-0"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between px-4 mb-2 text-sm font-bold">
+                        <span class="text-indigo-600" id="force-val-1">قوة الفعل: 0 نيوتن</span>
+                        <span class="text-teal-600" id="force-val-2">رد الفعل: 0 نيوتن</span>
+                    </div>
+                    
+                    <input type="range" min="0" max="100" value="0" id="forceSlider" oninput="updateForceSim(this.value)">
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Interactive Examples -->
+        <div id="tab-interactive" class="tab-content bg-white rounded-3xl shadow-xl p-6 md:p-10">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-6 border-r-4 border-indigo-500 pr-4">محاكاة إطلاق الصاروخ</h2>
+            <p class="text-gray-700 mb-6">كيف يطير الصاروخ في الفضاء حيث لا يوجد هواء ليدفعه؟ السر يكمن في قوى التأثير المتبادل! اضغط على زر الإطلاق ولاحظ متجهات القوة.</p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Controls and explanation -->
+                <div class="col-span-1 flex flex-col justify-center space-y-6">
+                    <button id="launchBtn" onclick="launchRocket()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95 text-xl flex items-center justify-center">
+                        <i class="fas fa-power-off ml-3"></i> إطلاق الصاروخ
+                    </button>
+                    <button id="resetBtn" onclick="resetRocket()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 rounded-xl shadow transition hidden">
+                        <i class="fas fa-undo ml-2"></i> إعادة المحاكاة
+                    </button>
+
+                    <div id="rocket-explanation" class="bg-blue-50 p-4 rounded-xl border border-blue-100 opacity-50 transition-opacity duration-500">
+                        <h4 class="font-bold text-blue-800 mb-2"><i class="fas fa-info-circle ml-1"></i> التحليل الفيزيائي:</h4>
+                        <div class="space-y-3 text-sm text-gray-700">
+                            <p class="flex items-start">
+                                <span class="text-red-500 font-bold ml-2 shrink-0">▼ الفعل:</span> 
+                                قوة دفع محرك الصاروخ للغازات الساخنة نحو الأسفل.
+                            </p>
+                            <p class="flex items-start">
+                                <span class="text-green-600 font-bold ml-2 shrink-0">▲ رد الفعل:</span> 
+                                قوة دفع الغازات للصاروخ نحو الأعلى (وهي التي تجعله يطير).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Area -->
+                <div class="col-span-1 lg:col-span-2 rocket-container border-4 border-gray-800 shadow-inner flex justify-center">
+                    
+                    <!-- Stars Background -->
+                    <div class="absolute inset-0 opacity-50">
+                        <div class="absolute w-1 h-1 bg-white rounded-full top-10 left-10"></div>
+                        <div class="absolute w-2 h-2 bg-white rounded-full top-32 left-1/4"></div>
+                        <div class="absolute w-1 h-1 bg-white rounded-full top-20 right-20"></div>
+                        <div class="absolute w-2 h-2 bg-white rounded-full top-48 right-1/3"></div>
+                    </div>
+
+                    <div id="rocket" class="flex flex-col items-center">
+                        <!-- Upward Vector (Reaction) -->
+                        <div id="up-vector" class="vector-arrow arrow-up mb-2"></div>
+                        <span id="up-label" class="absolute -top-12 text-green-400 text-xs font-bold whitespace-nowrap opacity-0 transition-opacity">رد الفعل (الغاز يدفع الصاروخ)</span>
+                        
+                        <!-- The Rocket Icon -->
+                        <i class="fas fa-rocket text-6xl text-white transform -rotate-45 drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]"></i>
+                        
+                        <!-- Rocket Fire -->
+                        <i id="rocket-fire" class="fas fa-fire fire"></i>
+                        
+                        <!-- Downward Vector (Action) -->
+                        <div id="down-vector" class="vector-arrow arrow-down mt-8"></div>
+                        <span id="down-label" class="absolute -bottom-24 text-red-400 text-xs font-bold whitespace-nowrap opacity-0 transition-opacity">الفعل (الصاروخ يدفع الغاز)</span>
+                    </div>
+
+                    <!-- Launch Pad -->
+                    <div id="launch-pad" class="absolute bottom-0 w-40 h-8 bg-gray-600 rounded-t-lg border-t-4 border-gray-400"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Quiz -->
+        <div id="tab-quiz" class="tab-content bg-white rounded-3xl shadow-xl p-6 md:p-10">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-6 border-r-4 border-indigo-500 pr-4">اختبر فهمك</h2>
+            <p class="text-gray-600 mb-8">أجب عن الأسئلة التالية لتتأكد من استيعابك لمفهوم قوى التأثير المتبادل.</p>
+
+            <div class="space-y-6">
+                <!-- Question 1 -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                    <p class="text-xl font-bold text-gray-800 mb-4">1. قوتا الفعل ورد الفعل تؤثران دائماً في نفس الجسم، ولذلك تلغيان بعضهما.</p>
+                    <div class="flex gap-4">
+                        <button onclick="checkAnswer(1, false, this)" class="q-btn flex-1 py-3 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 font-bold text-gray-700 transition">صح</button>
+                        <button onclick="checkAnswer(1, true, this)" class="q-btn flex-1 py-3 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 font-bold text-gray-700 transition">خطأ</button>
+                    </div>
+                    <div id="feedback-1" class="hidden mt-4 p-3 rounded-lg text-sm font-bold"></div>
+                </div>
+
+                <!-- Question 2 -->
+                <div class="bg-gray-50 p-6 rounded-2xl border border-gray-200">
+                    <p class="text-xl font-bold text-gray-800 mb-4">2. عند ركل كرة قدم، ما هو زوج التأثير المتبادل الصحيح؟</p>
+                    <div class="flex flex-col gap-3">
+                        <button onclick="checkAnswer(2, false, this)" class="q-btn text-right px-4 py-3 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 font-bold text-gray-700 transition">قوة القدم على الكرة، وقوة احتكاك الكرة بالأرض.</button>
+                        <button onclick="checkAnswer(2, true, this)" class="q-btn text-right px-4 py-3 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 font-bold text-gray-700 transition">قوة القدم على الكرة، وقوة الكرة على القدم.</button>
+                        <button onclick="checkAnswer(2, false, this)" class="q-btn text-right px-4 py-3 bg-white border-2 border-gray-300 rounded-xl hover:bg-gray-100 font-bold text-gray-700 transition">قوة الجاذبية على الكرة، وقوة القدم على الكرة.</button>
+                    </div>
+                    <div id="feedback-2" class="hidden mt-4 p-3 rounded-lg text-sm font-bold"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 text-center py-6 mt-auto">
+        <p>تم تصميم هذه الصفحة كنشاط تعليمي تفاعلي لتبسيط مفاهيم الفيزياء.</p>
+        <p class="text-sm mt-2 text-gray-400">تحت إشراف المعلمة: رحمة القرشي</p>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Remove active styles from buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-teal-600', 'text-white');
+                btn.classList.add('bg-white', 'text-teal-600');
+            });
+
+            // Show selected tab
+            document.getElementById('tab-' + tabId).classList.add('active');
+            
+            // Highlight selected button
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-white', 'text-teal-600');
+            activeBtn.classList.add('bg-teal-600', 'text-white');
+        }
+
+        // Tab 1: Force Slider Simulation
+        function updateForceSim(value) {
+            const arrowAction = document.getElementById('arrow-action');
+            const arrowReaction = document.getElementById('arrow-reaction');
+            const headAction = document.getElementById('arrow-action-head');
+            const headReaction = document.getElementById('arrow-reaction-head');
+            
+            // Max width is 100px
+            const width = value; 
+            
+            arrowAction.style.width = width + 'px';
+            arrowReaction.style.width = width + 'px';
+
+            document.getElementById('force-val-1').innerText = `قوة الفعل: ${value} نيوتن`;
+            document.getElementById('force-val-2').innerText = `رد الفعل: ${value} نيوتن`;
+
+            if (value > 0) {
+                headAction.style.opacity = '1';
+                headReaction.style.opacity = '1';
+            } else {
+                headAction.style.opacity = '0';
+                headReaction.style.opacity = '0';
+            }
+        }
+
+        // Tab 2: Rocket Simulation
+        let isLaunched = false;
+        function launchRocket() {
+            if (isLaunched) return;
+            isLaunched = true;
+
+            const rocket = document.getElementById('rocket');
+            const fire = document.getElementById('rocket-fire');
+            const upVector = document.getElementById('up-vector');
+            const downVector = document.getElementById('down-vector');
+            const upLabel = document.getElementById('up-label');
+            const downLabel = document.getElementById('down-label');
+            const btn = document.getElementById('launchBtn');
+            const explanation = document.getElementById('rocket-explanation');
+
+            // UI Changes
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            explanation.classList.remove('opacity-50');
+            explanation.classList.add('opacity-100', 'shadow-md');
+            
+            // Start fire and vectors
+            fire.style.display = 'block';
+            
+            // Show vectors growing
+            upVector.style.display = 'block';
+            downVector.style.display = 'block';
+            
+            setTimeout(() => {
+                upVector.style.height = '60px';
+                downVector.style.height = '60px';
+                upLabel.style.opacity = '1';
+                downLabel.style.opacity = '1';
+            }, 100);
+
+            // Move Rocket after a short delay showing forces buildup
+            setTimeout(() => {
+                rocket.style.bottom = '120%'; // Fly out of container
+            }, 800);
+
+            // Show reset button
+            setTimeout(() => {
+                document.getElementById('resetBtn').classList.remove('hidden');
+                btn.classList.add('hidden');
+            }, 2500);
+        }
+
+        function resetRocket() {
+            isLaunched = false;
+            const rocket = document.getElementById('rocket');
+            const fire = document.getElementById('rocket-fire');
+            const upVector = document.getElementById('up-vector');
+            const downVector = document.getElementById('down-vector');
+            const upLabel = document.getElementById('up-label');
+            const downLabel = document.getElementById('down-label');
+            const btn = document.getElementById('launchBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const explanation = document.getElementById('rocket-explanation');
+
+            // Reset UI
+            rocket.style.transition = 'none'; // remove transition for instant reset
+            rocket.style.bottom = '20px';
+            fire.style.display = 'none';
+            
+            upVector.style.height = '0';
+            downVector.style.height = '0';
+            upLabel.style.opacity = '0';
+            downLabel.style.opacity = '0';
+            
+            setTimeout(() => {
+                upVector.style.display = 'none';
+                downVector.style.display = 'none';
+                rocket.style.transition = 'bottom 2s ease-in'; // restore transition
+            }, 300);
+
+            btn.classList.remove('hidden', 'opacity-50', 'cursor-not-allowed');
+            resetBtn.classList.add('hidden');
+            
+            explanation.classList.remove('opacity-100', 'shadow-md');
+            explanation.classList.add('opacity-50');
+        }
+
+        // Tab 3: Quiz Logic
+        function checkAnswer(questionNum, isCorrect, btnElement) {
+            // Get siblings to disable them
+            const container = btnElement.parentElement;
+            const buttons = container.querySelectorAll('.q-btn');
+            
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+                btn.classList.remove('hover:bg-gray-100');
+            });
+
+            // Highlight selected
+            btnElement.classList.remove('opacity-60', 'bg-white');
+            
+            const feedbackDiv = document.getElementById('feedback-' + questionNum);
+            feedbackDiv.classList.remove('hidden');
+
+            if (isCorrect) {
+                btnElement.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                feedbackDiv.classList.add('bg-green-50', 'text-green-700', 'border', 'border-green-200');
+                
+                if(questionNum === 1) {
+                    feedbackDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> <strong>إجابة صحيحة!</strong> العبارة خاطئة لأن قوى التأثير المتبادل تؤثر في <strong>جسمين مختلفين</strong>، ولذلك لا تلغيان بعضهما.';
+                } else {
+                    feedbackDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> <strong>إجابة صحيحة!</strong> الفعل هو دفع القدم للكرة، ورد الفعل هو دفع الكرة للقدم في نفس اللحظة.';
+                }
+            } else {
+                btnElement.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                feedbackDiv.classList.add('bg-red-50', 'text-red-700', 'border', 'border-red-200');
+                
+                // Find the correct button to highlight it
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('onclick').includes('true')) {
+                        btn.classList.remove('opacity-60', 'bg-white');
+                        btn.classList.add('bg-green-100', 'border-green-500');
+                    }
+                });
+
+                if(questionNum === 1) {
+                    feedbackDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> <strong>إجابة خاطئة.</strong> تذكر أن قوى التأثير المتبادل تؤثر في <strong>جسمين مختلفين</strong> دائماً.';
+                } else {
+                    feedbackDiv.innerHTML = '<i class="fas fa-times-circle mr-2"></i> <strong>إجابة خاطئة.</strong> قوتا الفعل ورد الفعل يجب أن تكونا بين نفس الجسمين (القدم والكرة).';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
